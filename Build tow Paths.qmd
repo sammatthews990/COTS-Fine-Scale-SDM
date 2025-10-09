@@ -1,0 +1,1202 @@
+---
+title: "Geo-preprocessing"
+author: "Sam Matthews"
+format:
+  html:
+    theme: 
+      light: cosmo      # pick any light Bootswatch theme
+      dark: solar      # pick any dark Bootswatch theme
+    toc: true
+    code-fold: show
+    self-contained: true
+execute:
+  echo: true
+  warning: false
+  message: false
+editor: visual
+---
+
+## Set Up
+
+```{r}
+# Packages ---------------------------------------------------------------
+# (uncomment next 2 lines if you want auto-install)
+# pkgs <- c("leaflet","terra","sf","leafem","raster")
+# to_install <- pkgs[!sapply(pkgs, requireNamespace, quietly = TRUE)]; if (length(to_install)) install.packages(to_install)
+
+library(terra)    # raster
+library(sf)       # vectors
+library(leaflet)  # web map
+library(leafem)   # helpers for raster in leaflet
+library(raster)   # addRasterImage prefers RasterLayer
+library(igraph)
+library(units)
+library(ggplot2)
+library(smoothr)
+library(dplyr)
+library(gdistance)
+```
+
+## Read Data
+
+```{r}
+coralSDM <- terra::rast("data/maxent_predrast_GBR_AhyaD_015_lq2.tif")
+crs(coralSDM)
+#John Brewer
+# bb_wgs <- ext(147.0, 147.1, -18.66, -18.6)
+bb_wgs <- ext(146.6, 146.86, -18.3, -18.15) # Britomart
+# 2) Turn extent -> polygon with CRS, then project to raster CRS (MGA55)
+bb_wgs_poly <- as.polygons(bb_wgs, crs = "EPSG:4326")
+bb_mga_poly <- project(bb_wgs_poly, crs(coralSDM))
+
+# 3) Crop (and optionally mask) using on-disk processing (good for big rasters)
+coralSDM_crop <- crop(coralSDM, bb_mga_poly)
+
+# Optional (keeps only inside the polygon edges):
+# out <- mask(out, bb_mga_poly, filename = "outputs/coralSDM_clip.tif", overwrite = TRUE)
+
+
+plot(coralSDM_crop)
+```
+
+## Add Bathymetry Data
+
+```{r}
+library(terra)
+
+bath <- terra::rast("data/SDB_AUS_TownsvilleWhitsunday_EOMAP_20180603_20180903_10m_MSL_geotiff.tif")
+# bath <- terra::project(bath, crs(coralSDM))
+bb_wgs <- ext(146.6, 146.86, -18.29, -18.15) # Britomart
+# 2) Turn extent -> polygon with CRS, then project to raster CRS (MGA55)
+bb_wgs_poly <- as.polygons(bb_wgs, crs = "EPSG:4326")
+bb_mga_poly2 <- project(bb_wgs_poly, crs(bath))
+
+bathy_crop <- crop(bath, bb_mga_poly2)
+
+plot(bathy_crop) 
+
+
+# ---- your loaded bathy crop (assumed already) ----
+# bath <- rast("data/SDB_Bathymetry.tpkx")
+# bathy_crop <- crop(bath, bb_poly_rcrs)
+# we're using bathy_crop below
+
+# pick the bathy layer you want to use (choose index if multiple)
+bathy <- project(bathy_crop, reef_crs)   # change index if another layer is the depth layer
+
+# 1. quick diagnostics: min / max and a small sample
+gm <- global(bathy, fun = c("min","max"), na.rm = TRUE)   # returns a matrix-like result
+bmin <- gm[1,1]
+bmax <- gm[1,2]
+print(sprintf("bathy min = %s, max = %s", bmin, bmax))
+
+
+# If you have a known point (lon/lat) with known depth, compare:
+# terra::extract(bathy, matrix(c(lon, lat), ncol=2, byrow=TRUE)) 
+# (be sure coordinates are in the bathy CRS or transform first)
+
+# 2. Decide shallow test depending on sign convention:
+#    - if bathy values are negative for depth (e.g. -10 = 10 m deep), shallow if depth >= -3
+#    - if bathy values are positive for depth (e.g. 10 = 10 m deep), shallow if depth <= 3
+if (bmax < 0) {
+  # negative-depth convention
+  shallow_cond <- bathy >= -3     # TRUE where depth is shallower than 3 m
+  message("Detected negative-depth bathy (e.g. -10 = 10 m). Using bathy >= -3 for shallow.")
+} else if (bmin >= 0) {
+  # positive-depth convention
+  shallow_cond <- bathy <= 3      # TRUE where depth is shallower than 3 m
+  message("Detected non-negative bathy (e.g. 10 = 10 m). Using bathy <= 3 for shallow.")
+} else {
+  # mixed or ambiguous; pick the most likely: if abs(max) > abs(min) assume positive
+  if (abs(bmax) >= abs(bmin)) { 
+    shallow_cond <- bathy <= 3
+    message("Ambiguous bathy signs; defaulting to bathy <= 3 for shallow (positive-depth assumption).")
+  } else {
+    shallow_cond <- bathy >= -3
+    message("Ambiguous bathy signs; defaulting to bathy >= -3 for shallow (negative-depth assumption).")
+  }
+}
+
+# Make a mask that is 1 for deep (keep) and NA for shallow (remove)
+# deep_mask = if shallow then NA else 1
+deep_mask <- ifel(shallow_cond, NA, 1)
+
+# Quick check: how many shallow cells?
+n_shallow <- global(shallow_cond, "sum", na.rm=TRUE)[1,1]
+message(sprintf("shallow cells (count) = %s", n_shallow))
+
+# plot to visually check
+plot(bathy, main="Bathymetry (layer)")
+plot(shallow_cond, main = "Shallow (<3 m) TRUE=1")
+plot(deep_mask, main = "Deep mask (1=keep, NA=remove)")
+
+# ---- 3. Resample your conductance raster to bathy resolution & extent ----
+# load your conductance raster (example)
+# cond <- rast("data/conductance.tif")    # replace with your conductance layer
+
+
+```
+
+
+
+## Determine Tow Path
+
+```{r}
+
+# --- INPUTS ---
+r <- coralSDM_crop   # SpatRaster of probability 0..1 in MGA55 (metres)
+summary(values(r))
+crs_ <- st_crs(crs(r)) 
+r <- terra::aggregate(coralSDM_crop, fact = 3, fun = mean)
+# --- Build CONDUCTANCE from probability (safer than cost=1-p) ---
+alpha=1.5
+cond  <- app(r, function(x) (pmax(0, pmin(1, x)))^alpha)
+cond[is.na(cond)] <- 0
+
+plot(cond)
+hist(values(cond), main = "Conductance Values", xlab = "Conductance")
+
+# ensure the conductance raster exists; if not, skip this block
+if (exists("cond")) {
+  # align/resize conductance to bathy grid (match extent + resolution + CRS)
+  cond_rbath <- resample(cond, bathy, method = "bilinear")  # or "near" if categorical
+  # ---- 4. Mask conductance so shallow cells become NA ----
+  cond_maskedbath <- mask(cond_rbath, deep_mask)  # mask keeps cells where deep_mask has values (1), sets shallow -> NA
+
+  # sanity checks and plot
+  plot(cond_rbath, main = "Conductance (resampled)")
+  plot(cond_maskedbath, main = "Conductance masked (shallow removed)")
+} else {
+  message("No 'cond' raster found in environment. Load your conductance raster into 'cond' and re-run the resample/mask block.")
+}
+orig_bathy_na <- is.na(bathy)
+cond_maskedbath[orig_bathy_na] <- eps
+# ---- optional: write results ----
+# writeRaster(deep_mask, "bathy_deep_mask.tif", overwrite = TRUE)
+# writeRaster(cond_masked, "conductance_masked.tif", overwrite = TRUE)
+# or plot(r_ll)
+plot(cond_maskedbath)
+
+# gdistance needs RasterLayer
+cond_r <- raster::raster(cond)
+cond_maskedbathr <- raster::raster(cond_maskedbath)
+# Transition (use mean because we're using conductance)
+# tr <- gdistance::transition(cond_r, function(x) mean(x, na.rm = TRUE), directions = 8)
+tr <- gdistance::transition(cond_maskedbathr, function(x) mean(x, na.rm = TRUE), directions = 8)
+tr <- gdistance::geoCorrection(tr, type = "c")
+
+# # Get cells with high conductance (you can lower threshold if needed)
+# high_cells <- which(raster::values(cond_r) > 0.8)
+# length(high_cells)  # You want at least 2!
+# 
+# set.seed(42)  # for reproducibility
+# chosen_cells <- sample(high_cells, 2)
+# chosen_coords <- raster::xyFromCell(cond_r, chosen_cells)
+# 
+# # Assign as new start/end coordinates
+# start_xy <- chosen_coords[1, ]
+# end_xy   <- chosen_coords[2, ]
+# 
+# 
+# # Start/end as SpatialPoints (CRS preserved)
+# crs_ <- st_crs(crs(r))                       # parse terra WKT to sf crs
+# p1   <- st_sfc(st_point(start_xy), crs = crs_) |> as("Spatial")
+# p2   <- st_sfc(st_point(end_xy),   crs = crs_) |> as("Spatial")
+
+snap_to_tr <- function(pt_sp, tr, rRL) {
+  stopifnot(inherits(pt_sp, "SpatialPoints"))
+
+  # Use raster to get valid cell indices (non-zero conductance)
+  valid_cells <- which(raster::values(rRL) > 0)
+
+  if (!length(valid_cells)) stop("No valid conductance cells in raster.")
+
+  # Check if point is already valid
+  cell0 <- raster::cellFromXY(rRL, sp::coordinates(pt_sp))
+  ok <- is.finite(cell0) && (cell0 %in% valid_cells)
+
+  if (!ok) {
+    # Snap to nearest valid cell center
+    valid_xy <- raster::xyFromCell(rRL, valid_cells)
+    xy <- sp::coordinates(pt_sp)
+    i  <- which.min((valid_xy[,1] - xy[1,1])^2 + (valid_xy[,2] - xy[1,2])^2)
+    pt_sp <- SpatialPoints(matrix(valid_xy[i,], ncol = 2), proj4string = raster::crs(rRL))
+  }
+
+  pt_sp
+}
+# 
+# 
+# # --- make sure p1/p2 are in the correct CRS and snapped to the graph ---
+# # If your points started as sf/lonlat, reproject first:
+# # pts_sf <- st_transform(pts_sf_ll, st_crs(crs(r)))
+# # p1 <- as(pts_sf[1,], "Spatial"); p2 <- as(pts_sf[2,], "Spatial")
+# 
+# p1 <- snap_to_tr(p1, tr, cond_r)
+# p2 <- snap_to_tr(p2, tr, cond_r)
+
+# Shortest path (as SpatialLines), then to sf
+# sPath <- gdistance::shortestPath(tr, p1, p2, output = "SpatialLines")
+# sPath_sf <- sf::st_as_sf(sPath)
+# 
+# # --- Plot with ggplot (convert raster to df once) ---
+# df <- as.data.frame(r, xy = TRUE, na.rm = FALSE)
+# names(df)[3] <- "p"
+# 
+# ggplot(df) +
+#   geom_raster(aes(x = x, y = y, fill = p)) +
+#   geom_sf(data = sPath_sf, colour = "orange", linewidth = 2) +
+#   # coord_sf(crs = crs_$wkt) +
+#   scale_fill_viridis_c(name = "p(coral)", limits = c(0,1), oob = scales::squish) +
+#   theme_bw()
+
+```
+
+```{r, eval=FALSE}
+# Convert raster to binary mask (1 = high coral prob)
+reef_mask <- cond > 0.8
+
+# Convert to polygons (this will outline the reef)
+reef_poly <- as.polygons(reef_mask, dissolve = TRUE) |> st_as_sf() |>
+  dplyr::filter(lyr.1==1)
+
+# Get raster extent as an sf polygon
+r_extent <- st_as_sfc(st_bbox(cond))
+
+# Simplify the largest ring
+
+reef_ring <- reef_poly[which.max(st_area(reef_poly)), ]  # take the biggest one
+# Id otn think above is doing anythin usefuk as the polygons are just a single mulitplygon
+
+reef_line <- reef_poly |>
+  st_cast("MULTILINESTRING") |>
+  st_cast("LINESTRING")
+
+# 2. Sample points along the boundary (e.g., 20)
+pts <- st_line_sample(reef_line, n = 1, type = "regular") |> 
+  st_cast("POINT") |> as("Spatial")
+
+
+# 4. Snap all points to graph
+# pts_snapped <- lapply(pts_sp, snap_to_tr, tr = tr, rRL = cond_r)
+pts_snapped <- lapply(seq_len(length(pts)), function(i) {
+  snap_to_tr(pts[i, ], tr, cond_r)
+})
+
+# 5. Loop through pairs to build full path
+paths_list <- list()
+for (i in seq_along(pts_snapped)[-length(pts_snapped)]) {
+  print(i)
+  paths_list[[i]] <- gdistance::shortestPath(tr, pts_snapped[[i]], pts_snapped[[i+1]], output = "SpatialLines")
+}
+
+# Optional: Close the loop
+paths_list[[length(pts_snapped)]] <- gdistance::shortestPath(tr, pts_snapped[[length(pts_snapped)]], pts_snapped[[1]], output = "SpatialLines")
+
+# 6. Combine into one sf object
+paths_sf <- do.call(rbind, lapply(paths_list, sf::st_as_sf))
+
+# Get CRS from your raster
+reef_crs <- crs(coralSDM_crop, proj = TRUE)  # terra crs as WKT
+
+# Assign to paths_sf
+st_crs(paths_sf) <- reef_crs
+
+df <- as.data.frame(r, xy = TRUE, na.rm = FALSE)
+names(df)[3] <- "p"
+
+ggplot(df) +
+  geom_raster(aes(x = x, y = y, fill = p)) +
+  geom_sf(data = paths_sf, colour = "orange", linewidth = 1) +
+  # coord_sf(crs = crs_$wkt) +
+  scale_fill_viridis_c(name = "p(coral)", limits = c(0,1), oob = scales::squish) +
+  theme_bw()
+```
+
+## Leaflet Map
+
+```{r, eval=F}
+rng <- as.numeric(terra::global(coralSDM_crop, "range", na.rm = TRUE))
+pal_coral <- colorNumeric("magma", rng, na.color = "transparent")
+paths_sf <- st_transform(paths_sf, 4326)
+m <- leaflet() |>
+  addProviderTiles(providers$Esri.OceanBasemap, group = "Esri Ocean") |>
+  addProviderTiles(providers$Esri.WorldImagery, group = "Esri Satellite") |>
+  addProviderTiles(providers$CartoDB.Positron,  group = "Light") |>
+  addRasterImage(
+    coralSDM_crop,
+    colors  = pal_coral,
+    opacity = 0.7,
+    project = TRUE,
+    group   = "CoralSDM"
+  ) |>
+  addRasterImage(
+    cond_r,
+    opacity = 0.7,
+    project = TRUE,
+    group   = "Conductance"
+  ) |>
+    addPolylines(
+    data  = paths_sf,
+    color = "springgreen",
+    weight = 3,
+    group = "Tow Path"
+  ) |>
+  addLegend(
+    pal = pal_coral, values = rng, title = "Probability",
+    position = "bottomright", opacity = 1
+  ) |>
+
+  addLayersControl(
+  baseGroups    = c("Esri Ocean", "Esri Satellite", "Light"),
+  overlayGroups = c("CoralSDM", "Conductance", "Tow Path"),
+  options = layersControlOptions(collapsed = FALSE)
+)|>
+  leafem::addMouseCoordinates()
+
+m
+```
+
+## 50th  Percentile Paths
+
+```{r}
+#-----------------------------
+# 1) Load raster (probability 0-1)
+#-----------------------------
+# r <- coralSDM_crop  # CRS = GDA2020 / MGA 55 (metres)
+# crs_r <- st_crs(crs(r))  # parse the WKT from terra into an sf crs
+
+# Downsample to coarser resolution (e.g., factor of 2 or 5)
+# r <- terra::aggregate(coralSDM_crop, fact = 3, fun = mean)
+
+#-----------------------------
+# 2) Find probability thresholds by *cumulative probability mass*
+#   t50: minimal value so that pixels >= t50 sum to 50% of total mass
+#   t85: pixels >= t85 sum to 85% of total mass (gives "next ~35%" between t85 and t50)
+#-----------------------------
+v <- values(r, mat = FALSE, na.rm = TRUE)
+v <- ifelse(v>0.2, v, NA)
+o <- sort(v, decreasing = TRUE)
+cs <- cumsum(o) / sum(o)
+
+t50 <- o[which(cs >= 0.30)[1]]
+ # change 0.85 to 0.80 or 0.90 if you want 30% or 40%
+
+# Masks
+top50     <- r >= t50
+
+
+# make them 1/NA so polygons only represent the TRUE area
+top50     <- ifel(top50, 1, NA)
+
+#-----------------------------
+# 3) Raster->polygon (dissolved) for each zone
+#-----------------------------
+# polygonise; no need to filter on a field name
+poly_top50     <- as.polygons(top50,     dissolve = TRUE)      |> st_as_sf()
+
+
+# Convert to sf for path generation
+sf_top50     <- st_as_sf(poly_top50)
+
+# If sf_top50 / sf_next35ish came from terra::as.polygons(), still force-transform:
+sf_top50     <- st_transform(sf_top50,     crs_r)
+
+
+drop_small_polygons <- function(sf_obj, min_area_m2 = 20000) {
+  # sanity: must be projected in metres
+  if (isTRUE(st_is_longlat(sf_obj))) stop("drop_small_polygons: supply a projected CRS (metres).")
+  sf_valid <- st_make_valid(sf_obj)
+
+  # explode MULTIPOLYGON -> POLYGON (attributes will be repeated)
+  polys <- st_cast(sf_valid, "POLYGON")
+
+  # compute area in m^2 (numeric)
+  polys$area_m2 <- as.numeric(set_units(st_area(polys), "m^2"))
+
+  # keep only polygons larger than threshold
+  polys_filt <- polys %>% filter(area_m2 >= min_area_m2)
+
+  # if nothing left, return empty sf with same columns
+  if (nrow(polys_filt) == 0) return(sf_obj[0, ])
+
+  # recombine the kept polygons into a single MULTIPOLYGON geometry
+  geom_combined <- st_union(st_geometry(polys_filt))
+  geom_out <- st_cast(geom_combined, "MULTIPOLYGON")
+
+  # return geometry-only sf
+  st_sf(geometry = geom_out, crs = st_crs(sf_obj))
+}
+
+sf_top50.drop <- drop_small_polygons(sf_top50,5000)
+
+
+```
+
+```{r}
+
+
+reef_line <- sf_top50.drop |>
+  # st_simplify(dTolerance = 100) |>
+  st_cast("MULTILINESTRING") |>
+  st_cast("LINESTRING")
+
+# 2. Sample points along the boundary (e.g., 20)
+pts <- st_line_sample(reef_line, n = 1, type = "regular") |> 
+  st_cast("POINT") |> as("Spatial")
+
+
+# 4. Snap all points to graph
+# pts_snapped <- lapply(pts_sp, snap_to_tr, tr = tr, rRL = cond_r)
+pts_snapped <- lapply(seq_len(length(pts)), function(i) {
+  snap_to_tr(pts[i, ], tr, cond_r)
+})
+
+# Convert snapped SpatialPoints to sf
+pts_sf <- st_as_sf(do.call(rbind, pts_snapped))
+
+# Ensure CRS is set
+st_crs(pts_sf) <- st_crs(reef_crs)
+
+# Compute centroid of the entire reef (or polygon)
+reef_centroid <- st_centroid(st_union(reef_line))
+
+#new approach ----
+## 1) Cluster & choose one representative per cluster (use the highest-prob point)
+pts_m <- st_transform(pts_sf, reef_crs)
+coords <- st_coordinates(pts_m)
+db <- dbscan(coords, eps = 200, minPts = 2)      # tune eps in metres
+pts_m$cluster <- db$cluster
+
+
+## Extract probability from the SpatRaster
+vals <- terra::extract(r, terra::vect(pts_m))  # returns data.frame(ID, layer[s])
+prob_col <- setdiff(names(vals), "ID")[1]      # pick the layer name if single-band
+pts_m$prob <- vals[[prob_col]]
+pts_m$prob[is.na(pts_m$prob)] <- 0
+
+anchors <- pts_m |>
+  group_by(cluster) |>
+  slice_max(order_by = prob, n = 1, with_ties = FALSE) |>
+  ungroup()
+
+# (Optional) keep only “important” anchors
+# anchors <- anchors |> filter(prob >= quantile(prob, 0.6))
+
+A <- st_coordinates(anchors)
+
+## 2) Pairwise least-cost distance matrix on your raster conductance
+# costDistance returns pairwise LC distances; much better than shortestPath for every pair
+CM <- as.matrix(costDistance(tr, A, A))
+diag(CM) <- Inf
+tsp <- TSP::TSP(CM)
+
+## 3) Clockwise initial order, then refine with 2-opt
+# ctr <- st_coordinates(st_transform(st_centroid(st_union(anchors)), reef_crs))
+ctr <- st_coordinates(st_transform(reef_centroid, reef_crs))
+theta <- atan2(A[,2] - ctr[2], A[,1] - ctr[1])
+init_order <- order(theta)                     # clockwise around reef
+init_tour  <- TOUR(init_order)                 # provide as starting solution
+
+tour <- solve_TSP(tsp, method = "two_opt", control = list(tour = init_tour))
+ord  <- as.integer(tour)                       # city indices in visiting order
+
+# (Optional) make it an open path: drop the last edge that closes the loop
+edges <- cbind(ord, c(ord[-1], ord[1]))       # closed tour
+# edges <- edges[-nrow(edges), , drop = FALSE]  # comment out to keep it circular
+
+## 4) Materialise ONLY the edges of the tour as shortest paths
+seg_sf <- purrr::map(seq_len(nrow(edges)), \(k) {
+  i <- edges[k,1]; j <- edges[k,2]
+  sp <- shortestPath(tr, A[i,], A[j,], output = "SpatialLines")
+  #st_as_sf(sp)
+}) #|> purrr::list_rbind()
+
+###breaks here cos shortest path can't bea reached
+
+seg_list <- purrr::map(seq_len(nrow(edges)), function(k) {
+  i <- edges[k,1]; j <- edges[k,2]
+
+  # 1) Skip if pairwise cost is infinite (unreachable)
+  if (is.infinite(CM[i, j])) {
+    message(sprintf("Skipping edge %d -> %d because costDistance is Inf (unreachable).", i, j))
+    return(NULL)
+  }
+
+  # 2) Try shortestPath and guard against errors / invalid bbox
+  sp_obj <- tryCatch({
+    sp <- shortestPath(tr, A[i,], A[j,], output = "SpatialLines")
+    # if shortestPath returns NULL or has invalid bbox, treat as failure
+    if (is.null(sp)) stop("shortestPath returned NULL")
+    bb <- sp::bbox(sp)
+    if (any(!is.finite(bb))) stop("invalid bbox (infinite values)")
+    sp
+  }, error = function(e) {
+    message(sprintf("shortestPath failed for %d->%d : %s", i, j, e$message))
+    return(NULL)
+  }, warning = function(w) {
+    # optionally print warnings but continue
+    message(sprintf("shortestPath warning for %d->%d : %s", i, j, w$message))
+    invokeRestart("muffleWarning")
+  })
+
+  # 3) convert to sf (if valid), return LINESTRING sf or NULL
+  if (!is.null(sp_obj)) {
+    sf_line <- tryCatch({
+      st_as_sf(sp_obj)
+    }, error = function(e) {
+      message("st_as_sf conversion failed: ", e$message)
+      NULL
+    })
+    return(sf_line)
+  } else {
+    return(NULL)
+  }
+})
+
+# Remove NULLs and combine
+seg_list <- keep(seg_list, ~ !is.null(.x))
+if (length(seg_list) == 0) {
+  stop("No valid segments were produced (all edges unreachable / failed). Check connectivity / thresholds.")
+}
+# seg_list elements are sf; bind them into a single sf (may be MULTILINESTRING or multiple rows)
+seg_sf <- do.call(rbind, seg_list)
+
+# 1) Extract coordinates from each path safely
+coords_list <- lapply(seq_len(nrow(seg_sf)), function(ii) {
+  geom <- st_geometry(seg_sf[ii, ])
+  m <- st_coordinates(geom)
+  # st_coordinates for MULTILINE/LINESTRING returns matrix; handle that:
+  if (is.null(m) || nrow(m) == 0) return(NULL)
+  # If MULTILINE, keep only the first part (or flatten)
+  # m has a column "L1"/"L2" with part id; we can drop part cols
+  xy <- as.matrix(m[, c("X", "Y")])
+  return(xy)
+})
+coords_list <- Filter(Negate(is.null), coords_list)
+
+# 2) Combine coords into one continuous path (this assumes segments are ordered in the same sequence as edges)
+all_coords <- do.call(rbind, coords_list)
+
+# 3) Build LINESTRING only if we have coordinates
+if (nrow(all_coords) < 2) stop("Not enough coordinates to build path_line.")
+
+path_line <- st_linestring(all_coords)
+path_line_sf <- st_sf(geometry = st_sfc(path_line), crs = reef_crs)
+
+# Optional smoothing (if you still want smooth)
+route <- smooth(path_line_sf, method = "ksmooth", smoothness = 10)
+
+# can't make smooth route due to NA's
+
+
+
+# 1. Extract coordinates from each SpatialLines path
+coords_list <- lapply(seg_sf, function(x) {
+  if (!is.null(x)) {
+    sp::coordinates(x)[[1]][[1]]  # extract path coords as matrix
+  } else {
+    NULL
+  }
+})
+# 2. Filter out NULLs (e.g., failed paths)
+coords_list <- Filter(Negate(is.null), coords_list)
+
+# Combine all coordinate matrices into one continuous path
+all_coords <- do.call(rbind, coords_list)
+
+# Create a LINESTRING
+path_line <- st_linestring(all_coords)
+
+# Wrap into sf object
+path_line_sf <- st_sf(geometry = st_sfc(path_line), crs = reef_crs)
+
+
+route <- smooth(path_line_sf, method = "ksmooth", smoothness = 10)
+
+
+####----
+
+
+# # Extract coordinates
+# coords <- st_coordinates(pts_sf)
+# centroid_coords <- st_coordinates(reef_centroid)
+# 
+# # Calculate angle from centroid to each point
+# angles <- atan2(coords[, 2] - centroid_coords[2], coords[, 1] - centroid_coords[1])
+# 
+# # Add angle as column
+# pts_sf$angle <- angles
+# 
+# # Sort clockwise
+# pts_sf_sorted <- pts_sf[order(angles), ]
+# 
+# # Replace snapped list with sorted order
+# pts_snapped <- lapply(1:nrow(pts_sf_sorted), function(i) {
+#   as(st_geometry(pts_sf_sorted[i, ]), "Spatial")
+# })
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# # 5. Loop through pairs to build full path
+# paths_list <- list()
+# for (i in seq_along(pts_snapped)[-length(pts_snapped)]) {
+#   print(i)
+#   paths_list[[i]] <- gdistance::shortestPath(tr, pts_snapped[[i]], pts_snapped[[i+1]], output = "SpatialLines")
+# }
+# 
+# # Optional: Close the loop
+# paths_list[[length(pts_snapped)]] <- gdistance::shortestPath(tr, pts_snapped[[length(pts_snapped)]], pts_snapped[[1]], output = "SpatialLines")
+# 
+# # 6. Combine into one sf object
+# paths_sf <- do.call(rbind, lapply(paths_list, sf::st_as_sf))
+# 
+# # Get CRS from your raster
+# reef_crs <- crs(coralSDM_crop, proj = TRUE)  # terra crs as WKT
+# 
+# # Assign to paths_sf
+# st_crs(paths_sf) <- reef_crs
+# 
+# df <- as.data.frame(r, xy = TRUE, na.rm = FALSE)
+# names(df)[3] <- "p"
+# 
+# # 1. Extract coordinates from each SpatialLines path
+# coords_list <- lapply(paths_list, function(x) {
+#   if (!is.null(x)) {
+#     sp::coordinates(x)[[1]][[1]]  # extract path coords as matrix
+#   } else {
+#     NULL
+#   }
+# })
+# # 2. Filter out NULLs (e.g., failed paths)
+# coords_list <- Filter(Negate(is.null), coords_list)
+# 
+# # Combine all coordinate matrices into one continuous path
+# all_coords <- do.call(rbind, coords_list)
+# 
+# # Create a LINESTRING
+# path_line <- st_linestring(all_coords)
+# 
+# # Wrap into sf object
+# path_line_sf <- st_sf(geometry = st_sfc(path_line), crs = reef_crs)
+# 
+# 
+# path_smooth <- smooth(path_line_sf, method = "ksmooth", smoothness = 10)
+
+# ggplot(df) +
+#   geom_raster(aes(x = x, y = y, fill = p)) +
+#   # geom_sf(data = paths_sf, colour = "orange", linewidth = 1) +
+#   geom_sf(data = route, colour = "lightgreen", linewidth = 1) +
+#   # coord_sf(crs = crs_$wkt) +
+#   scale_fill_viridis_c(name = "p(coral)", limits = c(0,1), oob = scales::squish) +
+#   theme_bw()
+```
+
+## Create buffer for next 30% of habitat
+
+```{r}
+# Downsample to coarser resolution (e.g., factor of 2 or 5)
+# r <- terra::aggregate(coralSDM_crop, fact = 3, fun = mean)
+# 1. Buffer the first path (in meters, assuming projected CRS)
+path_50 <- path_line_sf
+path_50 <- st_transform(path_50, crs(r))
+
+path_50_buffer <- sf::st_buffer(path_50, dist = 200)
+
+# 2. Rasterize the buffer (must match resolution & extent of conductance raster)
+buffer_raster <- terra::rasterize(path_50_buffer, r)
+buffer_raster_aligned <- terra::project(buffer_raster, r, method = "near")
+# 3. Mask the conductance raster to exclude the buffered path
+r.masked <- terra::mask(r, buffer_raster_aligned, maskvalues = 1, inverse = F)
+plot(r.masked)
+
+buffer_raster_aligned <- terra::project(buffer_raster, cond, method = "near")
+cond_30_masked <- terra::mask(cond, buffer_raster_aligned, maskvalues = 1, inverse = F)
+plot(cond_30_masked)
+
+# 3. Convert to RasterLayer (gdistance doesn't work with SpatRaster)
+cond_30_r <- raster::raster(cond_30_masked)
+
+# 4. Build a NEW transition matrix (based on updated conductance)
+tr2 <- gdistance::transition(cond_30_r, function(x) mean(x, na.rm = TRUE), directions = 8)
+tr2 <- gdistance::geoCorrection(tr2, type = "c")
+### next 35
+
+# 1) Load raster (probability 0-1)
+#-----------------------------
+r <- r.masked  # CRS = GDA2020 / MGA 55 (metres)
+crs_r <- st_crs(crs(r))  # parse the WKT from terra into an sf crs
+
+#-----------------------------
+# 2) Find probability thresholds by *cumulative probability mass*
+#   t50: minimal value so that pixels >= t50 sum to 50% of total mass
+#   t85: pixels >= t85 sum to 85% of total mass (gives "next ~35%" between t85 and t50)
+#-----------------------------
+v <- values(r, mat = FALSE, na.rm = TRUE)
+v <- ifelse(v>0.1, v, NA)
+o <- sort(v, decreasing = TRUE)
+cs <- cumsum(o) / sum(o)
+
+t50 <- o[which(cs >= 0.50)[1]]
+ # change 0.85 to 0.80 or 0.90 if you want 30% or 40%
+
+# Masks
+top50 <- r >= t50
+
+# make them 1/NA so polygons only represent the TRUE area
+top50 <- ifel(top50, 1, NA)
+
+#-----------------------------
+# 3) Raster->polygon (dissolved) for each zone
+#-----------------------------
+# polygonise; no need to filter on a field name
+poly_top50 <- as.polygons(top50, dissolve = TRUE) |> st_as_sf()
+
+
+# Convert to sf for path generation
+sf_top50 <- st_as_sf(poly_top50)
+
+# If sf_top50 / sf_next35ish came from terra::as.polygons(), still force-transform:
+sf_top50 <- st_transform(sf_top50,crs_r)
+
+# Optional: clean tiny slivers
+drop_small <- function(sf_obj, min_area_m2 = 2000) {
+  sf_obj %>% mutate(a = st_area(geometry)) %>% filter(a >= set_units(min_area_m2, m^2)) %>% st_make_valid()
+}
+sf_top50     <- drop_small(sf_top50,     2000)
+
+```
+
+```{r, eval=F}
+reef_line.next <- sf_top50 |>
+  # st_simplify(dTolerance = 100) |>
+  st_cast("MULTILINESTRING") |>
+  st_cast("LINESTRING")
+
+# 2. Sample points along the boundary (e.g., 20)
+pts.next <- st_line_sample(reef_line.next, n = 1, type = "regular") |> 
+  st_cast("POINT") |> as("Spatial")
+
+
+# 4. Snap all points to graph
+# pts_snapped <- lapply(pts_sp, snap_to_tr, tr = tr, rRL = cond_r)
+pts_snapped.next <- lapply(seq_len(length(pts.next)), function(i) {
+  snap_to_tr(pts.next[i, ], tr2, cond_30_r)
+})
+
+# Convert snapped SpatialPoints to sf
+pts_sf.next <- st_as_sf(do.call(rbind, pts_snapped.next))
+
+# Ensure CRS is set
+st_crs(pts_sf.next) <- st_crs(reef_crs)
+
+# Compute centroid of the entire reef (or polygon)
+reef_centroid <- st_centroid(st_union(reef_line))
+
+# Extract coordinates
+coords <- st_coordinates(pts_sf.next)
+centroid_coords <- st_coordinates(reef_centroid)
+
+# Calculate angle from centroid to each point
+angles <- atan2(coords[, 2] - centroid_coords[2], coords[, 1] - centroid_coords[1])
+
+# Add angle as column
+pts_sf.next$angle <- angles
+
+# Sort clockwise
+pts_sf_sorted.next <- pts_sf.next[order(angles), ]
+
+# Replace snapped list with sorted order
+pts_snapped.next <- lapply(1:nrow(pts_sf_sorted.next), function(i) {
+  as(st_geometry(pts_sf_sorted.next[i, ]), "Spatial")
+})
+
+
+# 5. Loop through pairs to build full path
+paths_list.next <- list()
+for (i in seq_along(pts_snapped.next)[-length(pts_snapped.next)]) {
+  print(i)
+  paths_list.next[[i]] <- gdistance::shortestPath(tr, pts_snapped.next[[i]], pts_snapped.next[[i+1]], output = "SpatialLines")
+}
+
+# Optional: Close the loop
+paths_list.next[[length(pts_snapped.next)]] <- gdistance::shortestPath(tr, pts_snapped.next[[length(pts_snapped.next)]], pts_snapped.next[[1]], output = "SpatialLines")
+
+# 6. Combine into one sf object
+paths_sf.next <- do.call(rbind, lapply(paths_list.next, sf::st_as_sf))
+
+# Assign to paths_sf
+st_crs(paths_sf.next) <- reef_crs
+
+# 1. Extract coordinates from each SpatialLines path
+coords_list.next <- lapply(paths_list.next, function(x) {
+  if (!is.null(x)) {
+    sp::coordinates(x)[[1]][[1]]  # extract path coords as matrix
+  } else {
+    NULL
+  }
+})
+# 2. Filter out NULLs (e.g., failed paths)
+coords_list.next <- Filter(Negate(is.null), coords_list.next)
+
+# Combine all coordinate matrices into one continuous path
+all_coords.next <- do.call(rbind, coords_list.next)
+
+# Create a LINESTRING
+path_line.next <- st_linestring(all_coords.next)
+
+# Wrap into sf object
+path_line_sf.next <- st_sf(geometry = st_sfc(path_line.next), crs = reef_crs)
+
+
+path_smooth.next <- smooth(path_line_sf.next, method = "ksmooth", smoothness = 10)
+
+ggplot(df) +
+  geom_raster(aes(x = x, y = y, fill = p)) +
+  geom_sf(data = paths_sf, colour = "orange", linewidth = 1) +
+  geom_sf(data = path_smooth, colour = "lightgreen", linewidth = 1) +
+  geom_sf(data = path_smooth.next, colour = "purple", linewidth = 1) +
+  # coord_sf(crs = crs_$wkt) +
+  scale_fill_viridis_c(name = "p(coral)", limits = c(0,1), oob = scales::squish) +
+  theme_bw()
+```
+
+## Trying A* Style Algorithm
+
+```{r, eval=F}
+
+# Get coordinates matrix
+coords <- sf::st_coordinates(st_transform(pts_sf.next, reef_crs))
+
+# Use DBSCAN to cluster (spatially close clusters)
+db <- dbscan::dbscan(coords, eps = 200, minPts = 3)  # tweak eps as needed
+
+# Add cluster ID back
+pts_df <- do.call(rbind, lapply(pts_snapped.next, st_as_sf))
+pts_df$cluster <- db$cluster
+
+# Group and sample 1 per cluster
+anchor_pts <- pts_df |>
+  group_by(cluster) |>
+  slice(1) |>
+  ungroup()
+
+
+anchor_coords <- st_coordinates(anchor_pts)
+n <- nrow(anchor_pts)
+paths_list <- list()
+
+# Build shortest path between each pair (or just a subset to limit hairball)
+# Build shortest path between each pair (or just a subset to limit hairball)
+counter <- 1
+for (i in 1:(n - 1)) {
+  for (j in (i + 1):n) {
+    paths_list[[counter]] <- gdistance::shortestPath(
+      tr2, anchor_coords[i, ], anchor_coords[j, ],
+      output = "SpatialLines"
+    )
+    counter <- counter + 1
+  }
+}
+
+# Convert to sf
+pathstrimmed_sf <- do.call(rbind, lapply(paths_list, st_as_sf))
+
+# Union into a single line
+paths_merged <- st_union(pathstrimmed_sf)
+
+# Optionally smooth
+library(smoothr)
+paths_smoothed <- smoothr::smooth(paths_merged, method = "chaikin")
+
+pathstrimmed_sf$length <- st_length(pathstrimmed_sf)
+pathstrimmed_sf <- pathstrimmed_sf[pathstrimmed_sf$length < 2000, ]
+
+# Assign to paths_sf
+st_crs(paths_smoothed) <- reef_crs
+
+ggplot(df) +
+  geom_raster(aes(x = x, y = y, fill = p)) +
+  geom_sf(data = paths_sf, colour = "orange", linewidth = 1) +
+  geom_sf(data = path_smooth, colour = "lightgreen", linewidth = 1) +
+  geom_sf(data = paths_smoothed, colour = "purple", linewidth = 1) +
+  # coord_sf(crs = crs_$wkt) +
+  scale_fill_viridis_c(name = "p(coral)", limits = c(0,1), oob = scales::squish) +
+  theme_bw()
+
+```
+
+## Trying TSP
+
+```{r}
+library(sf)
+library(dplyr)
+library(dbscan)
+library(gdistance)
+library(TSP)
+library(purrr)
+library(smoothr)
+
+reef_line.next <- sf_top50 |>
+  # st_simplify(dTolerance = 100) |>
+  st_cast("MULTILINESTRING") |>
+  st_cast("LINESTRING")
+
+# 2. Sample points along the boundary (e.g., 20)
+pts.next <- st_line_sample(reef_line.next, n = 1, type = "regular") |> 
+  st_cast("POINT") |> as("Spatial")
+
+
+# 4. Snap all points to graph
+# pts_snapped <- lapply(pts_sp, snap_to_tr, tr = tr, rRL = cond_r)
+pts_snapped.next <- lapply(seq_len(length(pts.next)), function(i) {
+  snap_to_tr(pts.next[i, ], tr2, cond_30_r)
+})
+
+# Convert snapped SpatialPoints to sf
+pts_sf.next <- st_as_sf(do.call(rbind, pts_snapped.next))
+
+# Ensure CRS is set
+st_crs(pts_sf.next) <- st_crs(reef_crs)
+
+# Inputs you already have:
+# - pts_sf.next: point sf with columns: geometry, prob  (probability / priority)
+# - tr2: gdistance TransitionLayer (higher conductance where you want to travel)
+# - reef_crs: projected CRS in metres (important for eps)
+# - reef_centroid: sf POINT somewhere near the atoll (for cw start)
+
+# Epsilon-fill NAs so there are vertices everywhere (but very costly to cross)
+eps   <- 1e-6
+cond.mask  <- terra::ifel(is.na(cond_30_masked), eps, cond_30_masked)
+# Optional: close 1-pixel gaps (helps with thin rings)
+cond.mask  <- terra::focal(cond.mask, w=3, fun=max, na.policy = "omit")
+
+# gdistance wants RasterLayer
+cond_maskr <- raster::raster(cond.mask)
+
+# Transition from conductance (use mean; for costs use 1/mean(x))
+tr2 <- gdistance::transition(cond_maskr, function(x) mean(x), directions = 8)
+tr2 <- gdistance::geoCorrection(tr2, type = "c")   # correct for cell geometry
+
+
+# r <- coralSDM_crop
+# Work in a metric CRS (if your raster is lon/lat, project it once)
+if (terra::is.lonlat(r)) {
+  r     <- terra::project(r, as.character(reef_crs))
+  pts_m <- st_transform(pts_sf.next, reef_crs)
+} else {
+  pts_m <- st_transform(pts_sf.next, crs(r))
+}
+
+## 1) Cluster & choose one representative per cluster (use the highest-prob point)
+pts_m <- st_transform(pts_sf.next, reef_crs)
+coords <- st_coordinates(pts_m)
+db <- dbscan(coords, eps = 200, minPts = 3)      # tune eps in metres
+pts_m$cluster <- db$cluster
+
+
+## Extract probability from the SpatRaster
+vals <- terra::extract(r, terra::vect(pts_m))  # returns data.frame(ID, layer[s])
+prob_col <- setdiff(names(vals), "ID")[1]      # pick the layer name if single-band
+pts_m$prob <- vals[[prob_col]]
+pts_m$prob[is.na(pts_m$prob)] <- 0
+
+anchors2 <- pts_m |>
+  group_by(cluster) |>
+  slice_max(order_by = prob, n = 1, with_ties = FALSE) |>
+  ungroup()
+
+# (Optional) keep only “important” anchors
+# anchors <- anchors |> filter(prob >= quantile(prob, 0.6))
+
+A <- st_coordinates(anchors2)
+
+## 2) Pairwise least-cost distance matrix on your raster conductance
+# costDistance returns pairwise LC distances; much better than shortestPath for every pair
+CM <- as.matrix(costDistance(tr2, A, A))
+diag(CM) <- Inf
+tsp <- TSP::TSP(CM)
+
+## 3) Clockwise initial order, then refine with 2-opt
+# ctr <- st_coordinates(st_transform(st_centroid(st_union(anchors)), reef_crs))
+ctr <- st_coordinates(st_transform(reef_centroid, reef_crs))
+theta <- atan2(A[,2] - ctr[2], A[,1] - ctr[1])
+init_order <- order(theta)                     # clockwise around reef
+init_tour  <- TOUR(init_order)                 # provide as starting solution
+
+tour <- solve_TSP(tsp, method = "two_opt", control = list(tour = init_tour))
+ord  <- as.integer(tour)                       # city indices in visiting order
+
+# (Optional) make it an open path: drop the last edge that closes the loop
+edges <- cbind(ord, c(ord[-1], ord[1]))       # closed tour
+# edges <- edges[-nrow(edges), , drop = FALSE]  # comment out to keep it circular
+
+## 4) Materialise ONLY the edges of the tour as shortest paths
+seg_sf <- purrr::map(seq_len(nrow(edges)), \(k) {
+  i <- edges[k,1]; j <- edges[k,2]
+  sp <- shortestPath(tr2, A[i,], A[j,], output = "SpatialLines")
+  #st_as_sf(sp)
+}) #|> purrr::list_rbind()
+
+# route <- seg_sf |> st_as_sf() 
+# route <- lapply(1:nrow(route), function(i) {
+#   smoothr::smooth(route[i, ], method = "chaikin")
+# })
+# route <- do.call(rbind, route) |> st_as_sf()
+# route <- route |>
+#   st_union() |>        # becomes MULTILINESTRING
+#   st_line_merge() |> smoothr::smooth(method = "chaikin")
+# # route is a single LINESTRING sf (your “green line”)
+
+# st_crs(route) <- reef_crs
+
+
+# 1. Extract coordinates from each SpatialLines path
+coords_list2 <- lapply(seg_sf, function(x) {
+  if (!is.null(x)) {
+    sp::coordinates(x)[[1]][[1]]  # extract path coords as matrix
+  } else {
+    NULL
+  }
+})
+# 2. Filter out NULLs (e.g., failed paths)
+coords_list2 <- Filter(Negate(is.null), coords_list2)
+
+# Combine all coordinate matrices into one continuous path
+all_coords2 <- do.call(rbind, coords_list2)
+
+# Create a LINESTRING
+path_line2 <- st_linestring(all_coords2)
+
+# Wrap into sf object
+path_line2_sf <- st_sf(geometry = st_sfc(path_line2), crs = reef_crs)
+
+
+route2 <- smooth(path_line2_sf, method = "ksmooth", smoothness = 10)
+
+```
+
+
+
+
+
+```{r}
+# Assign to paths_sf
+# st_crs(path_line_sf) <- reef_crs
+# st_crs(path_smooth) <- reef_crs
+
+path_line_sf <- st_transform(path_line_sf, 4326)
+path_smooth <- st_transform(route, 4326)
+path_smooth.next <- st_transform(path_smooth.next, 4326)
+
+pts_combined <- do.call(rbind, pts_snapped)
+pts_sf <- st_as_sf(pts_combined)
+pts_sf <- st_transform(pts_sf, 4326)
+pts_sf.next <- st_transform(pts_sf.next, 4326)
+
+pts_leaf <- st_transform(anchors, 4326)
+path.next_leaf <- st_transform(route2, 4326)
+pts.next_leaf <- st_transform(anchors2[init_order,], 4326)
+rng.bath <- as.numeric(terra::global(bathy_crop, "range", na.rm = TRUE))
+pal_bath <- colorNumeric("viridis", rng.bath, na.color = "transparent")
+
+m <- leaflet() |>
+  addProviderTiles(providers$Esri.WorldImagery, group = "Esri Satellite") |>
+  addProviderTiles(providers$Esri.OceanBasemap, group = "Esri Ocean") |>
+  # addProviderTiles(providers$CartoDB.Positron,  group = "Light") |>
+  addRasterImage(
+    coralSDM_crop,
+    colors  = pal_coral,
+    opacity = 0.7,
+    project = TRUE,
+    group   = "CoralSDM"
+  ) |>
+  addRasterImage(
+    cond_r,
+    opacity = 0.7,
+    project = TRUE,
+    group   = "Conductance"
+  ) |>
+  addRasterImage(
+    bathy_crop,
+    colors = pal_bath,
+    opacity = 0.7,
+    project = TRUE,
+    group   = "Bathy"
+  ) |>
+  addRasterImage(
+    cond_maskedbath,
+    colors = "inferno",
+    opacity = 0.7,
+    project = TRUE,
+    group   = "BathyMask"
+  ) |>
+    addPolylines(
+    data  = path_line_sf,
+    color = "orange",
+    weight = 3,
+    group = "Tow Path"
+  ) |>
+  addPolylines(
+    data  = path_smooth,
+    color = "springgreen",
+    weight = 3,
+    group = "Tow Path - Smooth"
+  ) |>
+  addPolylines(
+    data  = path.next_leaf,
+    color = "skyblue",
+    weight = 3,
+    group = "Tow Path - Smooth 2nd"
+  ) |>
+  addCircleMarkers(
+    data = pts_leaf,
+    radius = 12,
+    stroke = TRUE,
+    color = "black",
+    fill = TRUE,
+    fillColor = "white",
+    fillOpacity = 1,
+    label = ~rownames(pts_leaf),
+    labelOptions = labelOptions(
+      noHide = TRUE, direction = "center",textsize = 25,
+      textOnly = TRUE),
+    group = "Snapped Points"
+  ) |>
+  addCircleMarkers(
+    data = pts.next_leaf,
+    radius = 12,
+    stroke = TRUE,
+    color = "blue",
+    fill = TRUE,
+    fillColor = "white",
+    fillOpacity = 1,
+    label = ~rownames(pts.next_leaf),
+    labelOptions = labelOptions(
+      noHide = TRUE, direction = "center",textsize = 25,
+      textOnly = TRUE),
+    group = "Snapped Points 2nd"
+  ) |>
+  addLegend(
+    pal = pal_coral, values = rng, title = "Probability",
+    position = "bottomright", opacity = 1
+  ) |>
+  addLegend(
+    pal = pal_bath, values = rng.bath, title = "Depth (m)",
+    position = "bottomright", opacity = 1
+  ) |>
+  addLayersControl(
+  baseGroups    = c("Esri Satellite", "Esri Ocean"),
+  overlayGroups = c("CoralSDM", "Conductance", "Tow Path", "Bathy","BathyMask",
+                    "Tow Path - Smooth", "Snapped Points", 
+                    "Snapped Points 2nd", "Tow Path - Smooth 2nd"),
+  options = layersControlOptions(collapsed = FALSE)
+)|>
+  leafem::addMouseCoordinates()
+
+m
+```
