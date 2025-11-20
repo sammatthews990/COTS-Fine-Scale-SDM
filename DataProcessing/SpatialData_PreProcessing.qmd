@@ -1,0 +1,615 @@
+---
+title: "Process Data"
+author: "Sam Matthews"
+format:
+  html:
+    theme: 
+      light: cosmo      # pick any light Bootswatch theme
+      dark: solar      # pick any dark Bootswatch theme
+    toc: true
+    code-fold: show
+    self-contained: true
+execute:
+  echo: true
+  warning: false
+  message: false
+editor: visual
+---
+
+## Set Up
+
+```{r}
+# Packages ---------------------------------------------------------------
+# (uncomment next 2 lines if you want auto-install)
+# pkgs <- c("leaflet","terra","sf","leafem","raster")
+# to_install <- pkgs[!sapply(pkgs, requireNamespace, quietly = TRUE)]; if (length(to_install)) install.packages(to_install)
+
+library(terra)    # raster
+library(sf)       # vectors
+library(leaflet)  # web map
+library(leafem)   # helpers for raster in leaflet
+library(raster)   # addRasterImage prefers RasterLayer
+library(igraph)
+library(units)
+library(ggplot2)
+library(smoothr)
+library(dplyr)
+library(gdistance)
+library(readxl)
+```
+
+## Read Data
+
+```{r}
+coralSDM.Ahya <- terra::rast("data/maxent_predrast_GBR_AhyaD_015_lq2.tif")
+coralSDM.Aspat <- terra::rast("data/maxent_predrast_GBR_Aspat_015_lq2.tif")
+coralSDM.Aten <- terra::rast("data/maxent_predrast_GBR_Aten_015_lq2.tif")
+crs(coralSDM.Ahya)
+#John Brewer
+bb_wgs <- ext(147.0, 147.1, -18.66, -18.6)
+# Britomart
+# bb_wgs <- ext(145.65, 145.88, -16.48, -16.33) 
+# 2) Turn extent -> polygon with CRS, then project to raster CRS (MGA55)
+bb_wgs_poly <- as.polygons(bb_wgs, crs = "EPSG:4326")
+bb_mga_poly <- project(bb_wgs_poly, crs(coralSDM.Ahya))
+
+
+coralSDM.Ahya_crop <- crop(coralSDM.Ahya, bb_mga_poly)
+coralSDM.Aspat_crop <- crop(coralSDM.Aspat, bb_mga_poly)
+coralSDM.Aten_crop <- crop(coralSDM.Aten, bb_mga_poly)
+
+plot(coralSDM.Ahya_crop)
+plot(coralSDM.Aspat_crop)
+plot(coralSDM.Aten_crop)
+```
+
+```{r Read in Raster}
+coralSDM.Ahya  <- rast("data/maxent_predrast_GBR_AhyaD_015_lq2.tif")
+coralSDM.Aspat <- rast("data/maxent_predrast_GBR_Aspat_015_lq2.tif")
+coralSDM.Aten  <- rast("data/maxent_predrast_GBR_Aten_015_lq2.tif")
+
+crs(coralSDM.Ahya)
+crs(coralSDM.Aspat)
+crs(coralSDM.Aten)
+
+
+# list the 30 m rasters
+env_files <- list.files(
+  "data/GBR_bathymetryDEM_ACA_UTM55_030_crop",
+  pattern = "\\.tif$",
+  full.names = TRUE
+)
+
+env30 <- rast(env_files)
+env30
+
+# Check CRS
+crs(env30)
+
+```
+
+### Need to add in ReefGuide data
+
+
+
+## Create Template Grid
+
+
+```{r Create Template Grid}
+template30 <- env30[[1]]
+res(template30)   # should be ~30 m
+ext(template30)
+crs(template30)   # should now be EPSG:7855
+
+# Align resolution/extent to the 30 m template
+Ahya_30  <- resample(coralSDM.Ahya,  template30, method = "bilinear")
+Aspat_30 <- resample(coralSDM.Aspat, template30, method = "bilinear")
+Aten_30  <- resample(coralSDM.Aten,  template30, method = "bilinear")
+
+
+all.equal(crs(Ahya_30),  crs(template30))
+all.equal(crs(Aspat_30), crs(template30))
+all.equal(crs(Aten_30),  crs(template30))
+res(Ahya_30); res(template30)
+
+# keep env layers separate if you like
+names(env30)  # rename if needed to sensible names
+
+coral_sdm_30 <- c(Ahya_30, Aspat_30, Aten_30)
+names(coral_sdm_30) <- c("SDM_Ahya", "SDM_Aspat", "SDM_Aten")
+
+predictors_terra <- c(env30, coral_sdm_30)
+predictors_terra
+
+library(raster)
+
+predictors_raster <- raster::stack(c(env30, coral_sdm_30))
+predictors_raster
+
+
+```
+
+##Mask Rasters to GBR Features
+
+```{r}
+############################################################
+# Mask full predictor stack to reef polygons
+# - GeoPackage: "data/Great_Barrier_Reef_Features.gpkg"
+# - Reef polygons are in EPSG:7844 (GDA2020 geographic)
+# - Rasters are also in EPSG:7844 (NOT 7855 as first told)
+############################################################
+
+library(terra)
+library(sf)
+library(dplyr)
+library(tidyterra)
+
+## 1. Read reef polygons -----------------------------------
+
+# Option 1: if there's only one layer in the GeoPackage
+reef_poly <- terra::vect("data/Great_Barrier_Reef_Features.gpkg") |>
+  filter(FEAT_NAME=="Reef")
+attr_reefs <- as.data.frame(reef_poly)
+
+# Option 2: if there are multiple layers and you know the layer name:
+# reef_poly <- terra::vect("data/Great_Barrier_Reef_Features.gpkg",
+#                          layer = "Great_Barrier_Reef_Features")
+
+# Inspect CRS of polygons
+crs(reef_poly)
+
+
+
+# Should show something like: "EPSG:7844"
+
+## 2. Check CRS of rasters ---------------------------------
+
+# If the CRSs differ, reproject reef_poly to the raster CRS:
+if (crs(reef_poly) != crs(predictors_terra)) {
+  message("Reprojecting reef polygons to raster CRS...")
+  reef_poly <- terra::project(reef_poly, crs(predictors_terra))
+}
+
+cat("\nRaster extent:\n")
+print(ext(predictors_terra))
+cat("\nReef extent:\n")
+print(ext(reef_poly))
+
+cat("\nIs raster lon/lat? ", is.lonlat(predictors_terra), "\n")
+cat("Is reef lon/lat?   ", is.lonlat(reef_poly), "\n")
+
+## 3. Crop + mask the whole SpatRaster ---------------------
+plot(predictors_terra[[12]], main = "Predictor unmasked")
+# # First crop to the reef polygon extent – faster than masking full GBR
+predictors_reef_crop <- terra::crop(predictors_terra, reef_poly)
+plot(predictors_terra[[12]], main = "Predictor cropped")
+# Then apply mask: cells OUTSIDE reef polygons become NA
+predictors_reef <- terra::mask(predictors_terra, reef_poly)
+
+# Quick visual check of one layer
+plot(predictors_reef[[1]], main = "Predictor masked to reef areas")
+plot(predictors_reef[[12]], main = "Predictor masked to reef areas")
+
+
+```
+```{r Load survey data}
+dat.cull <- read_excel("data/250929_COTS-Manta-Cull-RHIS-Data-Matthews-and-Schlawinsky.xlsx", sheet = 4) |>
+  mutate(VoyageTitle = as.factor(VoyageTitle),
+         YearQr = zoo::as.yearqtr(SurveyDate),
+         Year = lubridate::year(SurveyDate),
+         Total = Cohort1 +Cohort2+Cohort3+Cohort4,
+         CPUE = Total/Bottomtime) %>%
+  group_by(CullSiteName, Year, Latitude, Longitude) %>%
+  summarise(MaxCPUE = max(CPUE),
+            CPUE = sum(Total, na.rm = T)/sum(Bottomtime, na.rm = T),
+            Total = sum(Total), 
+            Bottomtime = sum(Bottomtime)) %>%
+  filter(!is.na(Longitude))
+
+dat.cull_sf <- dat.cull |> 
+  st_as_sf(
+    coords = c("Longitude", "Latitude"),  # <- CHANGE if your cols are named differently
+    crs    = 4326              # WGS84 geographic
+  )
+
+plot(dat.cull_sf)
+
+# Your predictor rasters are in EPSG:7844 (GDA2020 geographic),
+# so we transform the survey points to that CRS:
+survey_sf <- dat.cull_sf |> st_transform(7844)
+
+```
+
+
+
+
+```{r}
+############################################################
+# COTS SDM with XGBoost
+# - Model 1: "Problematic" COTS presence (classification)
+# - Model 2: COTS density per ha (regression)
+# - Includes raster predictors + reef/sector outbreak covariates
+# - Uses spatially blocked cross-validation (blockCV)
+############################################################
+
+## 0. Packages ------------------------------------------------------------
+
+library(terra)        # raster predictors
+library(sf)           # spatial survey data
+library(dplyr)        # data wrangling
+library(tidyr)
+library(tidymodels)   # modelling framework
+library(blockCV)      # spatial CV
+library(ggplot2)      # plotting (optional)
+library(xgboost)      # xgboost engine for parsnip
+
+tidymodels::tidymodels_prefer()
+
+## 1. Inputs & assumptions -----------------------------------------------
+# You need to have these objects already created / loaded:
+
+# 1) predictors_terra: SpatRaster with all environmental predictors
+#    (bathymetry, rugosity, SDMs, etc.) in EPSG:7855, aligned to your grid.
+#    e.g. from earlier:
+#    predictors_terra <- c(env30, coral_sdm_30)
+
+# 2) survey_sf: sf object with one row per survey / reef-visit / tow:
+#      - cots_density_ha : numeric COTS density per ha
+#      - reef_id         : reef identifier (factor/character)
+#      - sector          : sector ID / region (factor/character)
+#      - year            : survey year (numeric or factor)
+#      - geometry        : POINT (or centroid) in EPSG:7855
+
+# 3) outbreak_pred_df (optional): data frame with reef/year-level metrics:
+#      - reef_id, year
+#      - e.g. cots_outbreak_prob, sector_mean_density, etc.
+#
+# Make sure CRS(predictors_terra) and st_crs(survey_sf) are both EPSG:7855.
+
+
+
+
+## 2. Define response variables ------------------------------------------
+
+# 2.1 Threshold for "problematic" COTS densities
+#     (set according to program definitions)
+problem_threshold <- 0.02   # example: 30 COTS/ha; adjust to your threshold
+
+# Ensure density is numeric and create binary response
+survey_sf <- survey_sf %>%
+  mutate(
+    cots_density_cpue = as.numeric(CPUE),
+    # Binary target: 1 = problematic density, 0 = below threshold
+    cots_problem = if_else(cots_density_cpue >= problem_threshold, 1L, 0L)
+  )
+
+
+## 3. Extract raster predictors at survey locations ----------------------
+
+# 3.1 Ensure CRSs match (project survey_sf to raster CRS if needed)
+survey_sf <- st_transform(survey_sf, crs(predictors_reef))
+
+
+# 3.2 Add explicit ID for safe joining
+survey_sf$ID <- seq_len(nrow(survey_sf))
+
+# 3.3 Extract raster values
+pred_vals <- terra::extract(predictors_reef, vect(survey_sf))
+
+#####IM HERE#####
+
+
+# 'pred_vals' has column 'ID' from the vect() input
+# Join raster predictors back to survey attributes (without geometry)
+survey_df <- survey_sf %>%
+  st_drop_geometry() %>%
+  left_join(pred_vals, by = "ID")
+
+# 3.4 Add outbreak / sector-level predictors (if available)
+#     outbreak_pred_df: one row per reef_id & year with extra covariates
+# THis owens outbreaks model to be included later
+if (exists("outbreak_pred_df")) {
+  survey_df <- survey_df %>%
+    left_join(outbreak_pred_df, by = c("reef_id", "year"))
+}
+
+# 3.5 Drop ID (no longer needed)
+survey_df <- survey_df %>% dplyr::select(-ID)
+
+# Quick check
+glimpse(survey_df)
+
+
+## 4. Spatial blocking for cross-validation -------------------------------
+
+# 4.1 Use the sf object (with geometry) for blockCV
+#     We only need the cots_problem response + geometry here.
+survey_for_blocks <- survey_sf %>%
+  dplyr::select(cots_problem)
+
+# 4.2 Define spatial blocks
+#     - theRange: spatial block size in metres; adjust sensibly (e.g. 50–100 km)
+set.seed(123)
+sb <- spatialBlock(
+  speciesData = survey_for_blocks,
+  species     = "cots_problem",
+  theRange    = 50000,    # ~50 km blocks (example)
+  k           = 5,        # 5-fold CV
+  selection   = "random",
+  showBlocks  = FALSE
+)
+
+# blockCV returns foldID vector (one per observation)
+survey_df$fold_id <- sb$foldID
+
+# You can reuse these fold IDs for both classification & regression models.
+
+
+## 5. Prepare modelling data frames --------------------------------------
+
+# 5.1 Identify predictor column names from raster stack
+pred_cols <- names(predictors_terra)
+
+# 5.2 Identify outbreak covariates (if present)
+outbreak_cols <- character(0)
+if (exists("outbreak_pred_df")) {
+  outbreak_cols <- setdiff(names(outbreak_pred_df), c("reef_id", "year"))
+}
+
+# 5.3 Build base modelling data frame
+model_df <- survey_df %>%
+  dplyr::select(
+    cots_problem,          # classification target
+    cots_density_ha,       # regression target
+    reef_id,
+    sector,
+    year,
+    fold_id,
+    dplyr::all_of(pred_cols),
+    dplyr::all_of(outbreak_cols)
+  )
+
+# 5.4 Remove rows with missing response or predictors
+model_df <- model_df %>%
+  filter(!is.na(cots_problem), !is.na(cots_density_ha)) %>%
+  drop_na(dplyr::all_of(pred_cols))
+
+# Optional: drop rows with rare / unused factor levels
+model_df <- model_df %>%
+  mutate(
+    reef_id = as.factor(reef_id),
+    sector  = as.factor(sector),
+    year    = as.factor(year)
+  )
+
+glimpse(model_df)
+
+
+## 6. Model 1: XGBoost classification (problematic COTS) -----------------
+
+# 6.1 CV folds based on spatial blocks
+set.seed(123)
+cv_folds_cls <- group_vfold_cv(model_df, group = fold_id, v = 5)
+
+# 6.2 Recipe: preprocess predictors
+rec_cls <- recipe(cots_problem ~ ., data = model_df) %>%
+  # fold_id is for CV grouping only; remove as predictor
+  update_role(fold_id, new_role = "id") %>%
+  step_rm(fold_id) %>%
+  # near-zero variance predictors
+  step_zv(all_predictors()) %>%
+  # normalise numeric predictors (optional but often helpful)
+  step_normalize(all_numeric_predictors())
+
+# 6.3 XGBoost model specification (tuned)
+xgb_spec_cls <- boost_tree(
+  trees          = 1500,
+  tree_depth     = tune(),
+  learn_rate     = tune(),
+  loss_reduction = tune(),
+  min_n          = tune()
+) %>%
+  set_engine("xgboost") %>%
+  set_mode("classification")
+
+# 6.4 Workflow
+wf_cls <- workflow() %>%
+  add_model(xgb_spec_cls) %>%
+  add_recipe(rec_cls)
+
+# 6.5 Hyperparameter tuning with blocked CV
+set.seed(123)
+grid_cls <- grid_latin_hypercube(
+  tree_depth(),
+  learn_rate(),
+  loss_reduction(),
+  min_n(),
+  size = 30
+)
+
+res_cls <- tune_grid(
+  wf_cls,
+  resamples = cv_folds_cls,
+  grid      = grid_cls,
+  metrics   = metric_set(roc_auc, pr_auc, accuracy)
+)
+
+# 6.6 Select best hyperparameters (maximising ROC AUC)
+best_cls <- select_best(res_cls, "roc_auc")
+
+# 6.7 Finalise workflow and fit on all data
+final_wf_cls <- finalize_workflow(wf_cls, best_cls)
+
+set.seed(123)
+fit_cls <- final_wf_cls %>%
+  fit(data = model_df)
+
+fit_cls
+
+# 6.8 Optional: model performance using CV results
+collect_metrics(res_cls)
+
+# 6.9 Optional: variable importance plot
+vip_cls <- fit_cls %>%
+  extract_fit_parsnip() %>%
+  vip::vip(num_features = 20)
+
+print(vip_cls)
+
+
+## 7. Model 2: XGBoost regression (COTS density) -------------------------
+
+# 7.1 Optionally transform density (e.g. log to stabilise variance)
+model_df <- model_df %>%
+  mutate(
+    cots_density_log = log1p(cots_density_ha)  # log(1 + density)
+  )
+
+# 7.2 CV folds: reuse same spatial folds for comparability
+cv_folds_reg <- group_vfold_cv(model_df, group = fold_id, v = 5)
+
+# 7.3 Recipe for regression
+rec_reg <- recipe(cots_density_log ~ ., data = model_df) %>%
+  update_role(fold_id, new_role = "id") %>%
+  step_rm(fold_id) %>%
+  step_zv(all_predictors()) %>%
+  step_normalize(all_numeric_predictors())
+
+# 7.4 XGBoost spec (regression)
+xgb_spec_reg <- boost_tree(
+  trees          = 1500,
+  tree_depth     = tune(),
+  learn_rate     = tune(),
+  loss_reduction = tune(),
+  min_n          = tune()
+) %>%
+  set_engine("xgboost") %>%
+  set_mode("regression")
+
+# 7.5 Workflow
+wf_reg <- workflow() %>%
+  add_model(xgb_spec_reg) %>%
+  add_recipe(rec_reg)
+
+# 7.6 Tuning grid (can re-use structure)
+set.seed(123)
+grid_reg <- grid_latin_hypercube(
+  tree_depth(),
+  learn_rate(),
+  loss_reduction(),
+  min_n(),
+  size = 30
+)
+
+res_reg <- tune_grid(
+  wf_reg,
+  resamples = cv_folds_reg,
+  grid      = grid_reg,
+  metrics   = metric_set(rmse, rsq)
+)
+
+# 7.7 Select best hyperparameters (minimising RMSE)
+best_reg <- select_best(res_reg, "rmse")
+
+# 7.8 Finalise and fit
+final_wf_reg <- finalize_workflow(wf_reg, best_reg)
+
+set.seed(123)
+fit_reg <- final_wf_reg %>%
+  fit(data = model_df)
+
+fit_reg
+
+# 7.9 CV metrics for regression
+collect_metrics(res_reg)
+
+
+## 8. Predicting on a grid for maps --------------------------------------
+
+# 8.1 Build prediction grid from predictors_terra
+#     (same rasters used to extract survey predictors)
+
+# Convert raster stack to data frame with coordinates
+grid_df <- as.data.frame(
+  predictors_terra,
+  xy    = TRUE,
+  cells = TRUE,
+  na.rm = FALSE
+)
+
+# Rename coordinate columns explicitly
+grid_df <- grid_df %>%
+  rename(
+    x       = x,
+    y       = y,
+    cell_id = cell
+  )
+
+# If you want to add reef/sector-level outbreak covariates to grid:
+# - You’ll need a mapping from each grid cell to reef_id / sector / year.
+#   (e.g. via intersecting with reef polygons, then joining outbreak_pred_df.)
+# Here we assume you have already created `grid_cov_df` with:
+#     cell_id, reef_id, sector, year, and outbreak covariates.
+if (exists("grid_cov_df")) {
+  grid_df <- grid_df %>%
+    left_join(grid_cov_df, by = "cell_id")
+}
+
+# 8.2 Prepare prediction data frames for each model
+#     Make sure columns match what the models expect.
+#     We’ll reuse model_df column structure minus responses.
+
+predictor_cols_all <- setdiff(
+  names(model_df),
+  c("cots_problem", "cots_density_ha", "cots_density_log", "fold_id")
+)
+
+grid_pred_df <- grid_df %>%
+  dplyr::select(dplyr::any_of(predictor_cols_all))
+
+# Ensure factor levels match training data
+grid_pred_df <- grid_pred_df %>%
+  mutate(
+    reef_id = factor(reef_id, levels = levels(model_df$reef_id)),
+    sector  = factor(wwsector,  levels = levels(model_df$sector)),
+    year    = factor(year,     levels = levels(model_df$year))
+  )
+
+# 8.3 Classification predictions: probability of problematic COTS
+pred_cls_grid <- predict(
+  fit_cls,
+  new_data = grid_pred_df,
+  type     = "prob"
+)
+
+# 8.4 Regression predictions: predicted log-density, back-transformed
+pred_reg_grid <- predict(
+  fit_reg,
+  new_data = grid_pred_df
+)
+
+# Combine predictions back onto grid_df
+grid_df$cots_problem_prob <- pred_cls_grid$.pred_1
+grid_df$cots_density_log  <- pred_reg_grid$.pred
+grid_df$cots_density_hat  <- expm1(grid_df$cots_density_log)
+
+# 8.5 Convert back to raster(s) for mapping
+# Make SpatRaster templates
+prob_rast <- rast(
+  nrows = nrow(predictors_terra),
+  ncols = ncol(predictors_terra),
+  ext   = ext(predictors_terra),
+  crs   = crs(predictors_terra)
+)
+dens_rast <- prob_rast
+
+# Fill with predictions using cell_id
+values(prob_rast) <- grid_df$cots_problem_prob
+values(dens_rast) <- grid_df$cots_density_hat
+
+# 8.6 Plot quick maps (optional)
+plot(prob_rast, main = "P(COTS ≥ problematic threshold)")
+plot(dens_rast, main = "Predicted COTS density (COTS/ha)")
+
+```
+
