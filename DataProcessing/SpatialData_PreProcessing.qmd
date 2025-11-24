@@ -86,6 +86,20 @@ env30
 # Check CRS
 crs(env30)
 
+#Geomorphic and Benthic Data
+geomorph_rast <- rast("data/GBR10_GBRMP_Geomorphic/GBR10 GBRMP Geomorphic.tif")
+benthic_rast <- rast("data/GBR10_GBRMP_Benthic/GBR10 GBRMP Benthic.tif")
+crs(geomorph_rast); crs(benthic_rast)
+# project/align to predictor grid
+benthic_rast <- project(benthic_rast, predictors_reef[[1]], method = "near")
+geomorph_rast <- project(geomorph_rast, predictors_reef[[1]], method = "near")
+benthic_rast <- resample(benthic_rast, predictors_reef[[1]], method = "near")
+geomorph_rast <- resample(geomorph_rast, predictors_reef[[1]], method = "near")
+names(benthic_rast) <- "benthic_class"
+
+# add to predictor stack
+predictors_reef <- c(predictors_reef, benthic_rast)
+
 ```
 
 ### Need to add in ReefGuide data
@@ -191,7 +205,21 @@ plot(predictors_reef[[1]], main = "Predictor masked to reef areas")
 plot(predictors_reef[[12]], main = "Predictor masked to reef areas")
 
 
+# Check it’s sane once before saving
+predictors_reef
+names(predictors_reef)
+
+# Save to disk as a multi-band GeoTIFF
+writeRaster(
+  predictors_reef,
+  filename = "data/predictors_reef.tif",
+  overwrite = TRUE,
+  gdal = c("COMPRESS=LZW")  # optional compression
+)
 ```
+
+
+
 ```{r Load survey data}
 dat.cull <- read_excel("data/250929_COTS-Manta-Cull-RHIS-Data-Matthews-and-Schlawinsky.xlsx", sheet = 4) |>
   mutate(VoyageTitle = as.factor(VoyageTitle),
@@ -199,7 +227,7 @@ dat.cull <- read_excel("data/250929_COTS-Manta-Cull-RHIS-Data-Matthews-and-Schla
          Year = lubridate::year(SurveyDate),
          Total = Cohort1 +Cohort2+Cohort3+Cohort4,
          CPUE = Total/Bottomtime) %>%
-  group_by(CullSiteName, Year, Latitude, Longitude) %>%
+  group_by(ReefName, CullSiteName, Year, Latitude, Longitude) %>%
   summarise(MaxCPUE = max(CPUE),
             CPUE = sum(Total, na.rm = T)/sum(Bottomtime, na.rm = T),
             Total = sum(Total), 
@@ -348,7 +376,7 @@ survey_df$fold_id <- sb$foldID
 ## 5. Prepare modelling data frames --------------------------------------
 
 # 5.1 Identify predictor column names from raster stack
-pred_cols <- names(predictors_terra)
+pred_cols <- names(predictors_reef)
 
 # 5.2 Identify outbreak covariates (if present)
 outbreak_cols <- character(0)
@@ -360,10 +388,10 @@ if (exists("outbreak_pred_df")) {
 model_df <- survey_df %>%
   dplyr::select(
     cots_problem,          # classification target
-    cots_density_ha,       # regression target
-    reef_id,
-    sector,
-    year,
+    cots_density_cpue,       # regression target
+    ReefName,
+    # sector,
+    Year,
     fold_id,
     dplyr::all_of(pred_cols),
     dplyr::all_of(outbreak_cols)
@@ -371,16 +399,19 @@ model_df <- survey_df %>%
 
 # 5.4 Remove rows with missing response or predictors
 model_df <- model_df %>%
-  filter(!is.na(cots_problem), !is.na(cots_density_ha)) %>%
+  filter(!is.na(cots_problem), !is.na(cots_density_cpue)) %>%
   drop_na(dplyr::all_of(pred_cols))
 
 # Optional: drop rows with rare / unused factor levels
 model_df <- model_df %>%
   mutate(
-    reef_id = as.factor(reef_id),
-    sector  = as.factor(sector),
-    year    = as.factor(year)
-  )
+    cots_problem = as.factor(cots_problem),
+    ReefName = as.factor(ReefName),
+    # sector  = as.factor(sector),
+    # Year    = as.factor(Year)
+  ) %>% ungroup() %>%
+  #need to check how to add factors
+  dplyr::select(-ReefName, - CullSiteName)
 
 glimpse(model_df)
 
@@ -392,7 +423,7 @@ set.seed(123)
 cv_folds_cls <- group_vfold_cv(model_df, group = fold_id, v = 5)
 
 # 6.2 Recipe: preprocess predictors
-rec_cls <- recipe(cots_problem ~ ., data = model_df) %>%
+rec_cls <- recipe(cots_problem ~ ., data = model_df %>% dplyr::select(-cots_density_cpue)) %>%
   # fold_id is for CV grouping only; remove as predictor
   update_role(fold_id, new_role = "id") %>%
   step_rm(fold_id) %>%
@@ -419,7 +450,7 @@ wf_cls <- workflow() %>%
 
 # 6.5 Hyperparameter tuning with blocked CV
 set.seed(123)
-grid_cls <- grid_latin_hypercube(
+grid_cls <- grid_space_filling(
   tree_depth(),
   learn_rate(),
   loss_reduction(),
@@ -435,7 +466,7 @@ res_cls <- tune_grid(
 )
 
 # 6.6 Select best hyperparameters (maximising ROC AUC)
-best_cls <- select_best(res_cls, "roc_auc")
+best_cls <- select_best(res_cls, metric = "roc_auc")
 
 # 6.7 Finalise workflow and fit on all data
 final_wf_cls <- finalize_workflow(wf_cls, best_cls)
@@ -447,7 +478,7 @@ fit_cls <- final_wf_cls %>%
 fit_cls
 
 # 6.8 Optional: model performance using CV results
-collect_metrics(res_cls)
+model_metrics <- collect_metrics(res_cls)
 
 # 6.9 Optional: variable importance plot
 vip_cls <- fit_cls %>%
@@ -456,22 +487,381 @@ vip_cls <- fit_cls %>%
 
 print(vip_cls)
 
+```
 
+### Predict and Plot
+
+```{r}
+############################################################
+# Predict XGBoost classification to reef raster grid
+# and plot in leaflet
+############################################################
+
+library(tidymodels)
+
+# e.g. predict for 2025, or for the mean/most recent year in the data
+target_year <- 2025
+target_year <- max(model_df$Year, na.rm = TRUE)
+# sanity check using your training data
+range(model_df$Year, na.rm = TRUE)
+library(terra)
+library(tidymodels)
+
+# predictors_reef: SpatRaster with all numeric predictors used in the model
+#                  (no year layer, just env vars, outbreak metrics, etc.)
+# fit_cls: fitted tidymodels workflow (classification model)
+
+# 1) Define prediction function for terra::predict
+# prediction function: x = matrix/data.frame of raster values
+pred_fun <- function(model, v) {
+  # model: your fitted tidymodels workflow (fit_cls)
+  # v    : matrix/data.frame of raster predictors for a chunk
+  #        rows = cells, cols = layers in predictors_reef
+
+  # Coerce to data.frame
+  v <- as.data.frame(v)
+
+  # Give columns the raster layer names (must match what the recipe expects)
+  names(v) <- names(predictors_reef)
+
+  # Add numeric Year column expected by the model
+  v$Year <- target_year
+  
+   # Add dummy fold_id so hardhat is happy
+  # Copy type from training data:
+  v$fold_id <- model_df$fold_id[1]
+
+  # Use the tidymodels workflow's predict()
+  p <- predict(
+    model,
+    new_data = v,
+    type     = "prob"
+  )
+
+  # Return numeric vector of probabilities for the "1" class
+  as.numeric(p$.pred_1)
+}
+
+# # Take a small sample of raster values
+# test_mat <- terra::values(predictors_reef, mat = TRUE)[1:10, , drop = FALSE]
+# 
+# # Run pred_fun on this sample
+# test_pred <- pred_fun(test_mat)
+# test_pred
+
+names(model_df)         # make sure it's "Year" not "year"
+str(model_df$Year)      # should be numeric (or integer)
+str(model_df$fold_id)
+# likely integer or factor
+# 2) Run chunked prediction over the raster
+prob_rast <- terra::predict(
+  predictors_reef,  # SpatRaster
+  fit_cls,          # model argument
+  fun   = pred_fun,
+  na.rm = TRUE,
+  cores = 1         # keep 1 to avoid xgboost pointer weirdness
+)
+
+names(prob_rast) <- "prob_problem"
+prob_rast
+plot(prob_rast)
+
+# Optional: check CRS (ArcGIS can handle 7844 or 4326 just fine)
+crs(prob_rast)
+
+# 1) Write out as GeoTIFF in the raster's native CRS
+writeRaster(
+  prob_rast,
+  filename = "outputs/COTS_prob_problem.tif",
+  overwrite = TRUE,
+  gdal = c("COMPRESS=LZW")   # optional but makes file smaller
+)
+
+```
+
+```{r Plot confusion nd metrics}
+# -----------------------------------------------------------
+# 1. Get predictions from fitted classification model
+# -----------------------------------------------------------
+
+# --------------------------------------------------
+# 1. Choose your threshold
+# --------------------------------------------------
+thr <- 0.45   # change this (e.g. 0.5, 0.3, etc.)
+
+# --------------------------------------------------
+# 2. Get probabilities and build hard class with thr
+# --------------------------------------------------
+
+# Probabilities from the fitted workflow
+pred_prob <- predict(
+  fit_cls,
+  new_data = model_df,
+  type     = "prob"
+)
+
+# Combine with original data and build custom class
+aug_cls <- model_df %>%
+  bind_cols(pred_prob) %>%
+  mutate(
+    cots_problem = factor(cots_problem, levels = c(0, 1)),
+    .pred_class  = factor(
+      if_else(.pred_1 >= thr, "1", "0"),
+      levels = c("0", "1")
+    ),
+    truth_num = as.numeric(as.character(cots_problem))
+  )
+
+# -----------------------------------------------------------
+# 2. Overall metrics
+# -----------------------------------------------------------
+
+# ROC AUC and PR AUC use probabilities
+roc_auc_val <- roc_auc(
+  aug_cls,
+  truth   = cots_problem,
+  .pred_1               # probability of class "1" (problematic)
+)$.estimate
+
+pr_auc_val <- pr_auc(
+  aug_cls,
+  truth   = cots_problem,
+  .pred_1
+)$.estimate
+
+# Threshold-based metrics (@ 0.5, since .pred_class already reflects that)
+acc_val <- accuracy(
+  aug_cls,
+  truth   = cots_problem,
+  estimate = .pred_class
+)$.estimate
+
+prec_val <- precision(
+  aug_cls,
+  truth   = cots_problem,
+  estimate = .pred_class,
+  event_level = "second"   # "1" is the second level
+)$.estimate
+
+recall_val <- recall(
+  aug_cls,
+  truth   = cots_problem,
+  estimate = .pred_class,
+  event_level = "second"
+)$.estimate
+
+f1_val <- f_meas(
+  aug_cls,
+  truth   = cots_problem,
+  estimate = .pred_class,
+  event_level = "second"
+)$.estimate
+
+# RMSE and R² on probs vs 0/1 truth
+rmse_val <- rmse(
+  aug_cls,
+  truth   = truth_num,
+  estimate = .pred_1
+)$.estimate
+
+rsq_val <- rsq_trad(
+  aug_cls,
+  truth   = truth_num,
+  estimate = .pred_1
+)$.estimate
+
+metrics_summary <- tibble(
+  metric = c("ROC AUC", "PR AUC", "Accuracy", "Precision", "Recall", "F1",
+             "RMSE (prob vs 0/1)", "R² (prob vs 0/1)"),
+  value  = c(roc_auc_val, pr_auc_val, acc_val, prec_val, recall_val,
+             f1_val, rmse_val, rsq_val)
+)
+
+print(metrics_summary)
+
+# -----------------------------------------------------------
+# 3. Confusion matrix heatmap with RMSE & R² annotated
+# -----------------------------------------------------------
+
+# -----------------------------------------------------------
+# Confusion matrix as a tibble
+# -----------------------------------------------------------
+cm <- conf_mat(
+  aug_cls,
+  truth    = cots_problem,
+  estimate = .pred_class
+)
+
+# Extract the underlying matrix and turn into a long data frame
+cm_mat <- cm$table
+
+cm_df <- as.data.frame(cm_mat) #%>%
+
+
+# Overall percentages (each cell as % of all samples)
+cm_df <- cm_df %>%
+  mutate(
+    pct = Freq / sum(Freq),
+    label = sprintf("%.1f%%\n(n=%d)", pct * 100, Freq)
+  )
+
+# -----------------------------------------------------------
+# Plot: predictions on x-axis (0 -> 1), truth on y-axis (0 -> 1)
+# -----------------------------------------------------------
+cm_plot <- ggplot(cm_df, aes(x = Prediction, y = Truth, fill = pct)) +
+  geom_tile(color = "grey70") +
+  geom_text(aes(label = label), size = 3.5) +
+  scale_fill_gradient(
+    name = "% of samples",
+    low  = "white",
+    high = "steelblue",
+    limits = c(0, max(cm_df$pct))
+  ) +
+  scale_x_discrete(position = "bottom") +
+  labs(
+    x = "Predicted class",
+    y = "True class",
+    title    = "COTS 'problematic' classification – confusion matrix",
+    subtitle = "Cell values are overall percentages and counts"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 11),
+    plot.title = element_text(face = "bold")
+  ) +
+  annotate(
+    "text",
+    x      = 0.55,
+    y      = 2.45,
+    hjust  = 0,
+    vjust  = 1,
+    label  = sprintf(
+      "ROC AUC: %.3f | PR AUC: %.3f\nRMSE: %.3f | R²: %.3f | ACC: %.3f",
+      roc_auc_val, pr_auc_val, rmse_val, rsq_val, acc_val
+    ),
+    size   = 3.3
+  )
+
+print(cm_plot)
+
+
+aug_cls <- model_df %>%
+  bind_cols(pred_prob) %>%
+  mutate(cots_problem = factor(cots_problem, levels = c(0, 1)))
+
+ggplot(aug_cls, aes(x = .pred_1, fill = cots_problem)) +
+  geom_histogram(position = "identity", alpha = 0.4, bins = 30) +
+  labs(x = "P(problematic)", fill = "Truth") +
+  theme_minimal()
+
+
+# Helper: compute metrics at a given threshold ----------------------------
+metrics_at_threshold <- function(data, thr) {
+  data_thr <- data %>%
+    mutate(
+      .pred_class_thr = factor(
+        if_else(.pred_1 >= thr, "1", "0"),
+        levels = c("0", "1")
+      )
+    )
+
+  tibble(
+    threshold = thr,
+    accuracy  = accuracy(data_thr, cots_problem, .pred_class_thr)$.estimate,
+    precision = precision(data_thr, cots_problem, .pred_class_thr,
+                          event_level = "second")$.estimate,
+    recall    = recall(data_thr, cots_problem, .pred_class_thr,
+                       event_level = "second")$.estimate,
+    f1        = f_meas(data_thr, cots_problem, .pred_class_thr,
+                       event_level = "second")$.estimate
+  )
+}
+
+# Example: compare 0.5 vs 0.4 --------------------------------------------
+thr_results <- bind_rows(
+  metrics_at_threshold(aug_cls, 0.5),
+  metrics_at_threshold(aug_cls, 0.4)
+)
+
+thr_results
+
+thresholds <- seq(0.1, 0.9, by = 0.05)
+
+thr_grid <- purrr::map_dfr(thresholds, ~metrics_at_threshold(aug_cls, .x))
+
+ggplot(thr_grid, aes(threshold)) +
+  geom_line(aes(y = precision, colour = "precision")) +
+  geom_line(aes(y = recall,    colour = "recall")) +
+  geom_line(aes(y = f1,        colour = "F1")) +
+  scale_colour_manual(values = c("precision" = "red",
+                                 "recall"    = "blue",
+                                 "F1"        = "black")) +
+  labs(y = "Metric value", colour = "Metric",
+       title = "Precision/Recall/F1 vs threshold")
+
+```
+
+
+```{r Debug Predict}
+class(predictors_reef)
+predictors_reef
+names(predictors_reef)
+nlyr(predictors_reef)
+ext(predictors_reef)
+crs(predictors_reef)
+# Take a small block of raster values
+vals <- terra::values(predictors_reef, mat = TRUE)   # matrix: rows = cells, cols = layers
+dim(vals)
+# e.g. 5M rows x 15 cols
+
+# Look at a small sample
+test_mat <- vals[1:10, , drop = FALSE]
+str(test_mat)
+
+# Convert that to a data.frame with layer names
+test_df <- as.data.frame(test_mat)
+names(test_df) <- names(predictors_reef)
+str(test_df)
+
+# Add Year as numeric like your model expects
+test_df$Year <- target_year  # make sure the name & type match your model
+
+# Now see if the workflow predict works on this
+p_test <- predict(
+  fit_cls,
+  new_data = test_df,
+  type     = "prob"
+)
+head(p_test)
+
+```
+
+
+
+
+
+
+```{r Model 2 COTS Density}
 ## 7. Model 2: XGBoost regression (COTS density) -------------------------
 
 # 7.1 Optionally transform density (e.g. log to stabilise variance)
 model_df <- model_df %>%
   mutate(
-    cots_density_log = log1p(cots_density_ha)  # log(1 + density)
+    cots_density_log = log1p(cots_density_cpue)  # log(1 + density)
   )
+
+hist(model_df$cots_density_log)
 
 # 7.2 CV folds: reuse same spatial folds for comparability
 cv_folds_reg <- group_vfold_cv(model_df, group = fold_id, v = 5)
 
 # 7.3 Recipe for regression
-rec_reg <- recipe(cots_density_log ~ ., data = model_df) %>%
+rec_reg <- recipe(cots_density_log ~ ., data = model_df %>% dplyr::select(-cots_density_cpue, -cots_problem)) %>%
   update_role(fold_id, new_role = "id") %>%
   step_rm(fold_id) %>%
+  # step_rm(cots_density_cpue, cots_problem) %>%
   step_zv(all_predictors()) %>%
   step_normalize(all_numeric_predictors())
 
@@ -493,12 +883,12 @@ wf_reg <- workflow() %>%
 
 # 7.6 Tuning grid (can re-use structure)
 set.seed(123)
-grid_reg <- grid_latin_hypercube(
+grid_reg <- grid_space_filling(
   tree_depth(),
   learn_rate(),
   loss_reduction(),
   min_n(),
-  size = 30
+  size = 10
 )
 
 res_reg <- tune_grid(
@@ -509,7 +899,7 @@ res_reg <- tune_grid(
 )
 
 # 7.7 Select best hyperparameters (minimising RMSE)
-best_reg <- select_best(res_reg, "rmse")
+best_reg <- select_best(res_reg, metric = "rmse")
 
 # 7.8 Finalise and fit
 final_wf_reg <- finalize_workflow(wf_reg, best_reg)
@@ -523,93 +913,107 @@ fit_reg
 # 7.9 CV metrics for regression
 collect_metrics(res_reg)
 
+```
 
-## 8. Predicting on a grid for maps --------------------------------------
 
-# 8.1 Build prediction grid from predictors_terra
-#     (same rasters used to extract survey predictors)
+```{r}
+############################################################
+# Predict XGBoost classification to reef raster grid
+# and plot in leaflet
+############################################################
 
-# Convert raster stack to data frame with coordinates
-grid_df <- as.data.frame(
-  predictors_terra,
-  xy    = TRUE,
-  cells = TRUE,
-  na.rm = FALSE
-)
+library(tidymodels)
 
-# Rename coordinate columns explicitly
-grid_df <- grid_df %>%
-  rename(
-    x       = x,
-    y       = y,
-    cell_id = cell
+# e.g. predict for 2025, or for the mean/most recent year in the data
+target_year <- 2025
+target_year <- max(model_df$Year, na.rm = TRUE)
+# sanity check using your training data
+range(model_df$Year, na.rm = TRUE)
+library(terra)
+library(tidymodels)
+
+# predictors_reef: SpatRaster with all numeric predictors used in the model
+#                  (no year layer, just env vars, outbreak metrics, etc.)
+# fit_cls: fitted tidymodels workflow (classification model)
+
+# 1) Define prediction function for terra::predict
+# prediction function: x = matrix/data.frame of raster values
+pred_fun.dens <- function(model, v) {
+  # model: your fitted tidymodels workflow (fit_cls)
+  # v    : matrix/data.frame of raster predictors for a chunk
+  #        rows = cells, cols = layers in predictors_reef
+
+  # Coerce to data.frame
+  v <- as.data.frame(v)
+
+  # Give columns the raster layer names (must match what the recipe expects)
+  names(v) <- names(predictors_reef)
+
+  # Add numeric Year column expected by the model
+  v$Year <- target_year
+  
+   # Add dummy fold_id so hardhat is happy
+  # Copy type from training data:
+  v$fold_id <- model_df$fold_id[1]
+
+  # Use the tidymodels workflow's predict()
+  p <- predict(
+    model,
+    new_data = v,
+    type     = "numeric"
   )
 
-# If you want to add reef/sector-level outbreak covariates to grid:
-# - You’ll need a mapping from each grid cell to reef_id / sector / year.
-#   (e.g. via intersecting with reef polygons, then joining outbreak_pred_df.)
-# Here we assume you have already created `grid_cov_df` with:
-#     cell_id, reef_id, sector, year, and outbreak covariates.
-if (exists("grid_cov_df")) {
-  grid_df <- grid_df %>%
-    left_join(grid_cov_df, by = "cell_id")
+  # Return numeric vector of probabilities for the "1" class
+  as.numeric(p$.pred)
 }
 
-# 8.2 Prepare prediction data frames for each model
-#     Make sure columns match what the models expect.
-#     We’ll reuse model_df column structure minus responses.
+# # Take a small sample of raster values
+# test_mat <- terra::values(predictors_reef, mat = TRUE)[1:10, , drop = FALSE]
+# 
+# # Run pred_fun on this sample
+# test_pred <- pred_fun(test_mat)
+# test_pred
 
-predictor_cols_all <- setdiff(
-  names(model_df),
-  c("cots_problem", "cots_density_ha", "cots_density_log", "fold_id")
+names(model_df)         # make sure it's "Year" not "year"
+str(model_df$Year)      # should be numeric (or integer)
+str(model_df$fold_id)
+
+# likely integer or factor
+# 2) Run chunked prediction over the raster
+prob_rast.dens <- terra::predict(
+  predictors_reef,  # SpatRaster
+  fit_reg,          # model argument
+  fun   = pred_fun.dens,
+  na.rm = TRUE,
+  cores = 1         # keep 1 to avoid xgboost pointer weirdness
 )
 
-grid_pred_df <- grid_df %>%
-  dplyr::select(dplyr::any_of(predictor_cols_all))
+names(prob_rast.dens) <- "prob_problem"
+prob_rast.dens
+plot(prob_rast.dens)
 
-# Ensure factor levels match training data
-grid_pred_df <- grid_pred_df %>%
-  mutate(
-    reef_id = factor(reef_id, levels = levels(model_df$reef_id)),
-    sector  = factor(wwsector,  levels = levels(model_df$sector)),
-    year    = factor(year,     levels = levels(model_df$year))
+# Optional: check CRS (ArcGIS can handle 7844 or 4326 just fine)
+crs(prob_rast)
+
+# 1) Write out as GeoTIFF in the raster's native CRS
+# writeRaster(
+#   prob_rast.dens,
+#   filename = "outputs/COTS_prob_problem.tif",
+#   overwrite = TRUE,
+#   gdal = c("COMPRESS=LZW")   # optional but makes file smaller
+# )
+
+#Try cloud optimised Geotiff
+terra::writeRaster(
+  prob_rast.dens,
+  filename  = "outputs/COTS_density.tif",
+  overwrite = TRUE,
+  filetype  = "COG",                       # use the COG driver
+  gdal      = c(
+    "COMPRESS=LZW",                        # lossless compression
+    "BLOCKSIZE=512"                        # tile size (COG default is 512)
   )
-
-# 8.3 Classification predictions: probability of problematic COTS
-pred_cls_grid <- predict(
-  fit_cls,
-  new_data = grid_pred_df,
-  type     = "prob"
 )
-
-# 8.4 Regression predictions: predicted log-density, back-transformed
-pred_reg_grid <- predict(
-  fit_reg,
-  new_data = grid_pred_df
-)
-
-# Combine predictions back onto grid_df
-grid_df$cots_problem_prob <- pred_cls_grid$.pred_1
-grid_df$cots_density_log  <- pred_reg_grid$.pred
-grid_df$cots_density_hat  <- expm1(grid_df$cots_density_log)
-
-# 8.5 Convert back to raster(s) for mapping
-# Make SpatRaster templates
-prob_rast <- rast(
-  nrows = nrow(predictors_terra),
-  ncols = ncol(predictors_terra),
-  ext   = ext(predictors_terra),
-  crs   = crs(predictors_terra)
-)
-dens_rast <- prob_rast
-
-# Fill with predictions using cell_id
-values(prob_rast) <- grid_df$cots_problem_prob
-values(dens_rast) <- grid_df$cots_density_hat
-
-# 8.6 Plot quick maps (optional)
-plot(prob_rast, main = "P(COTS ≥ problematic threshold)")
-plot(dens_rast, main = "Predicted COTS density (COTS/ha)")
 
 ```
 
