@@ -96,9 +96,9 @@ geomorph_rast <- project(geomorph_rast, predictors_reef[[1]], method = "near")
 benthic_rast <- resample(benthic_rast, predictors_reef[[1]], method = "near")
 geomorph_rast <- resample(geomorph_rast, predictors_reef[[1]], method = "near")
 names(benthic_rast) <- "benthic_class"
-
+names(geomorph_rast) <- "geomorph_class"
 # add to predictor stack
-predictors_reef <- c(predictors_reef, benthic_rast)
+predictors_reef <- c(predictors_reef, benthic_rast, geomorph_rast)
 
 ```
 
@@ -208,6 +208,8 @@ plot(predictors_reef[[12]], main = "Predictor masked to reef areas")
 # Check it’s sane once before saving
 predictors_reef
 names(predictors_reef)
+
+predictors_reef <- c(predictors_reef, benthic_rast, geomorph_rast)
 
 # Save to disk as a multi-band GeoTIFF
 writeRaster(
@@ -324,13 +326,22 @@ survey_sf$ID <- seq_len(nrow(survey_sf))
 # 3.3 Extract raster values
 pred_vals <- terra::extract(predictors_reef, vect(survey_sf))
 
+#Need to add to take predictors that are within ~20m 
+
 #####IM HERE#####
 
 
 # 'pred_vals' has column 'ID' from the vect() input
 # Join raster predictors back to survey attributes (without geometry)
+coords <- st_coordinates(dat.cull_sf)
+
 survey_df <- survey_sf %>%
   st_drop_geometry() %>%
+  ungroup() %>%
+  mutate(
+    x = coords[, 1],
+    y = coords[, 2]
+  ) %>%
   left_join(pred_vals, by = "ID")
 
 # 3.4 Add outbreak / sector-level predictors (if available)
@@ -393,6 +404,7 @@ model_df <- survey_df %>%
     # sector,
     Year,
     fold_id,
+    x,y,
     dplyr::all_of(pred_cols),
     dplyr::all_of(outbreak_cols)
   )
