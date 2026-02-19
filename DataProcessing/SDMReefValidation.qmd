@@ -1,0 +1,730 @@
+---
+title: "ValidateSDM"
+format: html
+editor: visual
+---
+
+## Workflow logic
+
+1.  Need to read in prediction raster and culling and manta tow data along with COTS cull sites
+
+    -   prediction raster `outputs/COTS_prob_problem.tif`
+
+        -   resample to 50m if smaller
+
+    -   Culling data `dat.cull <- read_excel("data/260201_COTS-Cull-Data-Ewels.xlsx", sheet = "Cull")`
+
+    -   Manta tow `dat.manta <- read_csv("data/COTS Program  Manta Tow Data-2026-02-04.csv")`
+
+    -   Cull SIte spatial layer `Eotr_CotsCullSites_2025_11_19.kmz`
+
+        -   should join to `CullSIteName` to `dat.cull` to make it an sf object
+
+2.  Select reefs: Tongue Reef (16-026), Batt Reef (16-029), Arlington Reef (16-064), (Big) Broadhurst Reef (No 1) (18-100a), Britomart Reef (18-024), Sudbury Reef (No 1) (17-001a), Trunk Reef (18-027), Bramble Reef (18-029)
+
+    Develop a method for assigning manta tows to a habitat value.
+
+    -   Connect start and stop as lines and create a 20m buffer around the line
+
+    -   Calculate average, max, 80thperc probability for that tow path
+
+    -   Set threshold (to be tuned) to determine whether that tow would have been conducted or not
+
+    -   Plot by reef
+
+    -   Need some rule to keep mostly continuous path (i.e if there is only 1-2 tows absent it should retain them to only drop whole habitat chunks
+
+    -   For each reef calculate the total tows suggested, tows avoided,
+
+        -   the hit rate of tows that had scars or cots
+
+        -   the proportion/numer of probelmatic COTS culling dives (i.e \>0.02) that were captured/missed - either use overlay of COTS cull sites(polygon) or use centroid (from culling data
+
+        -   the proportion/number of non-probleamtic or 0 cull dives taht would have been voided
+
+```{r}
+# ============================================================
+# COTS prediction raster validation on selected reefs
+# ============================================================
+
+# ---- Packages ----
+suppressPackageStartupMessages({
+  library(terra)
+  library(sf)
+  library(dplyr)
+  library(readxl)
+  library(readr)
+  library(lubridate)
+  library(ggplot2)
+  library(stringr)
+})
+
+# ---- Inputs ----
+pred_path   <- "outputs/COTS_prob_problem.tif"
+cull_xlsx   <- "data/260201_COTS-Cull-Data-Ewels.xlsx"
+manta_csv   <- "data/COTS Program  Manta Tow Data-2026-02-04.csv"
+cull_kmz    <- "data/Eotr_CotsCullSites_2025_11_19.kmz"
+
+out_dir <- "validation_outputs"
+dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+
+# ---- Selected reefs (edit as needed to match your tables) ----
+reef_select <- c(
+  "Tongue Reef (16-026)",
+  "Batt Reef (16-029)",
+  "Arlington Reef (16-064)",
+  "(Big) Broadhurst Reef (No 1) (18-100a)",
+  "Britomart Reef (18-024)",
+  "Sudbury Reef (No 1) (17-001a)",
+  "Trunk Reef (18-027)",
+  "Bramble Reef (18-029)"
+)
+
+# ============================================================
+# 1) Helper functions
+# ============================================================
+
+# Resample raster to 50m if finer than 50m
+resample_to_50m_if_finer <- function(r, target_res = 50) {
+  rs <- terra::res(r)
+  if (any(is.na(rs))) return(r)
+
+  # "smaller" cell size => finer than target => resample up to target
+  if (rs[1] < target_res || rs[2] < target_res) {
+    message(sprintf("Raster resolution is %.2fm x %.2fm; resampling to %dm.",
+                    rs[1], rs[2], target_res))
+    ext_r <- terra::ext(r)
+    crs_r <- terra::crs(r)
+    template <- terra::rast(
+      extent = ext_r,
+      crs    = crs_r,
+      resolution = target_res
+    )
+    r2 <- terra::resample(r, template, method = "bilinear")
+    return(r2)
+  } else {
+    message(sprintf("Raster resolution is %.2fm x %.2fm; no resampling needed.",
+                    rs[1], rs[2]))
+    return(r)
+  }
+}
+
+# Read KMZ robustly: unzip to temp and read the KML inside.
+read_kmz_as_sf <- function(kmz_path) {
+  td <- tempfile("kmz_")
+  dir.create(td)
+  utils::unzip(kmz_path, exdir = td)
+
+  kml_files <- list.files(td, pattern = "\\.kml$", full.names = TRUE, recursive = TRUE)
+  if (length(kml_files) == 0) stop("No .kml found inside KMZ.")
+
+  # Some KMZs have multiple KMLs; pick the first
+  kml_path <- kml_files[1]
+  layers <- tryCatch(st_layers(kml_path), error = function(e) NULL)
+
+  if (!is.null(layers) && length(layers$name) > 0) {
+    # Try to read all layers and then you can filter by geometry type
+    sfs <- lapply(layers$name, function(lyr) {
+      tryCatch(st_read(kml_path, layer = lyr, quiet = TRUE), error = function(e) NULL)
+    })
+    sfs <- Filter(Negate(is.null), sfs)
+    out <- do.call(rbind, sfs)
+  } else {
+    out <- st_read(kml_path, quiet = TRUE)
+  }
+
+  out
+}
+
+# Build lines from start/stop lon/lat columns
+make_tow_lines <- function(df, lon1, lat1, lon2, lat2, crs_ll = 4326) {
+  stopifnot(all(c(lon1, lat1, lon2, lat2) %in% names(df)))
+
+  p1 <- st_as_sf(df, coords = c(lon1, lat1), crs = crs_ll, remove = FALSE)
+  p2 <- st_as_sf(df, coords = c(lon2, lat2), crs = crs_ll, remove = FALSE)
+
+  # st_as_sf keeps coords in geometry; we want line from coords explicitly
+  c1 <- st_coordinates(p1)
+  c2 <- st_coordinates(p2)
+
+  lines <- lapply(seq_len(nrow(df)), function(i) {
+    st_linestring(rbind(c1[i,], c2[i,]))
+  })
+
+  st_sf(df, geometry = st_sfc(lines, crs = crs_ll))
+}
+
+# Extract mean/max/p80 of raster within polygons; returns df keyed by ID
+extract_poly_stats <- function(r, polys, id_col = "tow_id", p = 0.8) {
+  # terra::extract for polygons returns one row per intersected cell -> summarise
+  v <- terra::vect(polys)
+  ex <- terra::extract(r, v)  # columns: ID, lyr.1 (or raster name)
+  val_col <- setdiff(names(ex), "ID")[1]
+
+  out <- ex |>
+    dplyr::rename(poly_id = ID, value = !!val_col) |>
+    group_by(poly_id) |>
+    summarise(
+      prob_mean = mean(value, na.rm = TRUE),
+      prob_max  = max(value, na.rm = TRUE),
+      prob_p80  = as.numeric(quantile(value, probs = p, na.rm = TRUE, names = FALSE)),
+      n_cells   = sum(!is.na(value)),
+      .groups   = "drop"
+    )
+
+  # Join back to original order
+  key <- tibble(poly_id = seq_len(nrow(polys)))
+  key |> left_join(out, by = "poly_id")
+}
+
+# "Fill short gaps" in a logical vector (keep continuity)
+# If there are <= max_gap FALSEs between TRUEs, flip them to TRUE.
+fill_short_gaps <- function(x, max_gap = 2) {
+  if (length(x) == 0) return(x)
+  x <- as.logical(x)
+  r <- rle(x)
+  vals <- r$values
+  lens <- r$lengths
+
+  # Identify FALSE runs that are bounded by TRUE runs
+  for (i in seq_along(vals)) {
+    if (isFALSE(vals[i]) && lens[i] <= max_gap) {
+      left_true  <- i > 1 && isTRUE(vals[i - 1])
+      right_true <- i < length(vals) && isTRUE(vals[i + 1])
+      if (left_true && right_true) vals[i] <- TRUE
+    }
+  }
+  inverse.rle(list(values = vals, lengths = lens))
+}
+
+# Plot helper: raster crop around features and plot as ggplot
+plot_reef_map <- function(r, tow_sf, dive_sf, reef_name, file_out) {
+  bb <- st_bbox(st_union(tow_sf, dive_sf))
+  # add padding in metres (assuming projected CRS)
+  pad <- 2000
+  bb2 <- bb
+  bb2[c("xmin","ymin")] <- bb2[c("xmin","ymin")] - pad
+  bb2[c("xmax","ymax")] <- bb2[c("xmax","ymax")] + pad
+
+  rc <- terra::crop(r, terra::ext(bb2["xmin"], bb2["xmax"], bb2["ymin"], bb2["ymax"]))
+
+  # Convert raster to df for ggplot
+  rdf <- as.data.frame(rc, xy = TRUE, na.rm = FALSE)
+  names(rdf)[3] <- "prob"
+
+  gg <- ggplot() +
+    geom_raster(data = rdf, aes(x = x, y = y, fill = prob)) +
+    geom_sf(data = tow_sf, aes(color = suggested), fill = NA, linewidth = 0.7) +
+    geom_sf(data = dive_sf, shape = 21, fill = "white", color = "black", size = 2) +
+    coord_sf(crs = st_crs(tow_sf)) +
+    scale_fill_viridis_c(option = "C", na.value = NA) +
+    theme_minimal(base_size = 12) +
+    labs(
+      title = reef_name,
+      fill  = "Predicted probability",
+      color = "Suggested tow"
+    )
+
+  ggsave(file_out, gg, width = 10, height = 7, dpi = 300)
+  gg
+}
+
+```
+
+```{r}
+# ============================================================
+# 2) Read prediction raster and harmonise CRS / res
+# ============================================================
+
+pred <- terra::rast(pred_path)
+
+# If raster is lon/lat, you MUST project before buffering in metres.
+# These reefs are in/near Cairns -> MGA Zone 55 is typically appropriate.
+# If your raster is already projected in metres, keep it.
+if (terra::is.lonlat(pred)) {
+  message("Raster is lon/lat; projecting to EPSG:7855 (GDA2020 / MGA zone 55) for metric operations.")
+  pred <- terra::project(pred, "EPSG:7855", method = "bilinear")
+}
+res(pred)
+pred <- resample_to_50m_if_finer(pred, target_res = 50)
+
+# ============================================================
+# 3) Read tabular data
+# ============================================================
+
+dat.cull  <- read_excel(cull_xlsx, sheet = "Cull") |> as.data.frame() |>
+  mutate(Total = Cohort1 + Cohort2 + Cohort3 + Cohort4)
+dat.manta <- read_csv(manta_csv, show_col_types = FALSE) |> as.data.frame()
+
+# ============================================================
+# 4) Column mapping (EDIT THIS SECTION ONCE)
+# ============================================================
+
+# ---- Manta tow columns ----
+# Required: reef name/id; tow id; start/end lon/lat; an ordering variable (optional but helps)
+manta_cols <- list(
+  reef      = "ReefName",       # or "Reef_Name" etc
+  tow_id    = "CrownOfThornsStarfishSurveillanceId",          # unique id per tow
+  date      = "SurveyTime",           # can be Date or POSIXct
+  lon_start = "StartLongitude",
+  lat_start = "StartLatitude",
+  lon_end   = "EndLongitude",
+  lat_end   = "EndLatitude",
+  scars     = "FeedingScarCountRangeCode",           # indicator or count
+  cots      = "CrownOfThornsStarfishCount"            # indicator or count
+)
+
+# ---- Cull columns ----
+# If you have actual dive lon/lat in the cull table, set these; otherwise leave NULL and use cull sites geometry.
+cull_cols <- list(
+  reef       = "ReefName",
+  cull_site  = "CullSiteName",  # joins to KMZ attribute
+  date       = "SurveyDate",
+  culls      = "Total",
+  time       = "Bottomtime",
+  lon        = "Longitude",            # e.g. "Longitude"
+  lat        = "Latitude"             # e.g. "Latitude"
+)
+
+# ---- Cull sites (KMZ) attribute column containing site name ----
+cullsite_name_col <- "Name"  # EDIT if the KMZ uses a different field name
+
+# ============================================================
+# 5) Filter to selected reefs
+# ============================================================
+
+dat.manta <- dat.manta |>
+  mutate(.reef = as.character(.data[[manta_cols$reef]])) |>
+  filter(.reef %in% reef_select) |>
+  filter(!is.na(StartLatitude), !is.na(EndLatitude))
+
+dat.cull <- dat.cull |>
+  mutate(.reef = as.character(.data[[cull_cols$reef]])) |>
+  filter(.reef %in% reef_select)
+
+# ============================================================
+# 6) Read cull sites (KMZ) and build dive geometries
+# ============================================================
+
+cull_sites <- read_kmz_as_sf(cull_kmz)
+
+# Keep polygon-like geometries (sites). If KMZ has points only, this still works.
+cull_sites <- cull_sites |>
+  mutate(.geom_type = as.character(st_geometry_type(geometry))) |>
+  filter(.geom_type %in% c("POLYGON","MULTIPOLYGON","POINT","MULTIPOINT","LINESTRING","MULTILINESTRING")) |>
+  select(-.geom_type)
+
+if (!(cullsite_name_col %in% names(cull_sites))) {
+  stop(sprintf("Cull site name column '%s' not found in KMZ. Available: %s",
+               cullsite_name_col, paste(names(cull_sites), collapse = ", ")))
+}
+
+# Project cull sites into raster CRS (metric)
+cull_sites <- st_transform(cull_sites, st_crs(pred))
+
+# Build cull "dive" sf: Join to cull_sites by CullSiteName -> use polygon; also create centroid
+
+cull_sf <- dat.cull |>
+    mutate(.site = as.character(.data[[cull_cols$cull_site]])) |>
+    left_join(
+      cull_sites |> st_drop_geometry() |> mutate(.site = as.character(.data[[cullsite_name_col]])),
+      by = ".site"
+    )
+
+  # Attach geometry by joining with cull_sites again (sf join by attribute)
+cull_sf <- cull_sf |>
+    left_join(
+      cull_sites |> mutate(.site = as.character(.data[[cullsite_name_col]])) |> select(.site, geometry),
+      by = ".site"
+    ) |>
+    st_as_sf()
+
+# If polygons, you can work with polygons OR centroids; keep both
+cull_sf_cent <- st_centroid(cull_sf) |> mutate(dive_geom = "centroid")
+cull_sf_poly <- cull_sf |> mutate(dive_geom = "site_geom")
+
+cull_sf <- bind_rows(cull_sf_poly, cull_sf_cent)
+
+# ============================================================
+# 7) Build tow lines, buffer 20 m, extract raster stats
+# ============================================================
+
+# Parse date if needed (safe attempt)
+if (manta_cols$date %in% names(dat.manta)) {
+  dat.manta[[manta_cols$date]] <- suppressWarnings(ymd(dat.manta[[manta_cols$date]]))
+}
+
+tow_lines_ll <- make_tow_lines(
+  dat.manta,
+  lon1 = manta_cols$lon_start, lat1 = manta_cols$lat_start,
+  lon2 = manta_cols$lon_end,   lat2 = manta_cols$lat_end,
+  crs_ll = 4326
+)
+
+# Project to raster CRS for buffering in metres
+tow_lines <- st_transform(tow_lines_ll, st_crs(pred))
+
+# Tow buffer
+tow_buf <- st_buffer(tow_lines, dist = 20)
+
+# Give each tow a local numeric id for extraction
+tow_buf <- tow_buf |>
+  mutate(
+    tow_row_id = row_number(),
+    reef = as.character(.data[[manta_cols$reef]]),
+    tow_id = as.character(.data[[manta_cols$tow_id]])
+  )
+
+stats <- extract_poly_stats(pred, tow_buf, id_col = "tow_row_id", p = 0.8)
+tow_buf <- bind_cols(tow_buf, stats |> select(prob_mean, prob_max, prob_p80, n_cells))
+
+```
+
+```{r}
+# 8) Thresholding + continuity rule
+# ============================================================
+
+# Choose which metric drives decisions (mean/max/p80)
+decision_metric <- "prob_p80"
+
+# Threshold to tune
+tow_threshold <- 0.415
+
+tow_buf <- tow_buf |>
+  mutate(
+    metric = .data[[decision_metric]],
+    suggested_raw = metric >= tow_threshold
+  )
+
+# Order within reef (and optionally date) to apply continuity
+tow_buf <- tow_buf |>
+  group_by(reef) |>
+  mutate(.order = row_number()) |>
+  ungroup()
+
+
+# Apply "fill short gaps" within each reef and (if available) within day
+group_vars <- c("reef")
+if (manta_cols$date %in% names(tow_buf)) group_vars <- c(group_vars, manta_cols$date)
+
+tow_buf <- tow_buf |>
+  arrange(across(all_of(group_vars)), .order) |>
+  group_by(across(all_of(group_vars))) |>
+  mutate(
+    suggested = fill_short_gaps(suggested_raw, max_gap = 2)
+  ) |>
+  ungroup()
+table(tow_buf$suggested); table(tow_buf$suggested_raw)
+# ============================================================
+# 9) Hit-rate metrics on manta tows (scars or COTS)
+# ============================================================
+
+# Define "positive" tow (edit if your columns differ)
+tow_buf <- tow_buf |>
+  mutate(
+    scars = .data[[manta_cols$scars]],
+    cots  = as.numeric(.data[[manta_cols$cots]]),
+    positive = scars %in% c("p", "c") | (coalesce(cots, 0) > 0)
+  )
+
+
+# ============================================================
+# 10) Cull dive probability + captured/missed by suggested tows
+# ============================================================
+
+# Extract probability at each dive geometry
+# - For centroid/point: extract at point
+# - For polygon: extract mean or max within polygon (use mean here; change if you want max)
+
+get_point_prob <- function(r, pts_sf) {
+  v <- terra::vect(pts_sf)
+  ex <- terra::extract(r, v)
+  val_col <- setdiff(names(ex), "ID")[1]
+  ex[[val_col]]
+}
+
+# Separate by geometry “type”
+cull_cent <- cull_sf |> filter(dive_geom %in% c("point","centroid"))
+cull_poly <- cull_sf |> filter(dive_geom == "site_geom")
+
+if (nrow(cull_cent) > 0) {
+  cull_cent$prob <- get_point_prob(pred, cull_cent)
+}
+# if (nrow(cull_poly) > 0) {
+#   v <- terra::vect(cull_poly)
+#   ex <- terra::extract(pred, v)
+#   val_col <- setdiff(names(ex), "ID")[1]
+#   cull_poly$prob <- ex |>
+#     rename(poly_id = ID, value = !!val_col) |>
+#     group_by(poly_id) |>
+#     summarise(prob = mean(value, na.rm = TRUE), .groups = "drop") |>
+#     pull(prob)
+# }
+
+cull_sf <- bind_rows(cull_cent, cull_poly) |>
+  mutate(
+    reef = as.character(.data[[cull_cols$reef]]),
+    culls = as.numeric(.data[[cull_cols$culls]])
+  )
+
+# Create per-reef union of suggested tow buffers for capture tests
+tow_suggested_union <- tow_buf |>
+  filter(suggested) |>
+  group_by(reef) |>
+  summarise(geometry = st_union(geometry), .groups = "drop")
+
+tow_nonsuggested_union <- tow_buf |>
+  filter(!suggested) |>
+  group_by(reef) |>
+  summarise(geometry = st_union(geometry), .groups = "drop")
+
+crs(tow_suggested_union); crs(cull_sf)
+
+plot(tow_suggested_union[2,])
+# Tag each dive as captured/missed by suggested tow coverage
+cull_sf <- cull_sf |>
+  filter(dive_geom=="site_geom", SurveyDate > "2018-11-01") |>
+  mutate(
+    captured = lengths(st_intersects(geometry, tow_suggested_union$geometry)) > 0,
+    problematic = (culls / Bottomtime) > 0.01
+  ) 
+
+
+
+```
+
+```{r}
+
+
+
+library(purrr)
+library(patchwork)
+library(scales)
+library(ggplot2)
+
+reefs <- intersect(unique(cull_sf$reef), unique(tow_suggested_union$reef))
+cull_sf <- cull_sf |>
+  mutate(
+    captured.fac   = factor(as.character(captured),    levels = c("FALSE","TRUE")),
+    problematic.fac = factor(as.character(problematic), levels = c("FALSE","TRUE"))
+  )
+
+# Common scales + guides (IDENTICAL for every plot)
+col_scale  <- scale_color_discrete(limits = c("FALSE","TRUE"), drop = FALSE, name = "captured")
+fill_scale <- scale_fill_discrete( limits = c("FALSE","TRUE"), drop = FALSE, name = "problematic")
+
+common_guides <- guides(
+  color = guide_legend(order = 1, override.aes = list(alpha = 1, fill = NA)),
+  fill  = guide_legend(order = 2, override.aes = list(alpha = 1))
+)
+
+
+base_theme <- theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+    axis.text.y = element_text(size = 7),
+    axis.title = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+
+
+plots <- map(reefs, \(rf) {
+  u <- tow_suggested_union |> filter(reef == rf)
+  c <- cull_sf |> filter(reef == rf)
+
+  ggplot() +
+    geom_sf(data = u, fill = NA, linewidth = 0.6) +
+    geom_sf(data = c, aes(color = captured, fill = problematic), alpha = 0.8) +
+    coord_sf(label_graticule = "SE") +
+    scale_x_continuous(breaks = pretty_breaks(n = 3)) +
+    scale_y_continuous(breaks = pretty_breaks(n = 3)) +
+    col_scale + fill_scale + common_guides +          # <- important: same objects everywhere
+    base_theme +
+    labs(title = rf, x = NULL, y = NULL)
+})
+
+p <- wrap_plots(plots, ncol = 2) +
+  plot_layout(guides = "collect") &
+  theme(legend.position = "bottom")
+
+p
+
+ggsave("validation_outputs/Reefplots.png", plot = p, width = 8, height = 12, dpi = 300)
+
+```
+
+```{r}
+# ============================================================
+# 11) Summaries per reef
+# ============================================================
+
+tow_summary <- tow_buf |>
+  st_drop_geometry() |>
+  group_by(reef) |>
+  summarise(
+    n_tows_total     = n(),
+    n_tows_suggested = sum(suggested, na.rm = TRUE),
+    n_tows_avoided   = sum(!suggested, na.rm = TRUE),
+
+    # Confusion matrix counts (suggested = model positive, positive = observed positive)
+    TP = sum(suggested &  positive, na.rm = TRUE),  # suggested and truly positive
+    FP = sum(suggested & !positive, na.rm = TRUE),  # suggested but truly negative
+    FN = sum(!suggested &  positive, na.rm = TRUE), # avoided but truly positive
+    TN = sum(!suggested & !positive, na.rm = TRUE), # avoided and truly negative
+    
+    TP.rate = TP/n_tows_suggested,  # suggested and truly positive
+    FP.rate = FP/n_tows_suggested,  # suggested but truly negative
+    FN.rate = FN/n_tows_avoided, # avoided but truly positive
+    TN.rate = TN/n_tows_avoided,
+
+    # Optional: totals
+    n_positive = sum(positive, na.rm = TRUE),
+    n_negative = sum(!positive, na.rm = TRUE),
+
+    # Optional: derived rates (drop if you only want counts)
+    sensitivity = ifelse((TP + FN) > 0, TP / (TP + FN), NA_real_),  # recall / TPR
+    specificity = ifelse((TN + FP) > 0, TN / (TN + FP), NA_real_),  # TNR
+    precision   = ifelse((TP + FP) > 0, TP / (TP + FP), NA_real_),  # PPV
+    npv         = ifelse((TN + FN) > 0, TN / (TN + FN), NA_real_),  # NPV
+    accuracy    = ifelse(n() > 0, (TP + TN) / n(), NA_real_),
+
+    .groups = "drop"
+  )
+# Cull summaries:
+# - problematic dives (prob>0.02): captured vs missed
+# - non-problematic OR zero-cull dives avoided: i.e., NOT captured by suggested tow coverage
+cull_summary <- cull_sf |>
+  st_drop_geometry() |>
+  group_by(reef) |>
+  summarise(
+    n_dives_total = n(),
+    n_problematic = sum(problematic, na.rm = TRUE),
+    n_problematic_captured = sum(problematic & captured, na.rm = TRUE),
+    n_problematic_missed   = sum(problematic & !captured, na.rm = TRUE),
+    prop_problematic_captured = ifelse(sum(problematic, na.rm = TRUE) > 0,
+                                       sum(problematic & captured, na.rm = TRUE) / sum(problematic, na.rm = TRUE),
+                                       NA_real_),
+     # Total COTS missed due to missed problematic sites
+    cots_missed_problematic = sum(coalesce(culls, 0)[problematic & !captured], 
+                                  na.rm = TRUE),
+    cpue_missed_problematic = {
+  denom <- sum(coalesce(Bottomtime, 0)[problematic & !captured], na.rm = TRUE)
+  ifelse(denom > 0,
+         sum(coalesce(culls, 0)[problematic & !captured], na.rm = TRUE) / denom,
+         NA_real_)
+},
+    n_nonprob_or_zero = sum((!problematic) | (coalesce(culls, 0) == 0), na.rm = TRUE),
+    n_nonprob_or_zero_avoided = sum((((!problematic) | (coalesce(culls, 0) == 0)) & (!captured)), na.rm = TRUE),
+    prop_nonprob_or_zero_avoided = ifelse(sum((!problematic) | (coalesce(culls, 0) == 0), na.rm = TRUE) > 0,
+                                          sum((((!problematic) | (coalesce(culls, 0) == 0)) & (!captured)), na.rm = TRUE) /
+                                            sum((!problematic) | (coalesce(culls, 0) == 0), na.rm = TRUE),
+                                          NA_real_),
+    .groups = "drop"
+  )
+
+summary_all <- tow_summary |>
+  left_join(cull_summary, by = "reef") |>
+  arrange(reef)
+
+write_csv(summary_all, file.path(out_dir, "reef_validation_summary.csv"))
+print(summary_all)
+
+```
+
+```{r}
+# install.packages(c("maptiles", "tidyterra"))
+library(maptiles)
+library(tidyterra)
+library(sf)
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+tow_anno <- summary_all |>
+  mutate(
+    anno = sprintf(
+      "Tows: %d (S %d / A %d)\n TPR %s  PPV %s\nPcap %s  CPUEmiss %s  Avoid0 %s",
+      n_tows_total, n_tows_suggested, n_tows_avoided,
+      ifelse(is.na(sensitivity), "NA", percent(sensitivity, accuracy = 1)),
+      ifelse(is.na(precision),   "NA", percent(precision, accuracy = 1)),
+      ifelse(is.na(prop_problematic_captured), "NA", percent(prop_problematic_captured, accuracy = 1)),
+      ifelse(is.na(cpue_missed_problematic),   "NA", sprintf("%.3f", cpue_missed_problematic)),
+      ifelse(is.na(prop_nonprob_or_zero_avoided), "NA", percent(prop_nonprob_or_zero_avoided, accuracy = 1))
+    )
+  ) |>
+  select(reef, anno)
+
+library(viridisLite)
+
+# pick two colours from the same palette
+cols <- viridis(256)
+col_false <- cols[90]   # green-ish (tweak index if you want)
+col_true  <- cols[5]  # red/purple (tweak index if you want)
+
+pal_tf <- c("FALSE" = col_false, "TRUE" = col_true)
+
+
+for (rf in unique(tow_buf$reef)) {
+
+  u <- tow_suggested_union |> filter(reef == rf)
+  nu <- tow_nonsuggested_union |> filter(reef == rf)
+  c <- cull_sf |> filter(reef == rf, dive_geom == "site_geom")
+
+  if (nrow(u) == 0) next
+
+  lab <- tow_anno |> filter(reef == rf) |> pull(anno)
+  if (length(lab) == 0) lab <- "No tow summary"
+  # --- transform to Web Mercator for map tiles ---
+  u3857  <- st_transform(u, 3857)
+  nu3857 <- st_transform(nu, 3857)
+  c3857  <- st_transform(c, 3857)
+  # bbox with padding (metres in EPSG:3857)
+  bb <- st_bbox(st_union(u3857, c3857))
+  pad <- 2000
+  bb[c("xmin","ymin")] <- bb[c("xmin","ymin")] - pad
+  bb[c("xmax","ymax")] <- bb[c("xmax","ymax")] + pad
+  bb_sfc <- st_as_sfc(bb)
+
+  img <- maptiles::get_tiles(bb_sfc, provider = "Esri.WorldImagery",
+                           zoom = 13, crop = TRUE,
+                           cachedir = file.path(out_dir, "tiles_cache"))
+
+  
+  p_rf <-
+    ggplot() +
+    tidyterra::geom_spatraster_rgb(data=img) +
+    geom_sf(data = u3857, fill = NA, color = "blue", linewidth = 0.6) +
+    # geom_sf(data = nu3857, fill = NA, color = "purple", linewidth = 0.6) +
+    geom_sf(data = c3857, aes(color = captured, fill = problematic), alpha = 0.8) +
+    coord_sf(crs = 3857, datum = NA) +
+    # geom_sf(data = u, fill = NA,color="blue",linewidth = 0.6) +
+    # # geom_sf(data = nu, fill = NA,color="purple", linewidth = 0.6) +
+    # geom_sf(data = c, aes(color = captured, fill = problematic), alpha = 0.8) +
+    # coord_sf(label_graticule = "SE") +
+    scale_x_continuous(breaks = scales::pretty_breaks(n = 3)) +
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 3)) +
+    # keep legend consistent if you want (optional)
+    scale_color_manual(values = pal_tf, limits = c("FALSE","TRUE"), drop = FALSE, name = "captured") +
+    scale_fill_manual(values = pal_tf, limits = c("FALSE","TRUE"), drop = FALSE, name = "problematic") +
+    # guides(color = "none", fill = "none") +  # <- per-reef files: remove legend
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+      axis.text.y = element_text(size = 7),
+      panel.grid.minor = element_blank(), legend.position = "bottom"
+    ) +
+    labs(title = rf, x = NULL, y = NULL) +
+    # annotation box in plot corner
+    annotate(
+      "label",
+      x = -Inf, y = Inf, hjust = -0.05, vjust = 1.1,
+      label = lab,
+      size = 3, 
+    )
+
+  plot_path <- file.path(out_dir, paste0(stringr::str_replace_all(rf, "[^A-Za-z0-9]+", "_"), "_map.png"))
+  ggsave(plot_path, plot = p_rf, width = 8, height = 6, dpi = 300)
+}
+
+```

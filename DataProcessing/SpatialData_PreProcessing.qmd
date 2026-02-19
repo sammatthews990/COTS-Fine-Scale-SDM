@@ -86,28 +86,11 @@ env30
 # Check CRS
 crs(env30)
 
-#Geomorphic and Benthic Data
-geomorph_rast <- rast("data/GBR10_GBRMP_Geomorphic/GBR10 GBRMP Geomorphic.tif")
-benthic_rast <- rast("data/GBR10_GBRMP_Benthic/GBR10 GBRMP Benthic.tif")
-crs(geomorph_rast); crs(benthic_rast)
-# project/align to predictor grid
-benthic_rast <- project(benthic_rast, predictors_reef[[1]], method = "near")
-geomorph_rast <- project(geomorph_rast, predictors_reef[[1]], method = "near")
-benthic_rast <- resample(benthic_rast, predictors_reef[[1]], method = "near")
-geomorph_rast <- resample(geomorph_rast, predictors_reef[[1]], method = "near")
-names(benthic_rast) <- "benthic_class"
-names(geomorph_rast) <- "geomorph_class"
-# add to predictor stack
-predictors_reef <- c(predictors_reef, benthic_rast, geomorph_rast)
+
 
 ```
 
-### Need to add in ReefGuide data
-
-
-
 ## Create Template Grid
-
 
 ```{r Create Template Grid}
 template30 <- env30[[1]]
@@ -141,7 +124,184 @@ predictors_raster <- raster::stack(c(env30, coral_sdm_30))
 predictors_raster
 
 
+pred_stack_file <- "data/predictors_terra_30m.tif"
+writeRaster(
+    predictors_terra,
+    filename = pred_stack_file,
+    overwrite = TRUE,
+    gdal = c("COMPRESS=LZW")  # smaller file, ArcGIS-friendly
+  )
+message("Saved predictor stack to: ", pred_stack_file)
 ```
+
+# Benthic/Habitat -superceded
+
+```{r, eval=FALSE}
+#Geomorphic and Benthic Data
+geomorph_rast <- rast("data/GBR10_GBRMP_Geomorphic/GBR10 GBRMP Geomorphic.tif")
+benthic_rast <- rast("data/GBR10_GBRMP_Benthic/GBR10 GBRMP Benthic.tif")
+crs(geomorph_rast); crs(benthic_rast)
+# project/align to predictor grid
+benthic_rast <- project(benthic_rast, env30[[1]], method = "near")
+geomorph_rast <- project(geomorph_rast, env30[[1]], method = "near")
+benthic_rast <- resample(benthic_rast, env30[[1]], method = "near")
+geomorph_rast <- resample(geomorph_rast, env30[[1]], method = "near")
+names(benthic_rast) <- "benthic_class"
+names(geomorph_rast) <- "geomorph_class"
+# add to predictor stack
+predictors_reef <- c(predictors_reef, benthic_rast, geomorph_rast)
+```
+
+
+## ReefGuideData
+
+```{r}
+library(terra)
+
+pred_stack_file <- "data/predictors_terra_30m.tif"
+
+if (file.exists(pred_stack_file)) {
+
+  message("Loading existing predictor stack: ", pred_stack_file)
+
+  # Read saved SpatRaster
+  predictors_terra  <- rast(pred_stack_file)
+
+  # If you still want a RasterStack version
+  predictors_raster <- raster::stack(predictors_terra)
+
+} else {
+  message("No saved predictor stack found – build from scratch...")
+}
+
+## ---- reefguide_mosaic_30m ----------------------------------------------
+
+
+## ---- reefguide_merge_30m ----------------------------------------------
+library(terra)
+
+rg_dir <- "data/GBR-ReefGuidance-processed_2025-11-19"
+
+# Variables we want from ReefGuide
+rg_vars <- c(
+  "bathy",
+  "hybrid_benthic",
+  "hybrid_geomorphic",
+  "high_tide",
+  "low_tide",
+  "slope",
+  "turbid",
+  "waves_Hs",
+  "waves_Tp"
+)
+
+# Treat these as categorical (nearest neighbour resampling)
+rg_cat <- c("hybrid_benthic", "hybrid_geomorphic")
+
+rg_mosaics <- list()
+
+for (v in rg_vars) {
+  message("Processing ReefGuide variable: ", v)
+
+  # e.g. "Cairns-Cooktown_bathy.tif", "FarNorthern_bathy.tif", ...
+  files_v <- list.files(
+    rg_dir,
+    pattern     = paste0(v, "\\.tif$"),
+    full.names  = TRUE,
+    ignore.case = TRUE
+  )
+
+  if (length(files_v) == 0) {
+    warning("No files found for ReefGuide variable: ", v)
+    next
+  }
+
+  ## 1. Read each tile, harmonise to first tile’s grid if needed ----------
+  tiles <- lapply(files_v, rast)
+
+  base  <- tiles[[1]]  # native template for this variable
+
+  # If any tile has slightly different geom, project it to 'base'
+  tiles <- lapply(tiles, function(r) {
+    if (!compareGeom(base, r, stopOnError = FALSE)) {
+      project(r, base, method = if (v %in% rg_cat) "near" else "bilinear")
+    } else {
+      r
+    }
+  })
+
+  ## 2. Merge tiles on native grid ---------------------------------------
+  # Different extents are fine; merge() will take the union
+  r_native <- do.call(merge, tiles)
+
+  ## 3. Warp merged raster to 30 m template ------------------------------
+  method <- if (v %in% rg_cat) "near" else "bilinear"
+
+  out_file <- file.path(tempdir(), paste0("RG_", v, "_30m.tif"))
+
+  r_30 <- project(
+    r_native,
+    y        = template30,   # your 30 m grid (env30[[1]])
+    method   = method,
+    filename = out_file,
+    overwrite = TRUE
+  )
+
+  names(r_30) <- paste0("RG_", v)
+  rg_mosaics[[v]] <- r_30
+
+  rm(tiles, base, r_native, r_30)
+  gc()
+}
+
+
+# Inspect what you actually have
+str(rg_mosaics, max.level = 1)
+
+# Keep only elements that are actual SpatRasters
+rg_mosaics_ok <- rg_mosaics[
+  vapply(rg_mosaics, inherits, logical(1), "SpatRaster")
+]
+
+if (length(rg_mosaics_ok) == 0) {
+  stop("No valid ReefGuide rasters in rg_mosaics")
+}
+
+# Start with the first SpatRaster
+reefguide_30 <- rg_mosaics_ok[[1]]
+
+# Iteratively add the rest using terra's c.SpatRaster method
+if (length(rg_mosaics_ok) > 1) {
+  for (i in 2:length(rg_mosaics_ok)) {
+    reefguide_30 <- c(reefguide_30, rg_mosaics_ok[[i]])
+  }
+}
+
+class(reefguide_30)
+nlyr(reefguide_30)
+names(reefguide_30)
+
+
+
+# existing env + coral SDMs
+predictors_terra <- c(env30, coral_sdm_30, reefguide_30)
+predictors_terra
+
+library(raster)
+predictors_raster <- raster::stack(predictors_terra)
+predictors_raster
+
+
+pred_stack_file <- "data/predictors_terra_30m.tif"
+writeRaster(
+    predictors_terra,
+    filename = pred_stack_file,
+    overwrite = TRUE,
+    gdal = c("COMPRESS=LZW")  # smaller file, ArcGIS-friendly
+  )
+message("Saved predictor stack to: ", pred_stack_file)
+```
+
 
 ##Mask Rasters to GBR Features
 
@@ -220,8 +380,6 @@ writeRaster(
 )
 ```
 
-
-
 ```{r Load survey data}
 dat.cull <- read_excel("data/250929_COTS-Manta-Cull-RHIS-Data-Matthews-and-Schlawinsky.xlsx", sheet = 4) |>
   mutate(VoyageTitle = as.factor(VoyageTitle),
@@ -249,9 +407,6 @@ plot(dat.cull_sf)
 survey_sf <- dat.cull_sf |> st_transform(7844)
 
 ```
-
-
-
 
 ```{r}
 ############################################################
@@ -589,6 +744,9 @@ writeRaster(
   gdal = c("COMPRESS=LZW")   # optional but makes file smaller
 )
 
+prob_rast <- rast("outputs/COTS_prob_problem.tif")
+plot(prob_rast)
+
 ```
 
 ```{r Plot confusion nd metrics}
@@ -815,7 +973,6 @@ ggplot(thr_grid, aes(threshold)) +
 
 ```
 
-
 ```{r Debug Predict}
 class(predictors_reef)
 predictors_reef
@@ -849,11 +1006,6 @@ p_test <- predict(
 head(p_test)
 
 ```
-
-
-
-
-
 
 ```{r Model 2 COTS Density}
 ## 7. Model 2: XGBoost regression (COTS density) -------------------------
@@ -926,7 +1078,6 @@ fit_reg
 collect_metrics(res_reg)
 
 ```
-
 
 ```{r}
 ############################################################
@@ -1028,4 +1179,3 @@ terra::writeRaster(
 )
 
 ```
-

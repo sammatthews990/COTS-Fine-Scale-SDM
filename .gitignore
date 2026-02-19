@@ -8,3 +8,7 @@ data/doi_10_5061_dryad_wdbrv15vk__v20250413 (1).zip
 data/
 
 DataProcessing/outputs/
+
+*.tif
+
+DataProcessing/validation_outputs/tiles_cache/Esri.WorldImagery/
