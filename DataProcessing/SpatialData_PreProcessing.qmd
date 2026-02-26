@@ -198,12 +198,11 @@ rg_vars <- c(
 # Treat these as categorical (nearest neighbour resampling)
 rg_cat <- c("hybrid_benthic", "hybrid_geomorphic")
 
-rg_mosaics <- list()
+rg_layers <- list()
 
 for (v in rg_vars) {
   message("Processing ReefGuide variable: ", v)
 
-  # e.g. "Cairns-Cooktown_bathy.tif", "FarNorthern_bathy.tif", ...
   files_v <- list.files(
     rg_dir,
     pattern     = paste0(v, "\\.tif$"),
@@ -216,45 +215,39 @@ for (v in rg_vars) {
     next
   }
 
-  ## 1. Read each tile, harmonise to first tile’s grid if needed ----------
-  tiles <- lapply(files_v, rast)
-
-  base  <- tiles[[1]]  # native template for this variable
-
-  # If any tile has slightly different geom, project it to 'base'
-  tiles <- lapply(tiles, function(r) {
-    if (!compareGeom(base, r, stopOnError = FALSE)) {
-      project(r, base, method = if (v %in% rg_cat) "near" else "bilinear")
-    } else {
-      r
-    }
-  })
-
-  ## 2. Merge tiles on native grid ---------------------------------------
-  # Different extents are fine; merge() will take the union
-  r_native <- do.call(merge, tiles)
-
-  ## 3. Warp merged raster to 30 m template ------------------------------
   method <- if (v %in% rg_cat) "near" else "bilinear"
 
-  out_file <- file.path(tempdir(), paste0("RG_", v, "_30m.tif"))
+  # 1) Project each regional tile directly onto the 30 m template grid
+  proj_tiles <- vector("list", length(files_v))
 
-  r_30 <- project(
-    r_native,
-    y        = template30,   # your 30 m grid (env30[[1]])
-    method   = method,
-    filename = out_file,
-    overwrite = TRUE
-  )
+  for (i in seq_along(files_v)) {
+    f <- files_v[i]
+    r <- rast(f)
+
+    out_i <- file.path(tempdir(), paste0("RG_", v, "_tile", i, "_30m.tif"))
+
+    proj_tiles[[i]] <- project(
+      r,
+      y         = template30,
+      method    = method,
+      filename  = out_i,
+      overwrite = TRUE
+    )
+  }
+
+  # 2) Merge projected tiles (now same CRS/resolution/alignment)
+  r_30 <- do.call(merge, proj_tiles)
 
   names(r_30) <- paste0("RG_", v)
-  rg_mosaics[[v]] <- r_30
 
-  rm(tiles, base, r_native, r_30)
+  rg_layers[[v]] <- r_30
+
+  rm(proj_tiles, r_30)
   gc()
 }
 
 
+rg_mosaics <- rg_layers 
 # Inspect what you actually have
 str(rg_mosaics, max.level = 1)
 
@@ -353,23 +346,23 @@ cat("\nIs raster lon/lat? ", is.lonlat(predictors_terra), "\n")
 cat("Is reef lon/lat?   ", is.lonlat(reef_poly), "\n")
 
 ## 3. Crop + mask the whole SpatRaster ---------------------
-plot(predictors_terra[[12]], main = "Predictor unmasked")
+plot(predictors_terra[[21]], main = "Predictor unmasked")
 # # First crop to the reef polygon extent – faster than masking full GBR
 predictors_reef_crop <- terra::crop(predictors_terra, reef_poly)
-plot(predictors_terra[[12]], main = "Predictor cropped")
+plot(predictors_terra[[21]], main = "Predictor cropped")
 # Then apply mask: cells OUTSIDE reef polygons become NA
 predictors_reef <- terra::mask(predictors_terra, reef_poly)
 
 # Quick visual check of one layer
 plot(predictors_reef[[1]], main = "Predictor masked to reef areas")
-plot(predictors_reef[[12]], main = "Predictor masked to reef areas")
+plot(predictors_reef[[21]], main = "Predictor masked to reef areas")
 
 
 # Check it’s sane once before saving
 predictors_reef
 names(predictors_reef)
 
-predictors_reef <- c(predictors_reef, benthic_rast, geomorph_rast)
+# predictors_reef <- c(predictors_reef, benthic_rast, geomorph_rast)
 
 # Save to disk as a multi-band GeoTIFF
 writeRaster(
@@ -458,7 +451,7 @@ tidymodels::tidymodels_prefer()
 
 # 2.1 Threshold for "problematic" COTS densities
 #     (set according to program definitions)
-problem_threshold <- 0.02   # example: 30 COTS/ha; adjust to your threshold
+problem_threshold <- 0.02  # example: 30 COTS/ha; adjust to your threshold
 
 # Ensure density is numeric and create binary response
 survey_sf <- survey_sf %>%
@@ -542,13 +535,23 @@ survey_df$fold_id <- sb$foldID
 ## 5. Prepare modelling data frames --------------------------------------
 
 # 5.1 Identify predictor column names from raster stack
-pred_cols <- names(predictors_reef)
+pred_cols <- names(predictors_reef)[c(1:12, 19)]
 
 # 5.2 Identify outbreak covariates (if present)
 outbreak_cols <- character(0)
 if (exists("outbreak_pred_df")) {
   outbreak_cols <- setdiff(names(outbreak_pred_df), c("reef_id", "year"))
 }
+
+# survey_sf_utm <- st_transform(survey_sf, crs(predictors_reef))
+# 
+# xy <- st_coordinates(survey_sf_utm)
+# 
+# survey_df <- survey_df %>%
+#   mutate(
+#     x = xy[,1],
+#     y = xy[,2]
+#   )
 
 # 5.3 Build base modelling data frame
 model_df <- survey_df %>%
@@ -559,10 +562,10 @@ model_df <- survey_df %>%
     # sector,
     Year,
     fold_id,
-    x,y,
+    # x,y,
     dplyr::all_of(pred_cols),
     dplyr::all_of(outbreak_cols)
-  )
+  )  # drop categorical predictors for now)
 
 # 5.4 Remove rows with missing response or predictors
 model_df <- model_df %>%
@@ -578,9 +581,10 @@ model_df <- model_df %>%
     # Year    = as.factor(Year)
   ) %>% ungroup() %>%
   #need to check how to add factors
-  dplyr::select(-ReefName, - CullSiteName)
+  dplyr::select(-ReefName)
 
 glimpse(model_df)
+
 
 
 ## 6. Model 1: XGBoost classification (problematic COTS) -----------------
@@ -656,6 +660,318 @@ print(vip_cls)
 
 ```
 
+## Model Fitting multiThresholds
+
+```{r}
+############################################################
+# COTS SDM (classification) – BOTH:
+#   A) Year-specific models (Year included as predictor; data aggregated by Year)
+#   B) Year-agnostic models (no Year predictor; data aggregated across all years)
+#
+# For EACH, fit 3 thresholds: 0.00, 0.02, 0.04 on CPUE
+#
+# Assumes you already have:
+#   - predictors_reef : SpatRaster (masked / aligned predictor stack)
+############################################################
+
+## 0) Packages ------------------------------------------------------------
+library(readxl)
+library(dplyr)
+library(sf)
+library(terra)
+library(tidymodels)
+library(blockCV)
+library(lubridate)
+
+tidymodels::tidymodels_prefer()
+
+## 1) Parameters ----------------------------------------------------------
+thresholds   <- c(0.00, 0.02, 0.04)
+block_km     <- 50                 # spatial block size (km); converted if lon/lat
+seed         <- 123
+cpue_field   <- "CPUE_mean"        # choose: "CPUE_mean" or "CPUE_max"
+
+# Choose which raster layers to include (your curated continuous set)
+# (keep this as your known-good set)
+pred_cols <- names(predictors_reef)[c(1:12, 19)]
+pred_cols <- pred_cols[pred_cols %in% names(predictors_reef)]
+
+
+## 2) Helper: compute suitable block range units --------------------------
+block_range_for_sf <- function(x_sf, km = 50) {
+  # blockCV::spatialBlock expects "theRange" in the units of the CRS
+  # If lon/lat (degrees), approximate degrees from km.
+  if (sf::st_is_longlat(x_sf)) {
+    return(km / 111.32)   # ~ degrees per km
+  } else {
+    return(km * 1000)     # metres
+  }
+}
+
+
+## 3) Load raw cull data --------------------------------------------------
+raw_cull <- read_excel(
+  "data/250929_COTS-Manta-Cull-RHIS-Data-Matthews-and-Schlawinsky.xlsx",
+  sheet = 4
+) %>%
+  mutate(
+    VoyageTitle = as.factor(VoyageTitle),
+    SurveyDate  = as.Date(SurveyDate),
+    Year        = lubridate::year(SurveyDate),
+    Total       = Cohort1 + Cohort2 + Cohort3 + Cohort4,
+    CPUE        = Total / Bottomtime
+  ) %>%
+  filter(
+    !is.na(Longitude), !is.na(Latitude),
+    !is.na(Bottomtime), Bottomtime > 0
+  )
+
+
+## 4) Helper: prepare modelling table (year-specific or agnostic) ---------
+prep_dataset <- function(mode = c("year", "agnostic"),
+                         raw_df,
+                         predictors_reef,
+                         pred_cols,
+                         cpue_field = "CPUE_mean",
+                         block_km = 50,
+                         seed = 123) {
+
+  mode <- match.arg(mode)
+
+  # ---- A) aggregate -----------------------------------------------------
+  if (mode == "year") {
+    dat <- raw_df %>%
+      group_by(ReefName, CullSiteName, Year, Latitude, Longitude) %>%
+      summarise(
+        CPUE_mean  = sum(Total, na.rm = TRUE) / sum(Bottomtime, na.rm = TRUE),
+        CPUE_max   = max(CPUE, na.rm = TRUE),
+        Total      = sum(Total, na.rm = TRUE),
+        Bottomtime = sum(Bottomtime, na.rm = TRUE),
+        n_surveys  = dplyr::n(),
+        .groups    = "drop"
+      )
+  } else {
+    dat <- raw_df %>%
+      group_by(ReefName, CullSiteName, Latitude, Longitude) %>%
+      summarise(
+        CPUE_mean  = sum(Total, na.rm = TRUE) / sum(Bottomtime, na.rm = TRUE),
+        CPUE_max   = max(CPUE, na.rm = TRUE),
+        Total      = sum(Total, na.rm = TRUE),
+        Bottomtime = sum(Bottomtime, na.rm = TRUE),
+        n_surveys  = dplyr::n(),
+        Year_min   = min(Year, na.rm = TRUE),
+        Year_max   = max(Year, na.rm = TRUE),
+        .groups    = "drop"
+      )
+  }
+
+  # ---- B) sf conversion + CRS match to rasters -------------------------
+  survey_sf <- st_as_sf(dat, coords = c("Longitude", "Latitude"), crs = 4326) %>%
+    st_transform(crs(predictors_reef))
+
+  # add x/y in the SAME CRS as predictors_reef
+  xy <- st_coordinates(survey_sf)
+  survey_sf$x <- xy[, 1]
+  survey_sf$y <- xy[, 2]
+
+  # ---- C) extract raster predictors ------------------------------------
+  survey_sf$ID <- seq_len(nrow(survey_sf))
+  pred_vals <- terra::extract(predictors_reef[[pred_cols]], terra::vect(survey_sf))
+
+  survey_df <- survey_sf %>%
+    st_drop_geometry() %>%
+    left_join(pred_vals, by = "ID") %>%
+    select(-ID)
+
+  # choose CPUE response used for thresholding
+  survey_df <- survey_df %>%
+    mutate(cots_density_cpue = as.numeric(.data[[cpue_field]]))
+
+  # drop rows missing predictors/response
+  keep_cols <- c("cots_density_cpue", "x", "y", pred_cols)
+  if (mode == "year") keep_cols <- c(keep_cols, "Year")
+
+  survey_df <- survey_df %>%
+    filter(!is.na(cots_density_cpue)) %>%
+    drop_na(all_of(pred_cols)) %>%
+    drop_na(x, y)
+
+  # ---- D) spatial blocks (once per dataset) ----------------------------
+  # blockCV uses the geometry in survey_sf, so subset survey_sf to matching rows
+  # (match by row order after filtering)
+  survey_sf2 <- survey_sf %>%
+    mutate(row_id = row_number()) %>%
+    filter(row_id %in% survey_df$row_id %||% row_id)  # fallback; see below
+
+  # safer: rebuild row_id in both in same order
+  survey_df <- survey_df %>% mutate(row_id = row_number())
+  survey_sf2 <- survey_sf %>% mutate(row_id = row_number())
+
+  # keep only those rows that survived drop_na
+  survey_sf2 <- survey_sf2 %>% filter(row_id %in% survey_df$row_id)
+
+  theRange <- block_range_for_sf(survey_sf2, km = block_km)
+
+  set.seed(seed)
+  sb <- spatialBlock(
+    speciesData = survey_sf2,
+    species     = NULL,
+    theRange    = theRange,
+    k           = 5,
+    selection   = "random",
+    showBlocks  = FALSE
+  )
+
+  # attach fold ids back to survey_df in the same order
+  survey_df$fold_id <- sb$foldID
+
+  # ---- E) build base modelling df --------------------------------------
+  if (mode == "year") {
+    base_df <- survey_df %>%
+      transmute(
+        cots_density_cpue,
+        Year = as.numeric(Year),   # keep numeric Year predictor
+        fold_id,
+        x, y,
+        across(all_of(pred_cols), as.numeric)
+      )
+  } else {
+    base_df <- survey_df %>%
+      transmute(
+        cots_density_cpue,
+        fold_id,
+        x, y,
+        across(all_of(pred_cols), as.numeric)
+      )
+  }
+
+  list(
+    mode      = mode,
+    survey_sf = survey_sf2,
+    base_df   = base_df
+  )
+}
+
+
+## 5) Helper: fit one threshold model (XGBoost) ---------------------------
+fit_threshold_model <- function(threshold, base_df, seed = 123) {
+
+  model_df <- base_df %>%
+    mutate(
+      cots_problem = factor(if_else(cots_density_cpue >= threshold, 1L, 0L),
+                            levels = c(0, 1))
+    ) %>%
+    select(cots_problem, fold_id, everything(), -cots_density_cpue)
+
+  set.seed(seed)
+  cv_folds <- group_vfold_cv(model_df, group = fold_id, v = 5)
+
+  # IMPORTANT: remove fold_id entirely so it is NOT required at predict-time
+  rec <- recipe(cots_problem ~ ., data = model_df) %>%
+    step_rm(fold_id) %>%
+    step_zv(all_predictors()) %>%
+    step_normalize(all_numeric_predictors())
+
+  xgb_spec <- boost_tree(
+    trees          = 1500,
+    tree_depth     = tune(),
+    learn_rate     = tune(),
+    loss_reduction = tune(),
+    min_n          = tune()
+  ) %>%
+    set_engine("xgboost") %>%
+    set_mode("classification")
+
+  wf <- workflow() %>%
+    add_recipe(rec) %>%
+    add_model(xgb_spec)
+
+  set.seed(seed)
+  grid <- grid_space_filling(
+    tree_depth(),
+    learn_rate(),
+    loss_reduction(),
+    min_n(),
+    size = 30
+  )
+
+  res <- tune_grid(
+    wf,
+    resamples = cv_folds,
+    grid      = grid,
+    metrics   = metric_set(roc_auc, pr_auc, accuracy)
+  )
+
+  best <- select_best(res, metric = "roc_auc")
+  final_wf <- finalize_workflow(wf, best)
+
+  set.seed(seed)
+  fit <- fit(final_wf, data = model_df)
+
+  list(
+    threshold = threshold,
+    model_df  = model_df,
+    res       = res,
+    best      = best,
+    fit       = fit
+  )
+}
+
+
+## 6) Build BOTH datasets -------------------------------------------------
+ds_year <- prep_dataset(
+  mode          = "year",
+  raw_df        = raw_cull,
+  predictors_reef= predictors_reef,
+  pred_cols     = pred_cols,
+  cpue_field    = cpue_field,
+  block_km      = block_km,
+  seed          = seed
+)
+
+ds_agnostic <- prep_dataset(
+  mode          = "agnostic",
+  raw_df        = raw_cull,
+  predictors_reef= predictors_reef,
+  pred_cols     = pred_cols,
+  cpue_field    = cpue_field,
+  block_km      = block_km,
+  seed          = seed
+)
+
+
+## 7) Fit threshold models for BOTH datasets ------------------------------
+fits_year <- lapply(thresholds, fit_threshold_model, base_df = ds_year$base_df, seed = seed)
+names(fits_year) <- paste0("thr_", thresholds)
+
+fits_agnostic <- lapply(thresholds, fit_threshold_model, base_df = ds_agnostic$base_df, seed = seed)
+names(fits_agnostic) <- paste0("thr_", thresholds)
+
+
+## 8) Compare CV metrics across thresholds and modes ----------------------
+metrics_year <- bind_rows(lapply(fits_year, function(x) {
+  collect_metrics(x$res) %>% mutate(mode = "year", threshold = x$threshold)
+}))
+
+metrics_agn  <- bind_rows(lapply(fits_agnostic, function(x) {
+  collect_metrics(x$res) %>% mutate(mode = "agnostic", threshold = x$threshold)
+}))
+
+metrics_all <- bind_rows(metrics_year, metrics_agn)
+
+metrics_all %>%
+  filter(.metric %in% c("roc_auc", "pr_auc", "accuracy")) %>%
+  arrange(mode, threshold, desc(mean)) %>%
+  print(n = 100)
+
+# Example: grab the fitted model for year-specific threshold 0.02
+fit_cls_year_002 <- fits_year[["thr_0.02"]]$fit
+
+# Example: grab the fitted model for agnostic threshold 0.02
+fit_cls_agn_002 <- fits_agnostic[["thr_0.02"]]$fit
+```
+
+
 ### Predict and Plot
 
 ```{r}
@@ -663,6 +979,18 @@ print(vip_cls)
 # Predict XGBoost classification to reef raster grid
 # and plot in leaflet
 ############################################################
+# Make coordinate rasters on the same grid as predictors_reef
+# x_r <- terra::init(predictors_reef[[1]], "x")
+# y_r <- terra::init(predictors_reef[[1]], "y")
+# names(x_r) <- "x"
+# names(y_r) <- "y"
+# 
+# # Append to your predictor stack
+# predictors_reef <- c(predictors_reef, x_r, y_r)
+
+# sanity
+names(predictors_reef)
+
 
 library(tidymodels)
 
@@ -689,7 +1017,7 @@ pred_fun <- function(model, v) {
   v <- as.data.frame(v)
 
   # Give columns the raster layer names (must match what the recipe expects)
-  names(v) <- names(predictors_reef)
+  names(v) <- names(predictors_reef_trim)
 
   # Add numeric Year column expected by the model
   v$Year <- target_year
@@ -716,11 +1044,45 @@ pred_fun <- function(model, v) {
 # test_pred <- pred_fun(test_mat)
 # test_pred
 
-names(model_df)         # make sure it's "Year" not "year"
+names(model_df)  
+names(model_df)[5:17]# make sure it's "Year" not "year"
+names(predictors_reef) 
+predictors_reef_trim <- predictors_reef[[names(model_df)[5:17]]] # make sure these match the pred_fun column namesedict)
 str(model_df$Year)      # should be numeric (or integer)
 str(model_df$fold_id)
 # likely integer or factor
 # 2) Run chunked prediction over the raster
+
+pred_fun <- function(model, v) {
+  # model: your fitted tidymodels workflow (fit_cls)
+  # v    : matrix/data.frame of raster predictors for a chunk
+  #        rows = cells, cols = layers in predictors_reef
+
+  # Coerce to data.frame
+  v <- as.data.frame(v)
+
+  # Give columns the raster layer names (must match what the recipe expects)
+  names(v) <- names(predictors_reef_trim)
+
+  # Add numeric Year column expected by the model
+  v$Year <- target_year
+  
+   # Add dummy fold_id so hardhat is happy
+  # Copy type from training data:
+  v$fold_id <- model_df$fold_id[1]
+
+  # Use the tidymodels workflow's predict()
+  p <- predict(
+    model,
+    new_data = v,
+    type     = "prob"
+  )
+
+  # Return numeric vector of probabilities for the "1" class
+  as.numeric(p$.pred_1)
+}
+
+
 prob_rast <- terra::predict(
   predictors_reef,  # SpatRaster
   fit_cls,          # model argument
@@ -729,7 +1091,15 @@ prob_rast <- terra::predict(
   cores = 1         # keep 1 to avoid xgboost pointer weirdness
 )
 
-names(prob_rast) <- "prob_problem"
+prob_rast_full <- terra::predict(
+  predictors_reef_trim,  # SpatRaster
+  fit_cls,          # model argument
+  fun   = pred_fun,
+  na.rm = TRUE,
+  cores = 1         # keep 1 to avoid xgboost pointer weirdness
+)
+
+names(prob_rast_full) <- "prob_problem"
 prob_rast
 plot(prob_rast)
 
@@ -738,13 +1108,13 @@ crs(prob_rast)
 
 # 1) Write out as GeoTIFF in the raster's native CRS
 writeRaster(
-  prob_rast,
-  filename = "outputs/COTS_prob_problem.tif",
+  prob_rast_full,
+  filename = "outputs/COTS_prob_problem2.tif",
   overwrite = TRUE,
   gdal = c("COMPRESS=LZW")   # optional but makes file smaller
 )
 
-prob_rast <- rast("outputs/COTS_prob_problem.tif")
+prob_rast <- rast("outputs/COTS_prob_problem2.tif")
 plot(prob_rast)
 
 ```
