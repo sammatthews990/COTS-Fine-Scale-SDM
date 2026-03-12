@@ -3,7 +3,7 @@ title: "Process Data"
 author: "Sam Matthews"
 format:
   html:
-    theme: 
+    theme:
       light: cosmo      # pick any light Bootswatch theme
       dark: solar      # pick any dark Bootswatch theme
     toc: true
@@ -48,7 +48,7 @@ crs(coralSDM.Ahya)
 #John Brewer
 bb_wgs <- ext(147.0, 147.1, -18.66, -18.6)
 # Britomart
-# bb_wgs <- ext(145.65, 145.88, -16.48, -16.33) 
+# bb_wgs <- ext(145.65, 145.88, -16.48, -16.33)
 # 2) Turn extent -> polygon with CRS, then project to raster CRS (MGA55)
 bb_wgs_poly <- as.polygons(bb_wgs, crs = "EPSG:4326")
 bb_mga_poly <- project(bb_wgs_poly, crs(coralSDM.Ahya))
@@ -152,7 +152,6 @@ names(geomorph_rast) <- "geomorph_class"
 predictors_reef <- c(predictors_reef, benthic_rast, geomorph_rast)
 ```
 
-
 ## ReefGuideData
 
 ```{r}
@@ -247,7 +246,7 @@ for (v in rg_vars) {
 }
 
 
-rg_mosaics <- rg_layers 
+rg_mosaics <- rg_layers
 # Inspect what you actually have
 str(rg_mosaics, max.level = 1)
 
@@ -294,7 +293,6 @@ writeRaster(
   )
 message("Saved predictor stack to: ", pred_stack_file)
 ```
-
 
 ##Mask Rasters to GBR Features
 
@@ -383,11 +381,11 @@ dat.cull <- read_excel("data/250929_COTS-Manta-Cull-RHIS-Data-Matthews-and-Schla
   group_by(ReefName, CullSiteName, Year, Latitude, Longitude) %>%
   summarise(MaxCPUE = max(CPUE),
             CPUE = sum(Total, na.rm = T)/sum(Bottomtime, na.rm = T),
-            Total = sum(Total), 
+            Total = sum(Total),
             Bottomtime = sum(Bottomtime)) %>%
   filter(!is.na(Longitude))
 
-dat.cull_sf <- dat.cull |> 
+dat.cull_sf <- dat.cull |>
   st_as_sf(
     coords = c("Longitude", "Latitude"),  # <- CHANGE if your cols are named differently
     crs    = 4326              # WGS84 geographic
@@ -474,7 +472,7 @@ survey_sf$ID <- seq_len(nrow(survey_sf))
 # 3.3 Extract raster values
 pred_vals <- terra::extract(predictors_reef, vect(survey_sf))
 
-#Need to add to take predictors that are within ~20m 
+#Need to add to take predictors that are within ~20m
 
 #####IM HERE#####
 
@@ -544,9 +542,9 @@ if (exists("outbreak_pred_df")) {
 }
 
 # survey_sf_utm <- st_transform(survey_sf, crs(predictors_reef))
-# 
+#
 # xy <- st_coordinates(survey_sf_utm)
-# 
+#
 # survey_df <- survey_df %>%
 #   mutate(
 #     x = xy[,1],
@@ -693,7 +691,8 @@ cpue_field   <- "CPUE_mean"        # choose: "CPUE_mean" or "CPUE_max"
 
 # Choose which raster layers to include (your curated continuous set)
 # (keep this as your known-good set)
-pred_cols <- names(predictors_reef)[c(1:12, 19)]
+predictors_reef <- terra::rast("data/predictors_reef.tif")
+pred_cols <- names(predictors_reef)[c(1:12)]
 pred_cols <- pred_cols[pred_cols %in% names(predictors_reef)]
 
 
@@ -769,10 +768,10 @@ prep_dataset <- function(mode = c("year", "agnostic"),
   survey_sf <- st_as_sf(dat, coords = c("Longitude", "Latitude"), crs = 4326) %>%
     st_transform(crs(predictors_reef))
 
-  # add x/y in the SAME CRS as predictors_reef
-  xy <- st_coordinates(survey_sf)
-  survey_sf$x <- xy[, 1]
-  survey_sf$y <- xy[, 2]
+  # # add x/y in the SAME CRS as predictors_reef
+  # xy <- st_coordinates(survey_sf)
+  # survey_sf$x <- xy[, 1]
+  # survey_sf$y <- xy[, 2]
 
   # ---- C) extract raster predictors ------------------------------------
   survey_sf$ID <- seq_len(nrow(survey_sf))
@@ -788,13 +787,12 @@ prep_dataset <- function(mode = c("year", "agnostic"),
     mutate(cots_density_cpue = as.numeric(.data[[cpue_field]]))
 
   # drop rows missing predictors/response
-  keep_cols <- c("cots_density_cpue", "x", "y", pred_cols)
+  keep_cols <- c("cots_density_cpue", pred_cols)
   if (mode == "year") keep_cols <- c(keep_cols, "Year")
 
   survey_df <- survey_df %>%
     filter(!is.na(cots_density_cpue)) %>%
-    drop_na(all_of(pred_cols)) %>%
-    drop_na(x, y)
+    drop_na(all_of(pred_cols))
 
   # ---- D) spatial blocks (once per dataset) ----------------------------
   # blockCV uses the geometry in survey_sf, so subset survey_sf to matching rows
@@ -832,7 +830,7 @@ prep_dataset <- function(mode = c("year", "agnostic"),
         cots_density_cpue,
         Year = as.numeric(Year),   # keep numeric Year predictor
         fold_id,
-        x, y,
+        # x, y,
         across(all_of(pred_cols), as.numeric)
       )
   } else {
@@ -840,7 +838,7 @@ prep_dataset <- function(mode = c("year", "agnostic"),
       transmute(
         cots_density_cpue,
         fold_id,
-        x, y,
+        # x, y,
         across(all_of(pred_cols), as.numeric)
       )
   }
@@ -858,11 +856,11 @@ fit_threshold_model <- function(threshold, base_df, seed = 123) {
 
   model_df <- base_df %>%
     mutate(
-      cots_problem = factor(if_else(cots_density_cpue >= threshold, 1L, 0L),
+      cots_problem = factor(if_else(cots_density_cpue > threshold, 1L, 0L),
                             levels = c(0, 1))
     ) %>%
     select(cots_problem, fold_id, everything(), -cots_density_cpue)
-
+  # browser()
   set.seed(seed)
   cv_folds <- group_vfold_cv(model_df, group = fold_id, v = 5)
 
@@ -892,7 +890,7 @@ fit_threshold_model <- function(threshold, base_df, seed = 123) {
     learn_rate(),
     loss_reduction(),
     min_n(),
-    size = 30
+    size = 15
   )
 
   res <- tune_grid(
@@ -971,6 +969,210 @@ fit_cls_year_002 <- fits_year[["thr_0.02"]]$fit
 fit_cls_agn_002 <- fits_agnostic[["thr_0.02"]]$fit
 ```
 
+```{r}
+library(tidymodels)
+library(dplyr)
+library(purrr)
+library(ggplot2)
+library(xgboost)
+
+# --- helper: extract xgboost importance from a tidymodels workflow --------
+get_xgb_importance <- function(fit_workflow, model_name) {
+  booster <- fit_workflow %>% extract_fit_parsnip() %>% purrr::pluck("fit")
+  imp <- xgboost::xgb.importance(model = booster)
+  imp$model <- model_name
+  imp
+}
+
+# --- collect importance for all 6 models --------------------------------
+imp_all <- bind_rows(
+  imap_dfr(fits_year,     ~get_xgb_importance(.x$fit, paste0("year_", .y))),
+  imap_dfr(fits_agnostic, ~get_xgb_importance(.x$fit, paste0("agn_",  .y)))
+)
+
+# --- choose top N per model ---------------------------------------------
+top_n <- 15
+
+imp_top <- imp_all %>%
+  group_by(model) %>%
+  slice_max(order_by = Gain, n = top_n, with_ties = FALSE) %>%
+  ungroup()
+
+# --- create a model-specific factor order without tidytext ---------------
+# trick: make a unique key per facet, order by Gain within facet
+imp_top <- imp_top %>%
+  mutate(
+    feat_key = paste(model, Feature, sep = "___")
+  ) %>%
+  group_by(model) %>%
+  arrange(Gain, .by_group = TRUE) %>%       # ascending so biggest ends up at top after coord_flip
+  mutate(feat_key = factor(feat_key, levels = feat_key)) %>%
+  ungroup()
+
+# mapping from key -> plain Feature for axis labels
+key_labs <- substr(setNames(imp_top$Feature, imp_top$feat_key),1,10)
+
+# --- plot ---------------------------------------------------------------
+ggplot(imp_top, aes(x = feat_key, y = Gain)) +
+  geom_col() +
+  coord_flip() +
+  facet_wrap(~ model, scales = "free_y") +
+  scale_x_discrete(labels = key_labs) +
+  labs(
+    x = NULL,
+    y = "XGBoost Gain",
+    title = paste0("Top ", top_n, " variable importances per model")
+  ) +
+  theme_minimal() +
+  theme(
+    strip.text = element_text(face = "bold"),
+    axis.text.y = element_text(size = 8)
+  )
+```
+
+```{r}
+############################################################
+# Predict 6 fitted classification models to reef grid and
+# write one multi-band GeoTIFF:
+#   (year models)     thr 0.00, 0.02, 0.04
+#   (agnostic models) thr 0.00, 0.02, 0.04
+############################################################
+
+library(terra)
+library(tidymodels)
+
+
+predictors_reef <- terra::rast("data/predictors_reef.tif")
+# -------- settings -------------------------------------------------------
+out_tif <- "outputs/COTS_prob_6models.tif"
+dir.create(dirname(out_tif), showWarnings = FALSE, recursive = TRUE)
+
+# choose the Year value to inject for year-specific models
+# (set to 2025 or max Year in your year-training dataframe)
+YEAR_TO_PREDICT <- 2025
+
+# -------- helper: safely stack multiple SpatRasters ----------------------
+stack_rasters <- function(r_list) {
+  r_list <- r_list[vapply(r_list, inherits, logical(1), "SpatRaster")]
+  if (length(r_list) == 0) stop("No SpatRaster objects to stack.")
+  out <- r_list[[1]]
+  if (length(r_list) > 1) {
+    for (i in 2:length(r_list)) out <- c(out, r_list[[i]])
+  }
+  out
+}
+
+# -------- helper: predict one workflow to raster grid --------------------
+predict_workflow_to_grid <- function(fit_obj, predictors_reef, year_value = YEAR_TO_PREDICT,
+                                     layer_name = "prob") {
+
+  # training data used for this fitted workflow
+  # (from your fit_threshold_model() list: model_df includes outcome + predictors)
+  train_df <- fit_obj$model_df
+
+  # Identify which predictors are required by the *training columns*.
+  # We'll provide:
+  #   - raster predictors from predictors_reef
+  #   - x/y as coordinate rasters if required
+  #   - Year injected as constant if required
+  #   - fold_id injected as constant if required (hardhat often requires it)
+  needed_cols <- setdiff(names(train_df), "cots_problem")
+
+  need_year   <- "Year" %in% needed_cols
+  need_fold   <- "fold_id" %in% needed_cols
+  need_xy     <- all(c("x", "y") %in% needed_cols)
+  print(paste("Predicting with model needing:", paste(needed_cols, collapse = ", ")))
+  # Raster predictors needed = those needed_cols that are raster layer names
+  raster_needed <- base:: intersect(needed_cols, names(predictors_reef))
+
+  if (length(raster_needed) == 0) {
+    stop("No raster predictors found for this model. Check names(train_df) vs names(predictors_reef).")
+  }
+
+  # Subset raster stack to ONLY predictors used (prevents NA-coverage truncation)
+  pred_stack <- predictors_reef[[raster_needed]]
+
+  # Add x/y rasters if model expects them
+  if (need_xy) {
+    x_r <- init(pred_stack[[1]], "x"); names(x_r) <- "x"
+    y_r <- init(pred_stack[[1]], "y"); names(y_r) <- "y"
+    pred_stack <- c(pred_stack, x_r, y_r)
+  }
+
+  # Prediction function called by terra::predict(model, v)
+  pred_fun <- function(model, v) {
+    v <- as.data.frame(v)
+    names(v) <- names(pred_stack)
+
+    # Inject required non-raster predictors
+    if (need_year) v$Year <- as.numeric(year_value)
+    if (need_fold) v$fold_id <- train_df$fold_id[1]
+
+    # If model expects x/y but they were not in pred_stack for some reason:
+    # (shouldn't happen, but safe)
+    # if (need_xy && !all(c("x","y") %in% names(v))) stop("x/y missing in prediction stack")
+
+    p <- predict(model, new_data = v, type = "prob")
+    as.numeric(p$.pred_1)
+  }
+
+  # Run chunked prediction
+  r_out <- terra::predict(
+    pred_stack,
+    fit_obj$fit,     # fitted tidymodels workflow
+    fun   = pred_fun,
+    na.rm = TRUE,
+    cores = 1
+  )
+
+  names(r_out) <- layer_name
+  r_out
+}
+
+# -------- build the 6 predictions ---------------------------------------
+
+# Make sure these objects exist:
+# fits_year, fits_agnostic  (each has entries like "thr_0.02" with $fit, $model_df)
+
+preds <- list()
+
+# Year models
+preds[["year_thr0.00"]] <- predict_workflow_to_grid(
+  fits_year[["thr_0"]] , predictors_reef, year_value = YEAR_TO_PREDICT, layer_name = "year_thr0.00"
+)
+preds[["year_thr0.02"]] <- predict_workflow_to_grid(
+  fits_year[["thr_0.02"]], predictors_reef, year_value = YEAR_TO_PREDICT, layer_name = "year_thr0.02"
+)
+preds[["year_thr0.04"]] <- predict_workflow_to_grid(
+  fits_year[["thr_0.04"]], predictors_reef, year_value = YEAR_TO_PREDICT, layer_name = "year_thr0.04"
+)
+
+# Agnostic models
+preds[["agn_thr0.00"]] <- predict_workflow_to_grid(
+  fits_agnostic[["thr_0"]] , predictors_reef, year_value = YEAR_TO_PREDICT, layer_name = "agn_thr0.00"
+)
+preds[["agn_thr0.02"]] <- predict_workflow_to_grid(
+  fits_agnostic[["thr_0.02"]], predictors_reef, year_value = YEAR_TO_PREDICT, layer_name = "agn_thr0.02"
+)
+preds[["agn_thr0.04"]] <- predict_workflow_to_grid(
+  fits_agnostic[["thr_0.04"]], predictors_reef, year_value = YEAR_TO_PREDICT, layer_name = "agn_thr0.04"
+)
+
+# Stack into one 6-layer SpatRaster
+prob_6 <- stack_rasters(preds)
+prob_6
+names(prob_6)
+
+# -------- write a single multi-band GeoTIFF ------------------------------
+writeRaster(
+  prob_6,
+  filename  = out_tif,
+  overwrite = TRUE,
+  gdal      = c("COMPRESS=LZW", "TILED=YES", "BIGTIFF=YES")
+)
+
+message("Wrote 6-layer GeoTIFF: ", out_tif)
+```
 
 ### Predict and Plot
 
@@ -984,7 +1186,7 @@ fit_cls_agn_002 <- fits_agnostic[["thr_0.02"]]$fit
 # y_r <- terra::init(predictors_reef[[1]], "y")
 # names(x_r) <- "x"
 # names(y_r) <- "y"
-# 
+#
 # # Append to your predictor stack
 # predictors_reef <- c(predictors_reef, x_r, y_r)
 
@@ -1017,11 +1219,11 @@ pred_fun <- function(model, v) {
   v <- as.data.frame(v)
 
   # Give columns the raster layer names (must match what the recipe expects)
-  names(v) <- names(predictors_reef_trim)
+  names(v) <- names(predictors_reef)
 
   # Add numeric Year column expected by the model
   v$Year <- target_year
-  
+
    # Add dummy fold_id so hardhat is happy
   # Copy type from training data:
   v$fold_id <- model_df$fold_id[1]
@@ -1039,14 +1241,14 @@ pred_fun <- function(model, v) {
 
 # # Take a small sample of raster values
 # test_mat <- terra::values(predictors_reef, mat = TRUE)[1:10, , drop = FALSE]
-# 
+#
 # # Run pred_fun on this sample
 # test_pred <- pred_fun(test_mat)
 # test_pred
 
-names(model_df)  
+names(model_df)
 names(model_df)[5:17]# make sure it's "Year" not "year"
-names(predictors_reef) 
+names(predictors_reef)
 predictors_reef_trim <- predictors_reef[[names(model_df)[5:17]]] # make sure these match the pred_fun column namesedict)
 str(model_df$Year)      # should be numeric (or integer)
 str(model_df$fold_id)
@@ -1066,7 +1268,7 @@ pred_fun <- function(model, v) {
 
   # Add numeric Year column expected by the model
   v$Year <- target_year
-  
+
    # Add dummy fold_id so hardhat is happy
   # Copy type from training data:
   v$fold_id <- model_df$fold_id[1]
@@ -1091,15 +1293,15 @@ prob_rast <- terra::predict(
   cores = 1         # keep 1 to avoid xgboost pointer weirdness
 )
 
-prob_rast_full <- terra::predict(
-  predictors_reef_trim,  # SpatRaster
-  fit_cls,          # model argument
-  fun   = pred_fun,
-  na.rm = TRUE,
-  cores = 1         # keep 1 to avoid xgboost pointer weirdness
-)
+# prob_rast_full <- terra::predict(
+#   predictors_reef_trim,  # SpatRaster
+#   fit_cls,          # model argument
+#   fun   = pred_fun,
+#   na.rm = TRUE,
+#   cores = 1         # keep 1 to avoid xgboost pointer weirdness
+# )
 
-names(prob_rast_full) <- "prob_problem"
+names(prob_rast) <- "prob_problem"
 prob_rast
 plot(prob_rast)
 
@@ -1108,8 +1310,8 @@ crs(prob_rast)
 
 # 1) Write out as GeoTIFF in the raster's native CRS
 writeRaster(
-  prob_rast_full,
-  filename = "outputs/COTS_prob_problem2.tif",
+  prob_rast,
+  filename = "outputs/COTS_prob_problem3.tif",
   overwrite = TRUE,
   gdal = c("COMPRESS=LZW")   # optional but makes file smaller
 )
@@ -1484,7 +1686,7 @@ pred_fun.dens <- function(model, v) {
 
   # Add numeric Year column expected by the model
   v$Year <- target_year
-  
+
    # Add dummy fold_id so hardhat is happy
   # Copy type from training data:
   v$fold_id <- model_df$fold_id[1]
@@ -1502,7 +1704,7 @@ pred_fun.dens <- function(model, v) {
 
 # # Take a small sample of raster values
 # test_mat <- terra::values(predictors_reef, mat = TRUE)[1:10, , drop = FALSE]
-# 
+#
 # # Run pred_fun on this sample
 # test_pred <- pred_fun(test_mat)
 # test_pred
