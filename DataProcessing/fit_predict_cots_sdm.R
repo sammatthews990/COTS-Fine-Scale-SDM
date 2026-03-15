@@ -1,0 +1,251 @@
+############################################################
+# fit_predict_cots_sdm.R
+# Script to fit an XGBoost classification model for COTS
+# (using CPUE threshold 0.02) and predicting it across the GBR.
+############################################################
+
+# --- 0. Setup and Packages ---
+library(readxl)
+library(dplyr)
+library(sf)
+library(terra)
+library(tidymodels)
+library(blockCV)
+library(lubridate)
+library(xgboost)
+library(ggplot2)
+library(purrr)
+library(vip)
+
+tidymodels::tidymodels_prefer()
+
+# Set up paths
+predict_stack_file <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/predictors_terra_30m_combined_masked.tif"
+cull_data_file <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/250929_COTS-Manta-Cull-RHIS-Data-Matthews-and-Schlawinsky.xlsx"
+output_tif <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/COTS_prob_0.02_cpue.tif"
+output_vip_plot <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/COTS_vip_0.02_cpue.png"
+
+dir.create(dirname(output_tif), showWarnings = FALSE, recursive = TRUE)
+
+# Parameters
+threshold  <- 0.02
+block_km   <- 50
+seed       <- 123
+cpue_field <- "CPUE_mean"
+
+# --- 1. Load Predictors ---
+print("Loading predictors...")
+predictors_reef <- terra::rast(predict_stack_file)
+
+# Select all available predictor columns (excluding anything you might want to drop explicitly)
+pred_cols <- names(predictors_reef)
+
+# --- 2. Load and Prepare Survey Data ---
+print("Loading and preparing survey data...")
+raw_cull <- read_excel(cull_data_file, sheet = 4) %>%
+  mutate(
+    VoyageTitle = as.factor(VoyageTitle),
+    SurveyDate  = as.Date(SurveyDate),
+    Year        = lubridate::year(SurveyDate),
+    Total       = Cohort1 + Cohort2 + Cohort3 + Cohort4,
+    CPUE        = Total / Bottomtime
+  ) %>%
+  filter(
+    !is.na(Longitude), !is.na(Latitude),
+    !is.na(Bottomtime), Bottomtime > 0
+  )
+
+# Aggregate iteratively (year-agnostic approach)
+print("Aggregating survey data to locations...")
+dat <- raw_cull %>%
+  group_by(ReefName, CullSiteName, Latitude, Longitude) %>%
+  summarise(
+    CPUE_mean  = sum(Total, na.rm = TRUE) / sum(Bottomtime, na.rm = TRUE),
+    CPUE_max   = max(CPUE, na.rm = TRUE),
+    Total      = sum(Total, na.rm = TRUE),
+    Bottomtime = sum(Bottomtime, na.rm = TRUE),
+    n_surveys  = dplyr::n(),
+    Year_min   = min(Year, na.rm = TRUE),
+    Year_max   = max(Year, na.rm = TRUE),
+    .groups    = "drop"
+  )
+
+# --- 3. Spatial Preparation and Extraction ---
+print("Extracting raster values at survey locations...")
+# Convert to sf and transform to raster CRS
+survey_sf <- st_as_sf(dat, coords = c("Longitude", "Latitude"), crs = 4326) %>%
+  st_transform(crs(predictors_reef))
+
+# Extract raster predictors
+survey_sf$ID <- seq_len(nrow(survey_sf))
+pred_vals <- terra::extract(predictors_reef, terra::vect(survey_sf))
+
+survey_df <- survey_sf %>%
+  st_drop_geometry() %>%
+  left_join(pred_vals, by = "ID") %>%
+  select(-ID)
+
+# Define response variable
+survey_df <- survey_df %>%
+  mutate(
+    cots_density_cpue = as.numeric(.data[[cpue_field]]),
+    cots_problem = factor(if_else(cots_density_cpue >= threshold, 1L, 0L), levels = c("0", "1"))
+  )
+
+# Drop rows missing predictors or response
+survey_df <- survey_df %>%
+  filter(!is.na(cots_density_cpue), !is.na(cots_problem)) %>%
+  drop_na(all_of(pred_cols))
+
+# Keep only rows in the sf object that survived the drop_na
+survey_df <- survey_df %>% mutate(row_id = row_number())
+survey_sf2 <- survey_sf %>% 
+  mutate(row_id = row_number()) %>% 
+  filter(row_id %in% survey_df$row_id)
+
+
+# --- 4. Spatial Blocking for CV ---
+print("Creating spatial blocks for cross-validation...")
+block_range_for_sf <- function(x_sf, km = 50) {
+  if (sf::st_is_longlat(x_sf)) {
+    return(km / 111.32)
+  } else {
+    return(km * 1000)
+  }
+}
+
+theRange <- block_range_for_sf(survey_sf2, km = block_km)
+
+set.seed(seed)
+sb <- spatialBlock(
+  speciesData = survey_sf2,
+  species     = NULL,
+  theRange    = theRange,
+  k           = 5,
+  selection   = "random",
+  showBlocks  = FALSE
+)
+
+survey_df$fold_id <- sb$foldID
+
+# Prepare final modelling dataframe
+model_df <- survey_df %>%
+  transmute(
+    cots_problem,
+    fold_id,
+    across(all_of(pred_cols), as.numeric)
+  )
+
+# --- 5. Model Fitting (XGBoost) ---
+print("Tuning and fitting XGBoost model...")
+set.seed(seed)
+cv_folds <- group_vfold_cv(model_df, group = fold_id, v = 5)
+
+rec <- recipe(cots_problem ~ ., data = model_df) %>%
+  step_rm(fold_id) %>%
+  step_zv(all_predictors()) %>%
+  step_normalize(all_numeric_predictors())
+
+xgb_spec <- boost_tree(
+  trees          = 1500,
+  tree_depth     = tune(),
+  learn_rate     = tune(),
+  loss_reduction = tune(),
+  min_n          = tune()
+) %>%
+  set_engine("xgboost") %>%
+  set_mode("classification")
+
+wf <- workflow() %>%
+  add_recipe(rec) %>%
+  add_model(xgb_spec)
+
+set.seed(seed)
+grid <- grid_space_filling(
+  tree_depth(),
+  learn_rate(),
+  loss_reduction(),
+  min_n(),
+  size = 15
+)
+
+# Tune model
+res <- tune_grid(
+  wf,
+  resamples = cv_folds,
+  grid      = grid,
+  metrics   = metric_set(roc_auc, pr_auc, accuracy)
+)
+
+# Select best and finalize
+best <- select_best(res, metric = "roc_auc")
+final_wf <- finalize_workflow(wf, best)
+
+set.seed(seed)
+fit_cls <- fit(final_wf, data = model_df)
+
+print("Model fitting complete.")
+
+# Print Metrics Summary
+metrics_summary <- collect_metrics(res) %>%
+  filter(.config == best$.config)
+print("Best Cross-Validated Metrics:")
+print(metrics_summary)
+
+# --- 6. Variable Importance Plot ---
+print("Generating Variable Importance Plot...")
+
+booster <- fit_cls %>% extract_fit_parsnip() %>% purrr::pluck("fit")
+imp <- xgboost::xgb.importance(model = booster)
+
+# We can also plot it using vip
+vip_p <- fit_cls %>% 
+  extract_fit_parsnip() %>% 
+  vip::vip(num_features = 15, geom = "col") + 
+  theme_minimal() + 
+  ggtitle("Top 15 Predictor Importance (XGBoost Gain)")
+
+print(imp)
+ggsave(output_vip_plot, plot = vip_p, width = 8, height = 6, dpi = 300)
+print(paste("Saved VIP plot to:", output_vip_plot))
+
+
+# --- 7. Predict to Spatial Grid ---
+print("Predicting probabilities to spatial grid... (This may take a while)")
+
+pred_fun <- function(model, v) {
+  # Coerce to data.frame
+  v <- as.data.frame(v)
+  names(v) <- pred_cols
+  
+  # Inject dummy fold_id so recipe passes
+  v$fold_id <- model_df$fold_id[1]
+  
+  p <- predict(
+    model,
+    new_data = v,
+    type     = "prob"
+  )
+  as.numeric(p$.pred_1)
+}
+
+# Predict chunked via terra
+prob_rast <- terra::predict(
+  predictors_reef,
+  fit_cls,
+  fun   = pred_fun,
+  na.rm = TRUE,
+  cores = 1
+)
+
+names(prob_rast) <- "prob_problem"
+
+print(paste("Writing prediction raster to:", output_tif))
+writeRaster(
+  prob_rast,
+  filename = output_tif,
+  overwrite = TRUE,
+  gdal = c("COMPRESS=LZW", "TILED=YES", "BIGTIFF=YES")
+)
+
+print("Done! All processing completed.")
