@@ -28,17 +28,42 @@ output_vip_plot <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/Da
 dir.create(dirname(output_tif), showWarnings = FALSE, recursive = TRUE)
 
 # Parameters
-threshold  <- 0.02
-block_km   <- 50
-seed       <- 123
+threshold <- 0.02
+block_km <- 50
+seed <- 123
 cpue_field <- "CPUE_mean"
+use_year <- TRUE # TRUE = include Year as a predictor; FALSE = agnostic across years
+predict_year <- 2025 # Year to predict for when use_year = TRUE
+use_reefguide <- FALSE # TRUE = include ReefGuide (RG_*) layers; FALSE = exclude them
 
 # --- 1. Load Predictors ---
 print("Loading predictors...")
 predictors_reef <- terra::rast(predict_stack_file)
 
-# Select all available predictor columns (excluding anything you might want to drop explicitly)
+# Select all available predictor columns from the raster
 pred_cols <- names(predictors_reef)
+
+# Drop old limited-extent coral SDM layers (SDM_* are the old ones; bare Aspat/Aten/AhyaD are full extent)
+old_sdm_cols <- grep("^SDM_", pred_cols, value = TRUE)
+if (length(old_sdm_cols) > 0) {
+  pred_cols <- base::setdiff(pred_cols, old_sdm_cols)
+  print(paste("Excluding old limited-extent coral layers:", paste(old_sdm_cols, collapse = ", ")))
+}
+
+# Optionally drop ReefGuide layers
+if (!use_reefguide) {
+  rg_cols <- grep("^RG_", pred_cols, value = TRUE)
+  pred_cols <- setdiff(pred_cols, rg_cols)
+  print(paste("Excluding ReefGuide layers:", paste(rg_cols, collapse = ", ")))
+}
+
+# If using year, add it to the predictor set
+if (use_year) {
+  pred_cols <- c(pred_cols, "Year")
+  print(paste("Using Year as a predictor. Prediction year:", predict_year))
+} else {
+  print("Year-agnostic mode: aggregating across all years.")
+}
 
 # --- 2. Load and Prepare Survey Data ---
 print("Loading and preparing survey data...")
@@ -55,20 +80,35 @@ raw_cull <- read_excel(cull_data_file, sheet = 4) %>%
     !is.na(Bottomtime), Bottomtime > 0
   )
 
-# Aggregate iteratively (year-agnostic approach)
+# Aggregate survey data
 print("Aggregating survey data to locations...")
-dat <- raw_cull %>%
-  group_by(ReefName, CullSiteName, Latitude, Longitude) %>%
-  summarise(
-    CPUE_mean  = sum(Total, na.rm = TRUE) / sum(Bottomtime, na.rm = TRUE),
-    CPUE_max   = max(CPUE, na.rm = TRUE),
-    Total      = sum(Total, na.rm = TRUE),
-    Bottomtime = sum(Bottomtime, na.rm = TRUE),
-    n_surveys  = dplyr::n(),
-    Year_min   = min(Year, na.rm = TRUE),
-    Year_max   = max(Year, na.rm = TRUE),
-    .groups    = "drop"
-  )
+if (use_year) {
+  # Per-year aggregation: keep Year as a column
+  dat <- raw_cull %>%
+    group_by(ReefName, CullSiteName, Latitude, Longitude, Year) %>%
+    summarise(
+      CPUE_mean  = sum(Total, na.rm = TRUE) / sum(Bottomtime, na.rm = TRUE),
+      CPUE_max   = max(CPUE, na.rm = TRUE),
+      Total      = sum(Total, na.rm = TRUE),
+      Bottomtime = sum(Bottomtime, na.rm = TRUE),
+      n_surveys  = dplyr::n(),
+      .groups    = "drop"
+    )
+} else {
+  # Year-agnostic aggregation
+  dat <- raw_cull %>%
+    group_by(ReefName, CullSiteName, Latitude, Longitude) %>%
+    summarise(
+      CPUE_mean  = sum(Total, na.rm = TRUE) / sum(Bottomtime, na.rm = TRUE),
+      CPUE_max   = max(CPUE, na.rm = TRUE),
+      Total      = sum(Total, na.rm = TRUE),
+      Bottomtime = sum(Bottomtime, na.rm = TRUE),
+      n_surveys  = dplyr::n(),
+      Year_min   = min(Year, na.rm = TRUE),
+      Year_max   = max(Year, na.rm = TRUE),
+      .groups    = "drop"
+    )
+}
 
 # --- 3. Spatial Preparation and Extraction ---
 print("Extracting raster values at survey locations...")
@@ -85,11 +125,11 @@ survey_df <- survey_sf %>%
   left_join(pred_vals, by = "ID") %>%
   select(-ID)
 
-# Define response variable
+# Define response variable (keep as numeric 1/0 for blockCV stratification)
 survey_df <- survey_df %>%
   mutate(
     cots_density_cpue = as.numeric(.data[[cpue_field]]),
-    cots_problem = factor(if_else(cots_density_cpue >= threshold, 1L, 0L), levels = c("0", "1"))
+    cots_problem = if_else(cots_density_cpue >= threshold, 1L, 0L)
   )
 
 # Drop rows missing predictors or response
@@ -99,8 +139,8 @@ survey_df <- survey_df %>%
 
 # Keep only rows in the sf object that survived the drop_na
 survey_df <- survey_df %>% mutate(row_id = row_number())
-survey_sf2 <- survey_sf %>% 
-  mutate(row_id = row_number()) %>% 
+survey_sf2 <- survey_sf %>%
+  mutate(row_id = row_number()) %>%
   filter(row_id %in% survey_df$row_id)
 
 
@@ -119,7 +159,7 @@ theRange <- block_range_for_sf(survey_sf2, km = block_km)
 set.seed(seed)
 sb <- spatialBlock(
   speciesData = survey_sf2,
-  species     = NULL,
+  species     = "cots_problem",
   theRange    = theRange,
   k           = 5,
   selection   = "random",
@@ -131,10 +171,12 @@ survey_df$fold_id <- sb$foldID
 # Prepare final modelling dataframe
 model_df <- survey_df %>%
   transmute(
-    cots_problem,
+    cots_problem = factor(cots_problem, levels = c("0", "1")),
     fold_id,
     across(all_of(pred_cols), as.numeric)
   )
+
+print(paste("--> Number of rows in model_df:", nrow(model_df)))
 
 # --- 5. Model Fitting (XGBoost) ---
 print("Tuning and fitting XGBoost model...")
@@ -166,7 +208,7 @@ grid <- grid_space_filling(
   learn_rate(),
   loss_reduction(),
   min_n(),
-  size = 15
+  size = 30
 )
 
 # Tune model
@@ -195,14 +237,16 @@ print(metrics_summary)
 # --- 6. Variable Importance Plot ---
 print("Generating Variable Importance Plot...")
 
-booster <- fit_cls %>% extract_fit_parsnip() %>% purrr::pluck("fit")
+booster <- fit_cls %>%
+  extract_fit_parsnip() %>%
+  purrr::pluck("fit")
 imp <- xgboost::xgb.importance(model = booster)
 
 # We can also plot it using vip
-vip_p <- fit_cls %>% 
-  extract_fit_parsnip() %>% 
-  vip::vip(num_features = 15, geom = "col") + 
-  theme_minimal() + 
+vip_p <- fit_cls %>%
+  extract_fit_parsnip() %>%
+  vip::vip(num_features = 15, geom = "col") +
+  theme_minimal() +
   ggtitle("Top 15 Predictor Importance (XGBoost Gain)")
 
 print(imp)
@@ -213,14 +257,22 @@ print(paste("Saved VIP plot to:", output_vip_plot))
 # --- 7. Predict to Spatial Grid ---
 print("Predicting probabilities to spatial grid... (This may take a while)")
 
+# The raster predictor names (without Year)
+raster_pred_cols <- names(predictors_reef)
+
 pred_fun <- function(model, v) {
   # Coerce to data.frame
   v <- as.data.frame(v)
-  names(v) <- pred_cols
-  
+  names(v) <- raster_pred_cols
+
+  # Inject Year if the model was trained with it
+  if (use_year) {
+    v$Year <- predict_year
+  }
+
   # Inject dummy fold_id so recipe passes
   v$fold_id <- model_df$fold_id[1]
-  
+
   p <- predict(
     model,
     new_data = v,
