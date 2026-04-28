@@ -20,42 +20,55 @@ library(vip)
 tidymodels::tidymodels_prefer()
 
 # Set up paths
-predict_stack_file <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/predictors_terra_30m_combined_masked.tif"
-cull_data_file <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/250929_COTS-Manta-Cull-RHIS-Data-Matthews-and-Schlawinsky.xlsx"
-output_tif <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/COTS_prob_0.02_cpue.tif"
-output_vip_plot <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/COTS_vip_0.02_cpue.png"
+# Clean 12-layer stack (env + coral only, no RG_*/SDM_* layers that restrict extent)
+predict_stack_clean <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/predictors_clean_12layer.tif"
+# Full 24-layer stack (includes RG_* and SDM_* — restricted extent!)
+predict_stack_full  <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/predictors_terra_30m_combined_masked.tif"
 
-dir.create(dirname(output_tif), showWarnings = FALSE, recursive = TRUE)
+cull_data_file <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/250929_COTS-Manta-Cull-RHIS-Data-Matthews-and-Schlawinsky.xlsx"
+
+dir.create("C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs",
+           showWarnings = FALSE, recursive = TRUE)
 
 # Parameters
 threshold <- 0.02
 block_km <- 50
 seed <- 123
 cpue_field <- "CPUE_mean"
-use_year <- TRUE # TRUE = include Year as a predictor; FALSE = agnostic across years
+use_year <- TRUE    # TRUE = include Year as a predictor; FALSE = agnostic across years
 predict_year <- 2025 # Year to predict for when use_year = TRUE
-use_reefguide <- FALSE # TRUE = include ReefGuide (RG_*) layers; FALSE = exclude them
+use_reefguide <- FALSE # TRUE = use full stack with ReefGuide layers; FALSE = use clean stack
 
 # --- 1. Load Predictors ---
 print("Loading predictors...")
-predictors_reef <- terra::rast(predict_stack_file)
-
-# Select all available predictor columns from the raster
-pred_cols <- names(predictors_reef)
-
-# Drop old limited-extent coral SDM layers (SDM_* are the old ones; bare Aspat/Aten/AhyaD are full extent)
-old_sdm_cols <- grep("^SDM_", pred_cols, value = TRUE)
-if (length(old_sdm_cols) > 0) {
-  pred_cols <- base::setdiff(pred_cols, old_sdm_cols)
-  print(paste("Excluding old limited-extent coral layers:", paste(old_sdm_cols, collapse = ", ")))
+if (use_reefguide) {
+  # Full stack — includes RG_* layers but prediction extent will be restricted
+  predictors_reef <- terra::rast(predict_stack_full)
+  pred_cols <- names(predictors_reef)
+  # Still drop old SDM_* layers from full stack
+  old_sdm_cols <- grep("^SDM_", pred_cols, value = TRUE)
+  if (length(old_sdm_cols) > 0) {
+    pred_cols <- base::setdiff(pred_cols, old_sdm_cols)
+    print(paste("Excluding old limited-extent coral layers:", paste(old_sdm_cols, collapse = ", ")))
+  }
+  print(paste("Using full stack WITH ReefGuide layers. Predictors:", length(pred_cols)))
+} else {
+  # Clean stack — env + coral only, full reef extent
+  predictors_reef <- terra::rast(predict_stack_clean)
+  pred_cols <- names(predictors_reef)
+  print(paste("Using clean stack (no RG/SDM layers). Predictors:", length(pred_cols)))
 }
 
-# Optionally drop ReefGuide layers
-if (!use_reefguide) {
-  rg_cols <- grep("^RG_", pred_cols, value = TRUE)
-  pred_cols <- setdiff(pred_cols, rg_cols)
-  print(paste("Excluding ReefGuide layers:", paste(rg_cols, collapse = ", ")))
-}
+# Build output filenames based on mode
+mode_label <- if (use_year) paste0("year", predict_year) else "agnostic"
+rg_label   <- if (use_reefguide) "_withRG" else ""
+output_tif      <- sprintf("C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/COTS_prob_%s_cpue_%s%s.tif",
+                           threshold, mode_label, rg_label)
+output_vip_plot <- sprintf("C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/COTS_vip_%s_cpue_%s%s.png",
+                           threshold, mode_label, rg_label)
+
+print(paste("Output TIF:", output_tif))
+print(paste("Output VIP:", output_vip_plot))
 
 # If using year, add it to the predictor set
 if (use_year) {
@@ -64,6 +77,8 @@ if (use_year) {
 } else {
   print("Year-agnostic mode: aggregating across all years.")
 }
+
+print(paste("Final predictor columns:", paste(pred_cols, collapse = ", ")))
 
 # --- 2. Load and Prepare Survey Data ---
 print("Loading and preparing survey data...")
