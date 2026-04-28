@@ -272,8 +272,13 @@ print(paste("Saved VIP plot to:", output_vip_plot))
 # --- 7. Predict to Spatial Grid ---
 print("Predicting probabilities to spatial grid... (This may take a while)")
 
-# The raster predictor names (without Year)
-raster_pred_cols <- names(predictors_reef)
+# IMPORTANT: Subset the raster to ONLY the layers used by the model.
+# This prevents restricted-extent layers (e.g. RG_*) from
+# introducing NAs and clipping the prediction extent.
+raster_pred_cols <- setdiff(pred_cols, "Year")  # raster layers only (Year is injected)
+predictors_for_predict <- predictors_reef[[raster_pred_cols]]
+
+print(paste("Raster layers for prediction:", paste(names(predictors_for_predict), collapse = ", ")))
 
 pred_fun <- function(model, v) {
   # Coerce to data.frame
@@ -296,9 +301,9 @@ pred_fun <- function(model, v) {
   as.numeric(p$.pred_1)
 }
 
-# Predict chunked via terra
+# Predict chunked via terra — using the subsetted raster
 prob_rast <- terra::predict(
-  predictors_reef,
+  predictors_for_predict,
   fit_cls,
   fun   = pred_fun,
   na.rm = TRUE,
