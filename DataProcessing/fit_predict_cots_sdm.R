@@ -34,10 +34,17 @@ dir.create("C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProces
 threshold <- 0.02
 block_km <- 50
 seed <- 123
+<<<<<<< Updated upstream
 cpue_field <- "CPUE_mean"
 use_year <- TRUE    # TRUE = include Year as a predictor; FALSE = agnostic across years
 predict_year <- 2025 # Year to predict for when use_year = TRUE
 use_reefguide <- FALSE # TRUE = use full stack with ReefGuide layers; FALSE = use clean stack
+=======
+use_year <- FALSE    # TRUE = include Year as a predictor; FALSE = agnostic across years
+predict_year <- 2025 # Year to predict for when use_year = TRUE
+use_reefguide <- FALSE # TRUE = use full stack with ReefGuide layers; FALSE = use clean stack
+cpue_field <- if (use_year) "CPUE_mean" else "CPUE_max"
+>>>>>>> Stashed changes
 
 # --- 1. Load Predictors ---
 print("Loading predictors...")

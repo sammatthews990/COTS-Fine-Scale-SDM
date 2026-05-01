@@ -1,0 +1,519 @@
+---
+title: "COTS Fine-Scale SDM: Comprehensive Validation Report"
+format:
+  html:
+    toc: true
+    code-fold: true
+    theme: cosmo
+    fig-width: 10
+    fig-height: 8
+  pdf:
+    toc: true
+execute:
+  warning: false
+  message: false
+---
+
+## Overview
+
+This report validates the XGBoost COTS Fine-Scale Species Distribution Model using historical Manta Tow and Cull data. We compare both the **2025 Year-Specific** and **Year-Agnostic** models.
+
+The validation involves:
+1. **Grid-Based Historical Validation (100m)**: General statistics (ROC, AUC, Confusion Matrix) evaluating the model against historical COTS/scar presence.
+2. **Tow-Path Simulation**: Operational simulation showing which manta tows would be suggested based on the model.
+3. **Cull Dive Financial Savings**: Quantification of dive hours and dollars saved by avoiding ineffective culls (0.00 or <0.02 CPUE).
+4. **Reef Maps**: Visual mapping of predictions vs. operations.
+
+```{r setup}
+library(terra)
+library(sf)
+library(dplyr)
+library(readr)
+library(readxl)
+library(ggplot2)
+library(tidyr)
+library(knitr)
+library(stringr)
+library(pROC)
+
+# --- Configuration ---
+predict_agnostic_path <- "outputs/COTS_prob_0.02_cpue_agnostic.tif"
+predict_year2025_path <- "outputs/COTS_prob_0.02_cpue_year2025_60m.tif"
+manta_csv <- "data/COTS Program  Manta Tow Data-2026-02-04.csv"
+cull_xlsx <- "data/250929_COTS-Manta-Cull-RHIS-Data-Matthews-and-Schlawinsky.xlsx"
+
+out_dir <- "validation_outputs"
+dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+
+# Selected Reefs
+reef_select <- c(
+  "Tongue Reef (16-026)",
+  "Batt Reef (16-029)",
+  "Arlington Reef (16-064)",
+  "(Big) Broadhurst Reef (No 1) (18-100a)",
+  "Britomart Reef (18-024)",
+  "Sudbury Reef (No 1) (17-001a)",
+  "Trunk Reef (18-027)",
+  "Bramble Reef (18-029)",
+  "Davies Reef (18-096)",
+  "Heron Reef (23-052a)"
+)
+```
+
+## 1. Load and Prepare Data
+
+```{r load_data}
+# Load Model Predictions
+prob_agnostic <- if(file.exists(predict_agnostic_path)) terra::rast(predict_agnostic_path) else NULL
+prob_year2025 <- if(file.exists(predict_year2025_path)) terra::rast(predict_year2025_path) else NULL
+
+if(is.null(prob_year2025) || is.null(prob_agnostic)) stop("Missing prediction rasters.")
+
+# Load Manta Tow Data
+manta_raw <- read_csv(manta_csv, show_col_types = FALSE) %>%
+  filter(
+    !is.na(StartLongitude), !is.na(StartLatitude), !is.na(EndLongitude), !is.na(EndLatitude),
+    StartLongitude != 0, StartLatitude != 0, EndLongitude != 0, EndLatitude != 0
+  ) %>%
+  mutate(
+    cots_observed = CrownOfThornsStarfishCount > 0,
+    scars_observed = !is.na(ScarsCount) & ScarsCount > 0,
+    presence_any = cots_observed | scars_observed,
+    ReefName = as.character(ReefName)
+  )
+
+# Convert Manta Tows to spatial lines
+make_tow_lines <- function(df) {
+  lines <- lapply(seq_len(nrow(df)), function(i) {
+    p1 <- c(df$StartLongitude[i], df$StartLatitude[i])
+    p2 <- c(df$EndLongitude[i], df$EndLatitude[i])
+    st_linestring(rbind(p1, p2))
+  })
+  st_sf(df, geometry = st_sfc(lines, crs = 4326))
+}
+
+manta_sf <- make_tow_lines(manta_raw)
+manta_sf <- st_transform(manta_sf, crs = crs(prob_year2025))
+manta_selected <- manta_sf %>% filter(ReefName %in% reef_select)
+
+# Load Cull Data
+cull_raw <- read_excel(cull_xlsx, sheet = 4) %>%
+  filter(!is.na(Longitude), !is.na(Latitude), !is.na(Bottomtime), Bottomtime > 0, Longitude != 0, Latitude != 0) %>%
+  filter(as.Date(SurveyDate) > as.Date("2018-11-30")) %>%
+  mutate(
+    Total = Cohort1 + Cohort2 + Cohort3 + Cohort4,
+    CPUE = Total / Bottomtime,
+    is_ghost = (Total == 0),
+    is_non_problematic = (CPUE < 0.02),
+    ReefName = as.character(ReefName)
+  )
+
+# All reefs with culling in 2025
+reef_select_eval <- unique(cull_raw %>% filter(as.Date(SurveyDate) >= as.Date("2025-01-01")) %>% pull(ReefName))
+
+# Manta tows for the selected 10 mapping reefs AND the 128 evaluated reefs
+manta_selected <- manta_sf %>% filter(ReefName %in% reef_select)
+manta_eval_all <- manta_sf %>% filter(ReefName %in% reef_select_eval)
+
+# Cull dives for the selected 10 mapping reefs
+cull_selected <- cull_raw %>% filter(ReefName %in% reef_select)
+cull_sf <- st_as_sf(cull_selected, coords = c("Longitude", "Latitude"), crs = 4326) %>%
+  st_transform(crs = crs(prob_year2025))
+
+# Cull dives for the 128 evaluated reefs
+cull_sf_eval_all <- st_as_sf(cull_raw %>% filter(ReefName %in% reef_select_eval), coords = c("Longitude", "Latitude"), crs = 4326) %>%
+  st_transform(crs = crs(prob_year2025))
+
+# Calculate Default Threshold: Median of 2025 raster cropped to selected reefs
+ext_val <- terra::ext(manta_selected) + 2000
+crop_2025 <- terra::crop(prob_year2025, ext_val)
+median_thresh_2025 <- as.numeric(terra::global(crop_2025, fun=function(x) median(x, na.rm=TRUE)))
+
+crop_agnostic <- terra::crop(prob_agnostic, ext_val)
+median_thresh_agnostic <- as.numeric(terra::global(crop_agnostic, fun=function(x) median(x, na.rm=TRUE)))
+
+# Fixed mapping cutoffs
+p_min_2025 <- 0.48
+p_max_2025 <- 0.55
+
+cat("Median Threshold (2025):", round(median_thresh_2025, 3), "\n")
+cat("Median Threshold (Agnostic):", round(median_thresh_agnostic, 3), "\n")
+cat("Mapping Range (2025):", p_min_2025, "to", p_max_2025, "\n")
+```
+
+## 2. Step A: Grid-Based Historical Validation (100m)
+
+We rasterize historical manta tow observations onto a 100m grid and compare them to the SDM probability values (using both 2025 and Agnostic models). We calculate ROC curves, AUC, and evaluate thresholds using confusion matrices.
+
+```{r step_a_grid, fig.width=12, fig.height=6}
+if(nrow(manta_selected) > 0) {
+  # crop_2025 is already 60m. Resample crop_agnostic to match it exactly.
+  pred_60m_2025 <- crop_2025
+  pred_60m_agn <- terra::resample(crop_agnostic, crop_2025, method = "bilinear")
+  
+  # Rasterize Manta Tow presence (1 if ever present, 0 if absent)
+  manta_presence <- terra::rasterize(
+    terra::vect(manta_selected), 
+    pred_60m_2025, 
+    field = "presence_any", 
+    fun = "max", 
+    background = NA
+  )
+  
+  # Build evaluation dataframe
+  val_df <- data.frame(
+    observed_presence = terra::values(manta_presence)[,1],
+    prob_2025 = terra::values(pred_60m_2025)[,1],
+    prob_agnostic = terra::values(pred_60m_agn)[,1]
+  ) %>% drop_na()
+  
+  # --- ROC and AUC ---
+  roc_2025 <- roc(val_df$observed_presence, val_df$prob_2025, quiet=TRUE)
+  roc_agn <- roc(val_df$observed_presence, val_df$prob_agnostic, quiet=TRUE)
+  
+  cat("AUC (2025 Model):", round(auc(roc_2025), 3), "\n")
+  cat("AUC (Agnostic Model):", round(auc(roc_agn), 3), "\n\n")
+  
+  # Plot ROC
+  par(mfrow=c(1,2))
+  plot(roc_2025, main="ROC Curve (2025)", col="blue", lwd=2)
+  plot(roc_agn, main="ROC Curve (Agnostic)", col="red", lwd=2)
+  
+  # --- Confusion Matrix at Median Threshold ---
+  cat("Confusion Matrix for 2025 Model (Threshold = Median:", round(median_thresh_2025,3), ")\n")
+  cm_2025 <- table(
+    Predicted = factor(val_df$prob_2025 >= median_thresh_2025, levels=c(FALSE, TRUE)),
+    Observed = factor(val_df$observed_presence == 1, levels=c(FALSE, TRUE))
+  )
+  print(cm_2025)
+  cat("Accuracy:", sum(diag(cm_2025))/sum(cm_2025), "\n\n")
+  
+  cat("Confusion Matrix for Agnostic Model (Threshold = Median:", round(median_thresh_agnostic,3), ")\n")
+  cm_agn <- table(
+    Predicted = factor(val_df$prob_agnostic >= median_thresh_agnostic, levels=c(FALSE, TRUE)),
+    Observed = factor(val_df$observed_presence == 1, levels=c(FALSE, TRUE))
+  )
+  print(cm_agn)
+  cat("Accuracy:", sum(diag(cm_agn))/sum(cm_agn), "\n")
+}
+```
+
+## 3. Step B: Tow-Path Simulation and Evaluation
+
+Simulating whether a specific tow path would have been suggested by the 2025 SDM model. We evaluate hit-rates strictly against tows conducted from Jan 1 2025 onwards, however, we use all historic tow tracks to delineate the operational boundaries.
+
+```{r step_b_tow_regions, cache=TRUE}
+# 1. Calculate Global 2025 Raster Thresholds
+thresh_2025_p88 <- as.numeric(terra::global(crop_2025, fun=function(x) quantile(x, probs=0.88, na.rm=TRUE)))
+thresh_2025_p95 <- as.numeric(terra::global(crop_2025, fun=function(x) quantile(x, probs=0.95, na.rm=TRUE)))
+
+cat("Global Thresholds for 2025 Validation:\n")
+cat("- 88th Percentile:", round(thresh_2025_p88, 3), "\n")
+cat("- 95th Percentile:", round(thresh_2025_p95, 3), "\n\n")
+
+# 2. Define Regions (100m Buffered Tows & 200m Grids)
+tow_regions_list <- list()
+grid_regions_list <- list()
+
+for (r_name in unique(manta_eval_all$ReefName)) {
+  m_sub <- manta_eval_all %>% filter(ReefName == r_name)
+  if (nrow(m_sub) == 0) next
+  
+  bb <- st_bbox(m_sub)
+  gr_500 <- st_make_grid(bb, cellsize = 500, square = TRUE) %>% st_as_sf()
+  
+  # Tow Regions (100m buffer, unioned, then intersected with 500m grid)
+  tr <- st_buffer(m_sub, dist = 100) %>% 
+    st_union() %>% 
+    st_intersection(gr_500) %>% 
+    st_cast("POLYGON") %>% 
+    st_as_sf() %>%
+    mutate(ReefName = r_name, RegionType = "Tow_100m_Seg500m", RegionID = paste0(r_name, "_T_", row_number())) %>%
+    rename(geometry = x)
+  tow_regions_list[[r_name]] <- tr
+  
+  # Grid Regions (200m x 200m)
+  gr <- st_make_grid(bb, cellsize = 200, square = TRUE) %>% 
+    st_as_sf() %>%
+    mutate(ReefName = r_name, RegionType = "Grid_200m", RegionID = paste0(r_name, "_G_", row_number())) %>%
+    rename(geometry = x)
+  
+  # Keep only grid cells that intersect with manta tows to avoid evaluating empty ocean
+  gr <- gr[lengths(st_intersects(gr, m_sub)) > 0, ]
+  
+  grid_regions_list[[r_name]] <- gr
+}
+
+tow_regions <- bind_rows(tow_regions_list)
+grid_regions <- bind_rows(grid_regions_list)
+all_regions <- bind_rows(tow_regions, grid_regions)
+
+# 3. Extract SDM Stats for Regions
+extract_poly_stats <- function(r, polys) {
+  v <- terra::vect(polys)
+  ex <- terra::extract(r, v)
+  val_col <- setdiff(names(ex), "ID")[1]
+  
+  ex %>%
+    rename(poly_id = ID, value = !!val_col) %>%
+    group_by(poly_id) %>%
+    summarise(
+      reg_p88    = as.numeric(quantile(value, probs = 0.88, na.rm = TRUE, names = FALSE)),
+      reg_p95    = as.numeric(quantile(value, probs = 0.95, na.rm = TRUE, names = FALSE)),
+      .groups    = "drop"
+    )
+}
+
+all_regions$poly_id <- seq_len(nrow(all_regions))
+region_stats <- extract_poly_stats(prob_year2025, all_regions)
+
+all_regions <- all_regions %>% left_join(region_stats, by = "poly_id")
+tow_regions <- all_regions %>% filter(RegionType == "Tow_100m_Seg500m")
+grid_regions <- all_regions %>% filter(RegionType == "Grid_200m")
+
+# 4. Map Tows to Regions and Apply Thresholds
+# using st_join(largest = TRUE) ensures a tow is assigned to only one region
+m_tow <- st_join(manta_eval_all, tow_regions %>% select(RegionID_Tow = RegionID, reg_p88_Tow = reg_p88, reg_p95_Tow = reg_p95), largest = TRUE)
+m_grid <- st_join(manta_eval_all, grid_regions %>% select(RegionID_Grid = RegionID, reg_p88_Grid = reg_p88, reg_p95_Grid = reg_p95), largest = TRUE)
+
+manta_eval <- manta_eval_all %>%
+  mutate(
+    reg_p88_Tow = m_tow$reg_p88_Tow,
+    reg_p95_Tow = m_tow$reg_p95_Tow,
+    reg_p88_Grid = m_grid$reg_p88_Grid,
+    reg_p95_Grid = m_grid$reg_p95_Grid
+  ) %>%
+  mutate(
+    sug_Tow_P88 = !is.na(reg_p88_Tow) & reg_p88_Tow >= thresh_2025_p88,
+    sug_Tow_P95 = !is.na(reg_p95_Tow) & reg_p95_Tow >= thresh_2025_p95,
+    sug_Grid_P88 = !is.na(reg_p88_Grid) & reg_p88_Grid >= thresh_2025_p88,
+    sug_Grid_P95 = !is.na(reg_p95_Grid) & reg_p95_Grid >= thresh_2025_p95
+  )
+
+# Function to compute hit rates by reef for a specific scenario
+calc_hit_rates_reef <- function(df, scenario_col, scenario_name) {
+  overall <- df %>%
+    summarise(
+      ReefName = "Overall",
+      Scenario = scenario_name,
+      Total_Tows = n(),
+      Tows_Suggested = sum(!!sym(scenario_col), na.rm=TRUE),
+      Hit_Rate = sum(!!sym(scenario_col) & presence_any, na.rm=TRUE) / Tows_Suggested,
+      Tows_Avoided = sum(! (!!sym(scenario_col)), na.rm=TRUE),
+      Miss_Rate = sum(! (!!sym(scenario_col)) & presence_any, na.rm=TRUE) / Tows_Avoided
+    )
+  by_reef <- df %>%
+    group_by(ReefName) %>%
+    summarise(
+      Scenario = scenario_name,
+      Total_Tows = n(),
+      Tows_Suggested = sum(!!sym(scenario_col), na.rm=TRUE),
+      Hit_Rate = sum(!!sym(scenario_col) & presence_any, na.rm=TRUE) / Tows_Suggested,
+      Tows_Avoided = sum(! (!!sym(scenario_col)), na.rm=TRUE),
+      Miss_Rate = sum(! (!!sym(scenario_col)) & presence_any, na.rm=TRUE) / Tows_Avoided
+    )
+  bind_rows(by_reef, overall)
+}
+
+manta_eval_2025 <- manta_eval %>% filter(as.Date(SurveyTime) >= as.Date("2025-01-01"))
+
+hit_table <- bind_rows(
+  calc_hit_rates_reef(manta_eval_2025 %>% filter(ReefName %in% reef_select), "sug_Tow_P88", "Seg Tow 100m + P88"),
+  calc_hit_rates_reef(manta_eval_2025 %>% filter(ReefName %in% reef_select), "sug_Tow_P95", "Seg Tow 100m + P95")
+) %>% arrange(ReefName, desc(Scenario))
+
+kable(hit_table, digits = 3, caption = "Manta Tow Simulation: Operational Zonal Validation (Selected 10 Reefs)")
+```
+
+## 4. Step C: Cull Dive Financial Savings
+
+Evaluating cull dives strictly from Jan 1 2025 onwards using the 2025 P88 and P95 thresholds on Segmented Tow Regions. We quantify avoided diving hours for dives that resulted in 0.00 CPUE (Ghost Culls) and <0.02 CPUE (Non-Problematic), and calculate financial savings ($950/hr).
+
+```{r cull_financial_savings}
+# Map Cull Dives to Regions
+c_tow <- st_join(cull_sf, tow_regions %>% select(RegionID_Tow = RegionID, reg_p88_Tow = reg_p88, reg_p95_Tow = reg_p95), largest = TRUE)
+c_grid <- st_join(cull_sf, grid_regions %>% select(RegionID_Grid = RegionID, reg_p88_Grid = reg_p88, reg_p95_Grid = reg_p95), largest = TRUE)
+
+# Load Sector Shapefile and Join
+sectors_sf <- st_read("data/SectorShapefile/ltms.shp", quiet = TRUE) %>%
+  st_transform(crs = crs(cull_sf_eval_all))
+
+c_sector <- st_join(cull_sf_eval_all, sectors_sf %>% select(SECTOR_NAM), join = st_nearest_feature)
+
+cull_eval <- cull_sf_eval_all %>%
+  st_drop_geometry() %>%
+  mutate(
+    reg_p88_Tow = c_tow$reg_p88_Tow,
+    reg_p95_Tow = c_tow$reg_p95_Tow,
+    reg_p88_Grid = c_grid$reg_p88_Grid,
+    reg_p95_Grid = c_grid$reg_p95_Grid,
+    SECTOR_NAM = c_sector$SECTOR_NAM
+  ) %>%
+  mutate(
+    # Note: If a cull doesn't fall in any region, reg_p88 is NA, so it is "avoided" by default
+    avoid_Tow_P88 = is.na(reg_p88_Tow) | reg_p88_Tow < thresh_2025_p88,
+    avoid_Tow_P95 = is.na(reg_p95_Tow) | reg_p95_Tow < thresh_2025_p95,
+    avoid_Grid_P88 = is.na(reg_p88_Grid) | reg_p88_Grid < thresh_2025_p88,
+    avoid_Grid_P95 = is.na(reg_p95_Grid) | reg_p95_Grid < thresh_2025_p95
+  )
+
+diver_hour_cost <- 950
+
+calc_savings_reef <- function(df, avoid_col, scenario_name) {
+  overall <- df %>%
+    summarise(
+      ReefName = "Overall",
+      Scenario = scenario_name,
+      Ghost_Avoided = sum(is_ghost & !!sym(avoid_col)),
+      Ghost_Savings = sum(Bottomtime[is_ghost & !!sym(avoid_col)]) / 60 * diver_hour_cost,
+      NonProb_Avoided = sum(is_non_problematic & !!sym(avoid_col)),
+      NonProb_Savings = sum(Bottomtime[is_non_problematic & !!sym(avoid_col)]) / 60 * diver_hour_cost,
+      Total_Savings = Ghost_Savings + NonProb_Savings,
+      Prob_Missed = sum(!is_non_problematic & !!sym(avoid_col)),
+      COTS_Missed = sum(Total[!is_non_problematic & !!sym(avoid_col)]),
+      Pct_COTS_Missed = ifelse(sum(Total) > 0, COTS_Missed / sum(Total) * 100, 0),
+      Hours_Missed = sum(Bottomtime[!is_non_problematic & !!sym(avoid_col)]) / 60
+    ) %>%
+    mutate(
+      CPUE_Missed = ifelse(Hours_Missed > 0, COTS_Missed / (Hours_Missed * 60), 0)
+    )
+  by_reef <- df %>%
+    group_by(ReefName) %>%
+    summarise(
+      Scenario = scenario_name,
+      Ghost_Avoided = sum(is_ghost & !!sym(avoid_col)),
+      Ghost_Savings = sum(Bottomtime[is_ghost & !!sym(avoid_col)]) / 60 * diver_hour_cost,
+      NonProb_Avoided = sum(is_non_problematic & !!sym(avoid_col)),
+      NonProb_Savings = sum(Bottomtime[is_non_problematic & !!sym(avoid_col)]) / 60 * diver_hour_cost,
+      Total_Savings = Ghost_Savings + NonProb_Savings,
+      Prob_Missed = sum(!is_non_problematic & !!sym(avoid_col)),
+      COTS_Missed = sum(Total[!is_non_problematic & !!sym(avoid_col)]),
+      Pct_COTS_Missed = ifelse(sum(Total) > 0, COTS_Missed / sum(Total) * 100, 0),
+      Hours_Missed = sum(Bottomtime[!is_non_problematic & !!sym(avoid_col)]) / 60
+    ) %>%
+    mutate(
+      CPUE_Missed = ifelse(Hours_Missed > 0, COTS_Missed / (Hours_Missed * 60), 0)
+    )
+  bind_rows(by_reef, overall)
+}
+
+cull_eval_2025 <- cull_eval %>% 
+  filter(as.Date(SurveyDate) >= as.Date("2025-01-01")) %>%
+  mutate(
+    SECTOR_NAM = as.character(SECTOR_NAM),
+    ManagementZone = case_when(
+      SECTOR_NAM %in% c("Cape Grenville", "Princess Charlotte Bay") ~ "Far Northern",
+      SECTOR_NAM %in% c("Cooktown / Lizard Island", "Cairns", "Innisfail") ~ "Northern",
+      SECTOR_NAM %in% c("Townsville", "Cape Upstart", "Whitsunday") ~ "Central",
+      SECTOR_NAM %in% c("Pompey", "Swain", "Capricorn Bunker") ~ "Southern",
+      TRUE ~ "Unknown"
+    )
+  )
+
+# Only show reef-level summary for the 10 selected reefs to avoid massive tables
+savings_table <- bind_rows(
+  calc_savings_reef(cull_eval_2025 %>% filter(ReefName %in% reef_select), "avoid_Tow_P88", "Seg Tow 100m + P88"),
+  calc_savings_reef(cull_eval_2025 %>% filter(ReefName %in% reef_select), "avoid_Tow_P95", "Seg Tow 100m + P95")
+) %>% arrange(ReefName, desc(Scenario))
+
+kable(savings_table, digits = 2, format.args = list(big.mark = ","), caption = "Financial Savings and Risk Summary (Selected 10 Reefs)")
+
+# Management Zone & Sector Summary (All 128 Reefs)
+calc_savings_zone <- function(df, avoid_col, scenario_name) {
+  df %>%
+    group_by(ManagementZone, SECTOR_NAM) %>%
+    summarise(
+      Scenario = scenario_name,
+      Ghost_Savings = sum(Bottomtime[is_ghost & !!sym(avoid_col)]) / 60 * diver_hour_cost,
+      NonProb_Savings = sum(Bottomtime[is_non_problematic & !!sym(avoid_col)]) / 60 * diver_hour_cost,
+      Total_Savings = Ghost_Savings + NonProb_Savings,
+      COTS_Missed = sum(Total[!is_non_problematic & !!sym(avoid_col)]),
+      Pct_COTS_Missed = ifelse(sum(Total) > 0, COTS_Missed / sum(Total) * 100, 0),
+      Hours_Missed = sum(Bottomtime[!is_non_problematic & !!sym(avoid_col)]) / 60,
+      .groups = "drop"
+    )
+}
+
+savings_zone_table <- bind_rows(
+  calc_savings_zone(cull_eval_2025, "avoid_Tow_P88", "Seg Tow 100m + P88"),
+  calc_savings_zone(cull_eval_2025, "avoid_Tow_P95", "Seg Tow 100m + P95")
+) %>% 
+  arrange(factor(ManagementZone, levels = c("Far Northern", "Northern", "Central", "Southern", "Unknown")), SECTOR_NAM, desc(Scenario))
+
+kable(savings_zone_table, digits = 2, format.args = list(big.mark = ","), caption = "Financial Savings and Risk Summary by Management Zone & Sector (All 128 Reefs, 2025)")
+```
+
+## 5. Step D: Visual Mapping
+
+Below are maps for each reef showing the underlying 2025 SDM probability. The operational units displayed are the **100m Buffered Tow Regions**, categorized by the **88th Percentile (P88) Threshold** (Red = Suggested, Grey = Avoided). Individual manta tows and cull dive locations are also plotted to show what falls inside the suggested operational areas.
+
+```{r visual_mapping, results='asis', fig.width=10, fig.height=7}
+plot_reef_map <- function(r, tow_sf, dive_sf, region_sf, reef_name, p_min, p_max) {
+  # Bounding box around features
+  bb_t <- if(nrow(tow_sf) > 0) st_bbox(tow_sf) else NULL
+  bb_d <- if(nrow(dive_sf) > 0) st_bbox(dive_sf) else NULL
+  
+  xmin <- min(c(bb_t["xmin"], bb_d["xmin"]), na.rm=TRUE)
+  ymin <- min(c(bb_t["ymin"], bb_d["ymin"]), na.rm=TRUE)
+  xmax <- max(c(bb_t["xmax"], bb_d["xmax"]), na.rm=TRUE)
+  ymax <- max(c(bb_t["ymax"], bb_d["ymax"]), na.rm=TRUE)
+  
+  pad <- 2000 # 2km padding
+  ext_map <- terra::ext(xmin - pad, xmax + pad, ymin - pad, ymax + pad)
+  
+  rc <- terra::crop(r, ext_map)
+  
+  # Scale aggregate factor to keep cell count manageable (~10,000 pixels) for fast plotting
+  fact <- ceiling(sqrt(terra::ncell(rc) / 10000))
+  if(fact > 1) {
+    rc <- terra::aggregate(rc, fact = fact, fun = "mean", na.rm = TRUE)
+  }
+  
+  rdf <- as.data.frame(rc, xy = TRUE, na.rm = TRUE)
+  names(rdf)[3] <- "prob"
+  
+  # Determine if region is suggested based on P88 threshold
+  region_sf <- region_sf %>%
+    mutate(is_suggested = !is.na(reg_p88) & reg_p88 >= thresh_2025_p88)
+  
+  gg <- ggplot() +
+    geom_raster(data = rdf, aes(x = x, y = y, fill = prob)) +
+    # Plot Operational Zones
+    geom_sf(data = region_sf, aes(color = is_suggested), fill = NA, linewidth = 1.2, linetype = "dashed") +
+    scale_color_manual(values = c("TRUE" = "red", "FALSE" = "grey70")) +
+    # Plot Tows and Dives
+    geom_sf(data = tow_sf, color = "black", linewidth = 0.5) +
+    geom_sf(data = dive_sf, shape = 21, fill = "white", color = "black", size = 2) +
+    scale_fill_viridis_c(
+      option = "C", 
+      na.value = NA, 
+      limits = c(p_min, p_max), 
+      oob = scales::squish
+    ) +
+    theme_minimal() +
+    labs(
+      title = paste("Operational Zonal Map:", reef_name),
+      subtitle = paste0("Red Dashed = Suggested 100m Zone (P88), Grey Dashed = Avoided Zone\nScale clipped to ", p_min, "-", p_max),
+      fill  = "2025 SDM Prob",
+      color = "Suggested Zone"
+    )
+  return(gg)
+}
+
+# Generate plots for each reef
+cull_sf_2025 <- cull_sf %>% filter(as.Date(SurveyDate) >= as.Date("2025-01-01"))
+
+for(r_name in reef_select) {
+  t_sf <- manta_eval_2025 %>% filter(ReefName == r_name)
+  d_sf <- cull_sf_2025 %>% filter(ReefName == r_name)
+  r_sf <- tow_regions %>% filter(ReefName == r_name)
+  
+  if(nrow(t_sf) > 0 || nrow(d_sf) > 0) {
+    message(paste("Processing map for:", r_name))
+    cat("\n### ", r_name, "\n")
+    p <- plot_reef_map(prob_year2025, t_sf, d_sf, r_sf, r_name, p_min_2025, p_max_2025)
+    print(p)
+    cat("\n")
+  }
+}
+```
