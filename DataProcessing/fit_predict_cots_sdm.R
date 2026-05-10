@@ -23,42 +23,45 @@ tidymodels::tidymodels_prefer()
 # Clean 12-layer stack (env + coral only, no RG_*/SDM_* layers that restrict extent)
 predict_stack_clean <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/predictors_clean_12layer.tif"
 # Full 24-layer stack (includes RG_* and SDM_* — restricted extent!)
-predict_stack_full  <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/predictors_terra_30m_combined_masked.tif"
+predict_stack_full <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/predictors_terra_30m_combined_masked.tif"
 
 cull_data_file <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/250929_COTS-Manta-Cull-RHIS-Data-Matthews-and-Schlawinsky.xlsx"
 
 dir.create("C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs",
-           showWarnings = FALSE, recursive = TRUE)
+  showWarnings = FALSE, recursive = TRUE
+)
 
 # Parameters
 threshold <- 0.02
 block_km <- 50
 seed <- 123
-<<<<<<< Updated upstream
-cpue_field <- "CPUE_mean"
-use_year <- TRUE    # TRUE = include Year as a predictor; FALSE = agnostic across years
-predict_year <- 2025 # Year to predict for when use_year = TRUE
-use_reefguide <- FALSE # TRUE = use full stack with ReefGuide layers; FALSE = use clean stack
-=======
-use_year <- FALSE    # TRUE = include Year as a predictor; FALSE = agnostic across years
+
+use_year <- TRUE # TRUE = include Year as a predictor; FALSE = agnostic across years
 predict_year <- 2025 # Year to predict for when use_year = TRUE
 use_reefguide <- FALSE # TRUE = use full stack with ReefGuide layers; FALSE = use clean stack
 cpue_field <- if (use_year) "CPUE_mean" else "CPUE_max"
->>>>>>> Stashed changes
 
 # --- 1. Load Predictors ---
 print("Loading predictors...")
 if (use_reefguide) {
   # Full stack — includes RG_* layers but prediction extent will be restricted
-  predictors_reef <- terra::rast(predict_stack_full)
-  pred_cols <- names(predictors_reef)
-  # Still drop old SDM_* layers from full stack
-  old_sdm_cols <- grep("^SDM_", pred_cols, value = TRUE)
-  if (length(old_sdm_cols) > 0) {
-    pred_cols <- base::setdiff(pred_cols, old_sdm_cols)
-    print(paste("Excluding old limited-extent coral layers:", paste(old_sdm_cols, collapse = ", ")))
-  }
-  print(paste("Using full stack WITH ReefGuide layers. Predictors:", length(pred_cols)))
+  predictors_reef_full <- terra::rast(predict_stack_full)
+
+  # Standardize the long environmental names to match the clean stack
+  names(predictors_reef_full)[1:8] <- c("BPI", "EAST", "HCU", "NORTH", "SLO", "SVF", "VCU", "VRM")
+  names(predictors_reef_full)[9] <- "DEM"
+
+  # Get base predictors
+  clean_preds <- c("BPI", "EAST", "HCU", "NORTH", "SLO", "SVF", "VCU", "VRM", "DEM", "AhyaD", "Aspat", "Aten")
+
+  # The specific RG layers to add
+  rg_to_keep <- c("RG_waves_Hs", "RG_waves_Tp", "RG_turbid")
+  pred_cols <- c(clean_preds, rg_to_keep)
+
+  # Subset the full raster to only these layers
+  predictors_reef <- terra::subset(predictors_reef_full, pred_cols)
+
+  print(paste("Using full stack WITH specific ReefGuide layers. Predictors:", length(pred_cols)))
 } else {
   # Clean stack — env + coral only, full reef extent
   predictors_reef <- terra::rast(predict_stack_clean)
@@ -68,11 +71,15 @@ if (use_reefguide) {
 
 # Build output filenames based on mode
 mode_label <- if (use_year) paste0("year", predict_year) else "agnostic"
-rg_label   <- if (use_reefguide) "_withRG" else ""
-output_tif      <- sprintf("C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/COTS_prob_%s_cpue_%s%s.tif",
-                           threshold, mode_label, rg_label)
-output_vip_plot <- sprintf("C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/COTS_vip_%s_cpue_%s%s.png",
-                           threshold, mode_label, rg_label)
+rg_label <- if (use_reefguide) "_withRG" else "_clean"
+output_tif <- sprintf(
+  "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/COTS_prob_%s_cpue_%s%s.tif",
+  threshold, mode_label, rg_label
+)
+output_vip_plot <- sprintf(
+  "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/COTS_vip_%s_cpue_%s%s.png",
+  threshold, mode_label, rg_label
+)
 
 print(paste("Output TIF:", output_tif))
 print(paste("Output VIP:", output_vip_plot))
@@ -142,6 +149,25 @@ survey_sf <- st_as_sf(dat, coords = c("Longitude", "Latitude"), crs = 4326) %>%
 survey_sf$ID <- seq_len(nrow(survey_sf))
 pred_vals <- terra::extract(predictors_reef, terra::vect(survey_sf))
 
+# Join with Sectors and Management Zones
+sectors_sf <- st_read("C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/SectorShapefile/ltms.shp", quiet = TRUE) %>%
+  st_transform(crs = crs(survey_sf))
+
+c_sector <- st_join(survey_sf, sectors_sf %>% select(SECTOR_NAM), join = st_nearest_feature)
+
+survey_sf$SECTOR_NAM <- c_sector$SECTOR_NAM
+survey_sf <- survey_sf %>%
+  mutate(
+    SECTOR_NAM = as.character(SECTOR_NAM),
+    ManagementZone = case_when(
+      SECTOR_NAM %in% c("Cape Grenville", "Princess Charlotte Bay") ~ "Far Northern",
+      SECTOR_NAM %in% c("Cooktown / Lizard Island", "Cairns", "Innisfail") ~ "Northern",
+      SECTOR_NAM %in% c("Townsville", "Cape Upstart", "Whitsunday") ~ "Central",
+      SECTOR_NAM %in% c("Pompey", "Swain", "Capricorn Bunker") ~ "Southern",
+      TRUE ~ "Unknown"
+    )
+  )
+
 survey_df <- survey_sf %>%
   st_drop_geometry() %>%
   left_join(pred_vals, by = "ID") %>%
@@ -195,6 +221,7 @@ model_df <- survey_df %>%
   transmute(
     cots_problem = factor(cots_problem, levels = c("0", "1")),
     fold_id,
+    ManagementZone = as.factor(ManagementZone),
     across(all_of(pred_cols), as.numeric)
   )
 
@@ -206,7 +233,7 @@ set.seed(seed)
 cv_folds <- group_vfold_cv(model_df, group = fold_id, v = 5)
 
 rec <- recipe(cots_problem ~ ., data = model_df) %>%
-  step_rm(fold_id) %>%
+  step_rm(fold_id, ManagementZone) %>%
   step_zv(all_predictors()) %>%
   step_normalize(all_numeric_predictors())
 
@@ -238,7 +265,8 @@ res <- tune_grid(
   wf,
   resamples = cv_folds,
   grid      = grid,
-  metrics   = metric_set(roc_auc, pr_auc, accuracy)
+  metrics   = metric_set(roc_auc, accuracy, sens, spec),
+  control   = control_grid(save_pred = TRUE)
 )
 
 # Select best and finalize
@@ -255,6 +283,73 @@ metrics_summary <- collect_metrics(res) %>%
   filter(.config == best$.config)
 print("Best Cross-Validated Metrics:")
 print(metrics_summary)
+
+# --- Extract Performance Metrics by Region & Fold ---
+print("Extracting Validation Metrics by Region and Fold...")
+
+# Get out-of-fold predictions for the best config
+best_preds <- collect_predictions(res) %>%
+  filter(.config == best$.config) %>%
+  arrange(.row)
+
+# Rejoin to the original model_df to get ManagementZone
+best_preds <- best_preds %>%
+  bind_cols(model_df %>% select(ManagementZone) %>% slice(best_preds$.row))
+
+calc_split_metrics <- function(df, group_col) {
+  custom_metrics <- metric_set(roc_auc, accuracy, sens, spec)
+  df %>%
+    group_by(!!sym(group_col)) %>%
+    custom_metrics(truth = cots_problem, estimate = .pred_class, .pred_1) %>%
+    select(!!sym(group_col), .metric, .estimate) %>%
+    tidyr::pivot_wider(names_from = .metric, values_from = .estimate)
+}
+
+# 1. Overall Validation Metrics
+val_overall <- best_preds %>%
+  metric_set(roc_auc, accuracy, sens, spec)(truth = cots_problem, estimate = .pred_class, .pred_1) %>%
+  select(.metric, .estimate) %>%
+  tidyr::pivot_wider(names_from = .metric, values_from = .estimate) %>%
+  mutate(Split = "Validation (Out-of-Fold)")
+
+# 2. Validation by Fold
+val_by_fold <- calc_split_metrics(best_preds, "id")
+
+# 3. Validation by ManagementZone
+val_by_zone <- calc_split_metrics(best_preds, "ManagementZone")
+
+# 4. Overall Training Metrics
+# Predict back on the training set using the finalized fit
+train_preds <- predict(fit_cls, new_data = model_df, type = "prob") %>%
+  bind_cols(predict(fit_cls, new_data = model_df, type = "class")) %>%
+  bind_cols(model_df %>% select(cots_problem))
+
+train_overall <- train_preds %>%
+  metric_set(roc_auc, accuracy, sens, spec)(truth = cots_problem, estimate = .pred_class, .pred_1) %>%
+  select(.metric, .estimate) %>%
+  tidyr::pivot_wider(names_from = .metric, values_from = .estimate) %>%
+  mutate(Split = "Training (In-Fold)")
+
+# Combine Overall
+perf_overall <- bind_rows(train_overall, val_overall) %>%
+  select(Split, accuracy, sens, spec, roc_auc)
+
+# Save to RDS dynamically based on RG label
+metrics_list <- list(
+  Overall = perf_overall,
+  By_Zone = val_by_zone,
+  By_Fold = val_by_fold
+)
+rg_suffix <- if (use_reefguide) "_withRG" else "_clean"
+
+metrics_file <- sprintf("C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/model_performance_metrics%s.rds", rg_suffix)
+saveRDS(metrics_list, metrics_file)
+print(paste("Saved model performance metrics to", metrics_file))
+
+# Save the model objects so they can be reloaded
+model_file <- sprintf("C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/fitted_model%s.rds", rg_suffix)
+saveRDS(list(fit = fit_cls, wf = final_wf, cv_res = res), model_file)
+print(paste("Saved fitted model to", model_file))
 
 # --- 6. Variable Importance Plot ---
 print("Generating Variable Importance Plot...")
@@ -282,7 +377,7 @@ print("Predicting probabilities to spatial grid... (This may take a while)")
 # IMPORTANT: Subset the raster to ONLY the layers used by the model.
 # This prevents restricted-extent layers (e.g. RG_*) from
 # introducing NAs and clipping the prediction extent.
-raster_pred_cols <- setdiff(pred_cols, "Year")  # raster layers only (Year is injected)
+raster_pred_cols <- setdiff(pred_cols, "Year") # raster layers only (Year is injected)
 predictors_for_predict <- predictors_reef[[raster_pred_cols]]
 
 print(paste("Raster layers for prediction:", paste(names(predictors_for_predict), collapse = ", ")))
@@ -297,8 +392,9 @@ pred_fun <- function(model, v) {
     v$Year <- predict_year
   }
 
-  # Inject dummy fold_id so recipe passes
+  # Inject dummy fold_id and ManagementZone so recipe passes
   v$fold_id <- model_df$fold_id[1]
+  v$ManagementZone <- model_df$ManagementZone[1]
 
   p <- predict(
     model,

@@ -38,7 +38,8 @@ library(pROC)
 
 # --- Configuration ---
 predict_agnostic_path <- "outputs/COTS_prob_0.02_cpue_agnostic.tif"
-predict_year2025_path <- "outputs/COTS_prob_0.02_cpue_year2025.tif"  # native 30m raster
+predict_year2025_path <- "outputs/COTS_prob_0.02_cpue_year2025_clean.tif"  # native 30m raster
+predict_year2025_rg_path <- "outputs/COTS_prob_0.02_cpue_year2025_withRG.tif"
 manta_csv <- "data/COTS Program  Manta Tow Data-2026-02-04.csv"
 cull_xlsx <- "data/250929_COTS-Manta-Cull-RHIS-Data-Matthews-and-Schlawinsky.xlsx"
 cull_polys_gpkg <- "data/cull_site_polygons.gpkg"
@@ -67,8 +68,9 @@ reef_select <- c(
 # Load Model Predictions
 prob_agnostic <- if(file.exists(predict_agnostic_path)) terra::rast(predict_agnostic_path) else NULL
 prob_year2025 <- if(file.exists(predict_year2025_path)) terra::rast(predict_year2025_path) else NULL
+prob_2025_rg  <- if(file.exists(predict_year2025_rg_path)) terra::rast(predict_year2025_rg_path) else NULL
 
-if(is.null(prob_year2025) || is.null(prob_agnostic)) stop("Missing prediction rasters.")
+if(is.null(prob_year2025) || is.null(prob_agnostic)) stop("Missing core prediction rasters.")
 
 # Load Manta Tow Data
 manta_raw <- read_csv(manta_csv, show_col_types = FALSE) %>%
@@ -147,13 +149,63 @@ median_thresh_2025 <- as.numeric(terra::global(crop_2025, fun=function(x) median
 crop_agnostic <- terra::crop(prob_agnostic, ext_val)
 median_thresh_agnostic <- as.numeric(terra::global(crop_agnostic, fun=function(x) median(x, na.rm=TRUE)))
 
+# Calculate P88 and P95 Thresholds
+thresh_2025_p88 <- as.numeric(terra::global(crop_2025, fun=function(x) quantile(x, probs=0.88, na.rm=TRUE)))
+thresh_2025_p95 <- as.numeric(terra::global(crop_2025, fun=function(x) quantile(x, probs=0.95, na.rm=TRUE)))
+
 # Fixed mapping cutoffs
 p_min_2025 <- 0.48
 p_max_2025 <- 0.55
 
 cat("Median Threshold (2025):", round(median_thresh_2025, 3), "\n")
 cat("Median Threshold (Agnostic):", round(median_thresh_agnostic, 3), "\n")
+cat("88th Percentile (2025):", round(thresh_2025_p88, 3), "\n")
+cat("95th Percentile (2025):", round(thresh_2025_p95, 3), "\n")
 cat("Mapping Range (2025):", p_min_2025, "to", p_max_2025, "\n")
+```
+
+
+## 1. Model Fitting Performance
+
+This section presents the internal performance metrics generated during the XGBoost model training process (`fit_predict_cots_sdm.R`). The model was trained using 5-fold Spatial Block Cross-Validation (50km blocks) on historical cull dive data. 
+
+- **Training (In-Fold)** represents the model's performance when tested on the data it was trained on.
+- **Validation (Out-of-Fold)** represents the model's performance on the hold-out spatial blocks, providing a robust estimate of how the model generalizes to new reefs.
+
+```{r model_fitting_metrics, results='asis'}
+metrics_clean_file <- "outputs/model_performance_metrics_clean.rds"
+metrics_rg_file    <- "outputs/model_performance_metrics_withRG.rds"
+
+if (file.exists(metrics_clean_file)) {
+  m_clean <- readRDS(metrics_clean_file)
+  
+  # Overall Metrics Comparison if RG exists
+  if (file.exists(metrics_rg_file)) {
+    m_rg <- readRDS(metrics_rg_file)
+    
+    cat("### 1.1 Model Comparison: Clean vs. ReefGuide Layers\n\n")
+    comp_df <- bind_rows(
+      m_clean$Overall %>% mutate(Model = "Clean (12 Layers)"),
+      m_rg$Overall %>% mutate(Model = "ReefGuide (15 Layers)")
+    ) %>%
+      select(Model, Split, roc_auc, accuracy, sens, spec)
+    
+    print(kable(comp_df, digits = 3, caption = "Comparison of Internal Cross-Validation Metrics"))
+    cat("\n\n")
+  }
+  
+  # Overall Metrics Table (Detailed)
+  cat("### 1.2 Overall Performance: Training vs Validation (Clean Model)\n\n")
+  print(kable(m_clean$Overall, digits = 3, caption = "Detailed Metrics for Clean Model"))
+  cat("\n\n")
+  
+  # Regional Metrics Table
+  cat("### 1.3 Regional Validation Performance (Out-of-Fold)\n\n")
+  print(kable(m_clean$By_Zone %>% arrange(ManagementZone), digits = 3, caption = "Clean Model Performance by Management Zone"))
+  cat("\n\n")
+} else {
+  cat("*Model performance metrics file not found. Ensure `fit_predict_cots_sdm.R` has been run recently.*")
+}
 ```
 
 ## 2. Step A: Grid-Based Historical Validation (100m)
@@ -213,18 +265,144 @@ if(nrow(manta_selected) > 0) {
 }
 ```
 
+## 2b. Cull Dive Validation (ROC & AUC)
+
+Cull dive data provides a more reliable validation target than manta tow data because divers directly count COTS at each site. We extract the SDM probability at each cull dive location and evaluate model discrimination using ROC curves. Presence is defined as `Total > 0` (at least one COTS found). We use all cull dive data from Jan 2025 onwards for the top 30 reefs.
+
+```{r step_a_cull_roc, fig.width=12, fig.height=10}
+# Extract SDM probabilities at cull dive point locations
+cull_pts_2025 <- st_as_sf(
+  cull_raw %>% filter(ReefName %in% reef_select_eval, as.Date(SurveyDate) >= as.Date("2025-01-01")),
+  coords = c("Longitude", "Latitude"), crs = 4326
+) %>% st_transform(crs = crs(prob_year2025))
+
+# Extract 2025 model probability
+cull_extract_2025 <- terra::extract(prob_year2025, terra::vect(cull_pts_2025))
+val_col_2025 <- setdiff(names(cull_extract_2025), "ID")[1]
+
+# Extract agnostic model probability
+cull_extract_agn <- terra::extract(prob_agnostic, terra::vect(cull_pts_2025))
+val_col_agn <- setdiff(names(cull_extract_agn), "ID")[1]
+
+# Extract RG model probability (if available)
+cull_extract_rg <- if(!is.null(prob_2025_rg)) terra::extract(prob_2025_rg, terra::vect(cull_pts_2025)) else NULL
+val_col_rg <- if(!is.null(cull_extract_rg)) setdiff(names(cull_extract_rg), "ID")[1] else NULL
+
+# Build validation dataframe
+cull_val_df <- data.frame(
+  observed_presence = as.integer(cull_pts_2025$Total > 0),
+  prob_2025 = cull_extract_2025[[val_col_2025]],
+  prob_agnostic = cull_extract_agn[[val_col_agn]]
+)
+
+if (!is.null(cull_extract_rg)) {
+  cull_val_df$prob_rg <- cull_extract_rg[[val_col_rg]]
+}
+
+cull_val_df <- cull_val_df %>%
+  bind_cols(cull_pts_2025 %>% st_drop_geometry() %>% select(Total, CPUE)) %>%
+  drop_na()
+
+cat("Cull dive validation dataset:", nrow(cull_val_df), "dives\n")
+# ... (Counts output) ...
+
+# --- ROC Curves ---
+roc_cull_2025 <- roc(cull_val_df$observed_presence, cull_val_df$prob_2025, quiet = TRUE)
+roc_cull_agn  <- roc(cull_val_df$observed_presence, cull_val_df$prob_agnostic, quiet = TRUE)
+roc_cull_rg   <- if("prob_rg" %in% names(cull_val_df)) roc(cull_val_df$observed_presence, cull_val_df$prob_rg, quiet = TRUE) else NULL
+
+# Build ROC dataframes for ggplot
+roc_df_2025 <- data.frame(
+  FPR = 1 - roc_cull_2025$specificities,
+  TPR = roc_cull_2025$sensitivities,
+  Model = paste0("2025 Clean (AUC = ", round(auc(roc_cull_2025), 3), ")")
+)
+roc_df_agn <- data.frame(
+  FPR = 1 - roc_cull_agn$specificities,
+  TPR = roc_cull_agn$sensitivities,
+  Model = paste0("Agnostic (AUC = ", round(auc(roc_cull_agn), 3), ")")
+)
+roc_df <- bind_rows(roc_df_2025, roc_df_agn)
+
+if (!is.null(roc_cull_rg)) {
+  roc_df_rg <- data.frame(
+    FPR = 1 - roc_cull_rg$specificities,
+    TPR = roc_cull_rg$sensitivities,
+    Model = paste0("2025 ReefGuide (AUC = ", round(auc(roc_cull_rg), 3), ")")
+  )
+  roc_df <- bind_rows(roc_df, roc_df_rg)
+}
+
+# ggplot ROC curves
+p_roc <- ggplot(roc_df, aes(x = FPR, y = TPR, color = Model)) +
+  geom_line(linewidth = 1.2) +
+  geom_abline(linetype = "dashed", color = "grey50") +
+  scale_color_manual(values = c("#cc3333", "#3366cc", "#228b22")) +
+  theme_minimal(base_size = 14) +
+  labs(
+    title = "ROC Curves: SDM vs Cull Dive COTS Presence (2025)",
+    subtitle = paste0("n = ", nrow(cull_val_df), " dives from top 30 reefs"),
+    x = "False Positive Rate (1 - Specificity)",
+    y = "True Positive Rate (Sensitivity)",
+    color = "Model"
+  ) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = c(0.7, 0.25),
+    legend.background = element_rect(fill = "white", color = "grey80")
+  ) +
+  coord_equal()
+
+print(p_roc)
+
+# --- Optimal thresholds (Youden's J) ---
+opt_2025 <- coords(roc_cull_2025, "best", best.method = "youden", ret = c("threshold", "sensitivity", "specificity"))
+opt_agn  <- coords(roc_cull_agn,  "best", best.method = "youden", ret = c("threshold", "sensitivity", "specificity"))
+
+cat("Optimal Threshold (Youden's J) for 2025 Model:", round(opt_2025$threshold, 4),
+    "  Sensitivity:", round(opt_2025$sensitivity, 3),
+    "  Specificity:", round(opt_2025$specificity, 3), "\n")
+cat("Optimal Threshold (Youden's J) for Agnostic Model:", round(opt_agn$threshold, 4),
+    "  Sensitivity:", round(opt_agn$sensitivity, 3),
+    "  Specificity:", round(opt_agn$specificity, 3), "\n\n")
+
+# --- Confusion Matrices at P88 and P95 thresholds ---
+plot_cull_cm <- function(prob_vec, obs_vec, threshold, title) {
+  cm_df <- data.frame(
+    Predicted = factor(ifelse(prob_vec >= threshold, "COTS Predicted", "No COTS Predicted"), 
+                       levels = c("COTS Predicted", "No COTS Predicted")),
+    Observed  = factor(ifelse(obs_vec, "COTS Present", "COTS Absent"), 
+                       levels = c("COTS Present", "COTS Absent"))
+  )
+  cm_counts <- cm_df %>%
+    count(Predicted, Observed) %>%
+    group_by() %>%
+    mutate(pct = n / sum(n) * 100)
+  
+  ggplot(cm_counts, aes(x = Predicted, y = Observed, fill = n)) +
+    geom_tile(color = "white", linewidth = 2) +
+    geom_text(aes(label = paste0(n, "\n(", round(pct, 1), "%)")), size = 5, fontface = "bold") +
+    scale_fill_gradient(low = "#f0f4ff", high = "#3366cc") +
+    theme_minimal(base_size = 13) +
+    labs(title = title, x = "SDM Prediction", y = "Observed", fill = "Count") +
+    theme(plot.title = element_text(face = "bold", hjust = 0.5), panel.grid = element_blank())
+}
+
+p_cm1 <- plot_cull_cm(cull_val_df$prob_2025, cull_val_df$observed_presence == 1, 
+                       thresh_2025_p88, paste0("2025 Model @ P88 (", round(thresh_2025_p88, 4), ")"))
+p_cm2 <- plot_cull_cm(cull_val_df$prob_2025, cull_val_df$observed_presence == 1, 
+                       thresh_2025_p95, paste0("2025 Model @ P95 (", round(thresh_2025_p95, 4), ")"))
+p_cm3 <- plot_cull_cm(cull_val_df$prob_2025, cull_val_df$observed_presence == 1, 
+                       opt_2025$threshold, paste0("2025 Model @ Optimal (", round(opt_2025$threshold, 4), ")"))
+
+gridExtra::grid.arrange(p_cm1, p_cm2, p_cm3, ncol = 3)
+```
+
 ## 3. Step B: Tow-Path Simulation and Evaluation
 
 Simulating whether a specific tow path would have been suggested by the 2025 SDM model. We evaluate hit-rates strictly against tows conducted from Jan 1 2025 onwards, however, we use all historic tow tracks to delineate the operational boundaries.
 
 ```{r step_b_tow_regions, cache=TRUE}
-# 1. Calculate Global 2025 Raster Thresholds
-thresh_2025_p88 <- as.numeric(terra::global(crop_2025, fun=function(x) quantile(x, probs=0.88, na.rm=TRUE)))
-thresh_2025_p95 <- as.numeric(terra::global(crop_2025, fun=function(x) quantile(x, probs=0.95, na.rm=TRUE)))
-
-cat("Global Thresholds for 2025 Validation:\n")
-cat("- 88th Percentile:", round(thresh_2025_p88, 3), "\n")
-cat("- 95th Percentile:", round(thresh_2025_p95, 3), "\n\n")
 
 # 2. Define Regions (100m Buffered Tows & 200m Grids)
 tow_regions_list <- list()

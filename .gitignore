@@ -12,3 +12,11 @@ DataProcessing/outputs/
 *.tif
 
 DataProcessing/validation_outputs/tiles_cache/Esri.WorldImagery/
+
+DataProcessing/SDM_Validation_Report_files/figure-pdf/
+
+DataProcessing/SDM_Validation_Report_files/figure-html/
+
+DataProcessing/SDM_Validation_Report_cache/pdf/
+
+DataProcessing/SDM_Validation_Report_cache/html/
