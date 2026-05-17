@@ -22,8 +22,8 @@ tidymodels::tidymodels_prefer()
 # Set up paths
 # Clean 12-layer stack (env + coral only, no RG_*/SDM_* layers that restrict extent)
 predict_stack_clean <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/predictors_clean_12layer.tif"
-# Full 24-layer stack (includes RG_* and SDM_* — restricted extent!)
-predict_stack_full <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/predictors_terra_30m_combined_masked.tif"
+# Full 17-layer stack (includes RG_* — full extent!)
+predict_stack_full <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/predictors_terra_30m_full_extended.tif"
 
 cull_data_file <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/250929_COTS-Manta-Cull-RHIS-Data-Matthews-and-Schlawinsky.xlsx"
 
@@ -38,7 +38,7 @@ seed <- 123
 
 use_year <- TRUE # TRUE = include Year as a predictor; FALSE = agnostic across years
 predict_year <- 2025 # Year to predict for when use_year = TRUE
-use_reefguide <- FALSE # TRUE = use full stack with ReefGuide layers; FALSE = use clean stack
+use_reefguide <- TRUE # TRUE = use full stack with ReefGuide layers; FALSE = use clean stack
 cpue_field <- if (use_year) "CPUE_mean" else "CPUE_max"
 
 # --- 1. Load Predictors ---
@@ -47,21 +47,18 @@ if (use_reefguide) {
   # Full stack — includes RG_* layers but prediction extent will be restricted
   predictors_reef_full <- terra::rast(predict_stack_full)
 
-  # Standardize the long environmental names to match the clean stack
-  names(predictors_reef_full)[1:8] <- c("BPI", "EAST", "HCU", "NORTH", "SLO", "SVF", "VCU", "VRM")
-  names(predictors_reef_full)[9] <- "DEM"
-
-  # Get base predictors
+  # Standardize names if needed (the new stack should already have them, but let's be safe)
+  # The new stack has 17 layers: 1-12 are base, 13-17 are RG
   clean_preds <- c("BPI", "EAST", "HCU", "NORTH", "SLO", "SVF", "VCU", "VRM", "DEM", "AhyaD", "Aspat", "Aten")
-
-  # The specific RG layers to add
-  rg_to_keep <- c("RG_waves_Hs", "RG_waves_Tp", "RG_turbid")
+  
+  # The specific RG layers to use
+  rg_to_keep <- c("RG_waves_Hs", "RG_waves_Tp", "RG_turbid", "RG_bathy", "RG_slope")
   pred_cols <- c(clean_preds, rg_to_keep)
-
-  # Subset the full raster to only these layers
+  
+  # Subset to only these layers (should be all 17)
   predictors_reef <- terra::subset(predictors_reef_full, pred_cols)
-
-  print(paste("Using full stack WITH specific ReefGuide layers. Predictors:", length(pred_cols)))
+  
+  print(paste("Using full stack WITH extended ReefGuide layers. Predictors:", length(pred_cols)))
 } else {
   # Clean stack — env + coral only, full reef extent
   predictors_reef <- terra::rast(predict_stack_clean)
