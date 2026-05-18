@@ -410,34 +410,34 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td style="text-align: left;">Clean (12 Layers)</td>
 <td style="text-align: left;">Training (In-Fold)</td>
-<td style="text-align: right;">0.260</td>
+<td style="text-align: right;">0.740</td>
 <td style="text-align: right;">0.678</td>
-<td style="text-align: right;">0.857</td>
 <td style="text-align: right;">0.463</td>
+<td style="text-align: right;">0.857</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Clean (12 Layers)</td>
 <td style="text-align: left;">Validation (Out-of-Fold)</td>
-<td style="text-align: right;">0.387</td>
+<td style="text-align: right;">0.613</td>
 <td style="text-align: right;">0.583</td>
-<td style="text-align: right;">0.784</td>
 <td style="text-align: right;">0.343</td>
+<td style="text-align: right;">0.784</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">ReefGuide (15 Layers)</td>
 <td style="text-align: left;">Training (In-Fold)</td>
-<td style="text-align: right;">0.034</td>
-<td style="text-align: right;">0.900</td>
-<td style="text-align: right;">0.921</td>
-<td style="text-align: right;">0.877</td>
+<td style="text-align: right;">0.967</td>
+<td style="text-align: right;">0.902</td>
+<td style="text-align: right;">0.878</td>
+<td style="text-align: right;">0.924</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">ReefGuide (15 Layers)</td>
 <td style="text-align: left;">Validation (Out-of-Fold)</td>
-<td style="text-align: right;">0.295</td>
-<td style="text-align: right;">0.661</td>
-<td style="text-align: right;">0.765</td>
-<td style="text-align: right;">0.541</td>
+<td style="text-align: right;">0.698</td>
+<td style="text-align: right;">0.651</td>
+<td style="text-align: right;">0.528</td>
+<td style="text-align: right;">0.759</td>
 </tr>
 </tbody>
 </table>
@@ -459,16 +459,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td style="text-align: left;">Training (In-Fold)</td>
 <td style="text-align: right;">0.678</td>
-<td style="text-align: right;">0.857</td>
 <td style="text-align: right;">0.463</td>
-<td style="text-align: right;">0.260</td>
+<td style="text-align: right;">0.857</td>
+<td style="text-align: right;">0.740</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Validation (Out-of-Fold)</td>
 <td style="text-align: right;">0.583</td>
-<td style="text-align: right;">0.784</td>
 <td style="text-align: right;">0.343</td>
-<td style="text-align: right;">0.387</td>
+<td style="text-align: right;">0.784</td>
+<td style="text-align: right;">0.613</td>
 </tr>
 </tbody>
 </table>
@@ -490,30 +490,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td style="text-align: left;">Central</td>
 <td style="text-align: right;">0.535</td>
-<td style="text-align: right;">0.844</td>
 <td style="text-align: right;">0.193</td>
-<td style="text-align: right;">0.407</td>
+<td style="text-align: right;">0.844</td>
+<td style="text-align: right;">0.593</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Far Northern</td>
 <td style="text-align: right;">0.539</td>
-<td style="text-align: right;">0.692</td>
 <td style="text-align: right;">0.108</td>
-<td style="text-align: right;">0.709</td>
+<td style="text-align: right;">0.692</td>
+<td style="text-align: right;">0.291</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Northern</td>
 <td style="text-align: right;">0.629</td>
-<td style="text-align: right;">0.694</td>
 <td style="text-align: right;">0.552</td>
-<td style="text-align: right;">0.320</td>
+<td style="text-align: right;">0.694</td>
+<td style="text-align: right;">0.680</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Southern</td>
 <td style="text-align: right;">0.571</td>
-<td style="text-align: right;">0.861</td>
 <td style="text-align: right;">0.200</td>
-<td style="text-align: right;">0.424</td>
+<td style="text-align: right;">0.861</td>
+<td style="text-align: right;">0.576</td>
 </tr>
 </tbody>
 </table>
@@ -658,7 +658,7 @@ Accuracy: 0.6376804 </code></pre>
 <span id="cb26-34"><a href="#cb26-34" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Cull dive validation dataset:"</span>, <span class="fu">nrow</span>(cull_val_df), <span class="st">"dives</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>Cull dive validation dataset: 1492 dives</code></pre>
+<pre><code>Cull dive validation dataset: 1535 dives</code></pre>
 </div>
 <details class="code-fold">
 <summary>Code</summary>
@@ -731,7 +731,7 @@ Accuracy: 0.6376804 </code></pre>
 <span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"  Specificity:"</span>, <span class="fu">round</span>(opt_2025<span class="sc">$</span>specificity, <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>Optimal Threshold (Youden's J) for 2025 Model: 0.454   Sensitivity: 0.678   Specificity: 0.569 </code></pre>
+<pre><code>Optimal Threshold (Youden's J) for 2025 Model: 0.454   Sensitivity: 0.664   Specificity: 0.573 </code></pre>
 </div>
 <details class="code-fold">
 <summary>Code</summary>
@@ -740,7 +740,7 @@ Accuracy: 0.6376804 </code></pre>
 <span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"  Specificity:"</span>, <span class="fu">round</span>(opt_agn<span class="sc">$</span>specificity, <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>Optimal Threshold (Youden's J) for Agnostic Model: 0.5227   Sensitivity: 0.552   Specificity: 0.537 </code></pre>
+<pre><code>Optimal Threshold (Youden's J) for Agnostic Model: 0.5227   Sensitivity: 0.549   Specificity: 0.522 </code></pre>
 </div>
 <details class="code-fold">
 <summary>Code</summary>

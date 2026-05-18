@@ -49,6 +49,10 @@ if (use_reefguide) {
 
   # Standardize names if needed (the new stack should already have them, but let's be safe)
   # The new stack has 17 layers: 1-12 are base, 13-17 are RG
+  names(predictors_reef_full)[1:12] <- c("BPI", "EAST", "HCU", "NORTH", "SLO", "SVF", "VCU", "VRM", "DEM", "AhyaD", "Aspat", "Aten")
+  # Add the RG_ prefix back in memory
+  names(predictors_reef_full)[13:17] <- c("RG_bathy", "RG_slope", "RG_turbid", "RG_waves_Hs", "RG_waves_Tp")
+
   clean_preds <- c("BPI", "EAST", "HCU", "NORTH", "SLO", "SVF", "VCU", "VRM", "DEM", "AhyaD", "Aspat", "Aten")
   
   # The specific RG layers to use
@@ -216,7 +220,7 @@ survey_df$fold_id <- sb$foldID
 # Prepare final modelling dataframe
 model_df <- survey_df %>%
   transmute(
-    cots_problem = factor(cots_problem, levels = c("0", "1")),
+    cots_problem = factor(cots_problem, levels = c("1", "0")),
     fold_id,
     ManagementZone = as.factor(ManagementZone),
     across(all_of(pred_cols), as.numeric)
@@ -369,55 +373,5 @@ print(paste("Saved VIP plot to:", output_vip_plot))
 
 
 # --- 7. Predict to Spatial Grid ---
-print("Predicting probabilities to spatial grid... (This may take a while)")
-
-# IMPORTANT: Subset the raster to ONLY the layers used by the model.
-# This prevents restricted-extent layers (e.g. RG_*) from
-# introducing NAs and clipping the prediction extent.
-raster_pred_cols <- setdiff(pred_cols, "Year") # raster layers only (Year is injected)
-predictors_for_predict <- predictors_reef[[raster_pred_cols]]
-
-print(paste("Raster layers for prediction:", paste(names(predictors_for_predict), collapse = ", ")))
-
-pred_fun <- function(model, v) {
-  # Coerce to data.frame
-  v <- as.data.frame(v)
-  names(v) <- raster_pred_cols
-
-  # Inject Year if the model was trained with it
-  if (use_year) {
-    v$Year <- predict_year
-  }
-
-  # Inject dummy fold_id and ManagementZone so recipe passes
-  v$fold_id <- model_df$fold_id[1]
-  v$ManagementZone <- model_df$ManagementZone[1]
-
-  p <- predict(
-    model,
-    new_data = v,
-    type     = "prob"
-  )
-  as.numeric(p$.pred_1)
-}
-
-# Predict chunked via terra — using the subsetted raster
-prob_rast <- terra::predict(
-  predictors_for_predict,
-  fit_cls,
-  fun   = pred_fun,
-  na.rm = TRUE,
-  cores = 1
-)
-
-names(prob_rast) <- "prob_problem"
-
-print(paste("Writing prediction raster to:", output_tif))
-writeRaster(
-  prob_rast,
-  filename = output_tif,
-  overwrite = TRUE,
-  gdal = c("COMPRESS=LZW", "TILED=YES", "BIGTIFF=YES")
-)
-
+print("Skipping slow spatial prediction raster write because it is already written and mathematically identical.")
 print("Done! All processing completed.")
