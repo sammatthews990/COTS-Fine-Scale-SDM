@@ -40,6 +40,7 @@ library(pROC)
 predict_agnostic_path <- "outputs/COTS_prob_0.02_cpue_agnostic.tif"
 predict_year2025_path <- "outputs/COTS_prob_0.02_cpue_year2025_clean.tif"  # native 30m raster
 predict_year2025_rg_path <- "outputs/COTS_prob_0.02_cpue_year2025_withRG.tif"
+predict_maxent_path    <- "outputs/COTS_maxent_suitability.tif"
 manta_csv <- "data/COTS Program  Manta Tow Data-2026-02-04.csv"
 cull_xlsx <- "data/250929_COTS-Manta-Cull-RHIS-Data-Matthews-and-Schlawinsky.xlsx"
 cull_polys_gpkg <- "data/cull_site_polygons.gpkg"
@@ -69,6 +70,7 @@ reef_select <- c(
 prob_agnostic <- if(file.exists(predict_agnostic_path)) terra::rast(predict_agnostic_path) else NULL
 prob_year2025 <- if(file.exists(predict_year2025_path)) terra::rast(predict_year2025_path) else NULL
 prob_2025_rg  <- if(file.exists(predict_year2025_rg_path)) terra::rast(predict_year2025_rg_path) else NULL
+prob_maxent   <- if(file.exists(predict_maxent_path))    terra::rast(predict_maxent_path) else NULL
 
 if(is.null(prob_year2025) || is.null(prob_agnostic)) stop("Missing core prediction rasters.")
 
@@ -148,6 +150,10 @@ median_thresh_2025 <- as.numeric(terra::global(crop_2025, fun=function(x) median
 
 crop_agnostic <- terra::crop(prob_agnostic, ext_val)
 median_thresh_agnostic <- as.numeric(terra::global(crop_agnostic, fun=function(x) median(x, na.rm=TRUE)))
+crop_maxent <- if(!is.null(prob_maxent)) terra::crop(prob_maxent, ext_val) else NULL
+median_thresh_maxent <- if(!is.null(crop_maxent)) as.numeric(terra::global(crop_maxent, fun=function(x) median(x, na.rm=TRUE))) else NA
+thresh_maxent_p88    <- if(!is.null(crop_maxent)) as.numeric(terra::global(crop_maxent, fun=function(x) quantile(x, probs=0.88, na.rm=TRUE))) else NA
+thresh_maxent_p95    <- if(!is.null(crop_maxent)) as.numeric(terra::global(crop_maxent, fun=function(x) quantile(x, probs=0.95, na.rm=TRUE))) else NA
 
 # Calculate P88 and P95 Thresholds
 thresh_2025_p88 <- as.numeric(terra::global(crop_2025, fun=function(x) quantile(x, probs=0.88, na.rm=TRUE)))
@@ -159,6 +165,9 @@ p_max_2025 <- 0.55
 
 cat("Median Threshold (2025):", round(median_thresh_2025, 3), "\n")
 cat("Median Threshold (Agnostic):", round(median_thresh_agnostic, 3), "\n")
+cat("Median Threshold (MaxEnt):", round(median_thresh_maxent, 3), "\n")
+cat("88th Percentile (MaxEnt):", round(thresh_maxent_p88, 3), "\n")
+cat("95th Percentile (MaxEnt):", round(thresh_maxent_p95, 3), "\n")
 cat("88th Percentile (2025):", round(thresh_2025_p88, 3), "\n")
 cat("95th Percentile (2025):", round(thresh_2025_p95, 3), "\n")
 cat("Mapping Range (2025):", p_min_2025, "to", p_max_2025, "\n")
@@ -208,6 +217,38 @@ if (file.exists(metrics_clean_file)) {
 }
 ```
 
+### 1.4 MaxEnt Presence-Only Model (ENMeval Tuning & Feature Importance)
+
+```{r maxent_eval_summary, results='asis'}
+maxent_rds <- "outputs/maxent_enmeval_results.rds"
+if (file.exists(maxent_rds)) {
+  me_res <- readRDS(maxent_rds)
+  res_df <- me_res@results %>%
+    select(fc, rm, auc.train, auc.val.avg, auc.val.sd, AICc) %>%
+    arrange(AICc)
+  
+  best_row <- res_df[1, ]
+  cat(paste0("**Optimal MaxEnt Configuration selected by AICc**:\n",
+             "- **Feature Classes (fc)**: ", best_row$fc, "\n",
+             "- **Regularization Multiplier (rm)**: ", best_row$rm, "\n",
+             "- **AICc**: ", round(best_row$AICc, 2), "\n",
+             "- **Validation AUC (4-fold Spatial Block CV)**: ", round(best_row$auc.val.avg, 3), " ± ", round(best_row$auc.val.sd, 3), "\n\n"))
+  
+  print(kable(head(res_df, 10), digits = 3, caption = "Top 10 MaxEnt Candidate Model Configurations (ENMeval)"))
+  cat("\n\n")
+} else {
+  cat("*MaxEnt ENMeval tuning results not found.*")
+}
+```
+
+```{r maxent_plots, echo=FALSE, fig.show='hold', out.width='48%'}
+vip_img <- "outputs/maxent_vip_cots.png"
+rc_img  <- "outputs/maxent_response_curves.png"
+
+if(file.exists(vip_img)) knitr::include_graphics(vip_img)
+if(file.exists(rc_img))  knitr::include_graphics(rc_img)
+```
+
 ## 2. Step A: Grid-Based Historical Validation (100m)
 
 We rasterize historical manta tow observations onto a 100m grid and compare them to the SDM probability values (using both 2025 and Agnostic models). We calculate ROC curves, AUC, and evaluate thresholds using confusion matrices.
@@ -217,6 +258,7 @@ if(nrow(manta_selected) > 0) {
   # crop_2025 is already 60m. Resample crop_agnostic to match it exactly.
   pred_60m_2025 <- crop_2025
   pred_60m_agn <- terra::resample(crop_agnostic, crop_2025, method = "bilinear")
+  pred_60m_max <- if(!is.null(crop_maxent)) terra::resample(crop_maxent, crop_2025, method = "bilinear") else NULL
   
   # Rasterize Manta Tow presence (1 if ever present, 0 if absent)
   manta_presence <- terra::rasterize(
@@ -231,15 +273,18 @@ if(nrow(manta_selected) > 0) {
   val_df <- data.frame(
     observed_presence = terra::values(manta_presence)[,1],
     prob_2025 = terra::values(pred_60m_2025)[,1],
-    prob_agnostic = terra::values(pred_60m_agn)[,1]
+    prob_agnostic = terra::values(pred_60m_agn)[,1],
+    prob_maxent   = if(!is.null(pred_60m_max)) terra::values(pred_60m_max)[,1] else NA
   ) %>% drop_na()
   
   # --- ROC and AUC ---
   roc_2025 <- roc(val_df$observed_presence, val_df$prob_2025, quiet=TRUE)
   roc_agn <- roc(val_df$observed_presence, val_df$prob_agnostic, quiet=TRUE)
+  roc_maxent <- if("prob_maxent" %in% names(val_df)) roc(val_df$observed_presence, val_df$prob_maxent, quiet=TRUE) else NULL
   
   cat("AUC (2025 Model):", round(auc(roc_2025), 3), "\n")
   cat("AUC (Agnostic Model):", round(auc(roc_agn), 3), "\n\n")
+  if(!is.null(roc_maxent)) cat("AUC (MaxEnt Model):", round(auc(roc_maxent), 3), "\n")
   
   # Plot ROC
   par(mfrow=c(1,2))
@@ -282,6 +327,9 @@ val_col_2025 <- setdiff(names(cull_extract_2025), "ID")[1]
 
 # Extract agnostic model probability
 cull_extract_agn <- terra::extract(prob_agnostic, terra::vect(cull_pts_2025))
+# Extract MaxEnt model probability
+cull_extract_max <- if(!is.null(prob_maxent)) terra::extract(prob_maxent, terra::vect(cull_pts_2025)) else NULL
+val_col_max <- if(!is.null(cull_extract_max)) setdiff(names(cull_extract_max), "ID")[1] else NULL
 val_col_agn <- setdiff(names(cull_extract_agn), "ID")[1]
 
 # Extract RG model probability (if available)
@@ -292,7 +340,8 @@ val_col_rg <- if(!is.null(cull_extract_rg)) setdiff(names(cull_extract_rg), "ID"
 cull_val_df <- data.frame(
   observed_presence = as.integer(cull_pts_2025$Total > 0),
   prob_2025 = cull_extract_2025[[val_col_2025]],
-  prob_agnostic = cull_extract_agn[[val_col_agn]]
+  prob_agnostic = cull_extract_agn[[val_col_agn]],
+  prob_maxent   = if(!is.null(cull_extract_max)) cull_extract_max[[val_col_max]] else NA
 )
 
 if (!is.null(cull_extract_rg)) {
@@ -309,6 +358,7 @@ cat("Cull dive validation dataset:", nrow(cull_val_df), "dives\n")
 # --- ROC Curves ---
 roc_cull_2025 <- roc(cull_val_df$observed_presence, cull_val_df$prob_2025, quiet = TRUE)
 roc_cull_agn  <- roc(cull_val_df$observed_presence, cull_val_df$prob_agnostic, quiet = TRUE)
+roc_cull_max  <- if("prob_maxent" %in% names(cull_val_df)) roc(cull_val_df$observed_presence, cull_val_df$prob_maxent, quiet = TRUE) else NULL
 roc_cull_rg   <- if("prob_rg" %in% names(cull_val_df)) roc(cull_val_df$observed_presence, cull_val_df$prob_rg, quiet = TRUE) else NULL
 
 # Build ROC dataframes for ggplot
@@ -322,7 +372,12 @@ roc_df_agn <- data.frame(
   TPR = roc_cull_agn$sensitivities,
   Model = paste0("Agnostic (AUC = ", round(auc(roc_cull_agn), 3), ")")
 )
-roc_df <- bind_rows(roc_df_2025, roc_df_agn)
+roc_df_max <- if(!is.null(roc_cull_max)) data.frame(
+  FPR = 1 - roc_cull_max$specificities,
+  TPR = roc_cull_max$sensitivities,
+  Model = paste0("MaxEnt (AUC = ", round(auc(roc_cull_max), 3), ")")
+) else NULL
+roc_df <- bind_rows(roc_df_2025, roc_df_agn, roc_df_max)
 
 if (!is.null(roc_cull_rg)) {
   roc_df_rg <- data.frame(
@@ -337,7 +392,7 @@ if (!is.null(roc_cull_rg)) {
 p_roc <- ggplot(roc_df, aes(x = FPR, y = TPR, color = Model)) +
   geom_line(linewidth = 1.2) +
   geom_abline(linetype = "dashed", color = "grey50") +
-  scale_color_manual(values = c("#cc3333", "#3366cc", "#228b22")) +
+  scale_color_manual(values = c("#cc3333", "#3366cc", "#9933cc", "#228b22", "#ff7f00")) +
   theme_minimal(base_size = 14) +
   labs(
     title = "ROC Curves: SDM vs Cull Dive COTS Presence (2025)",
