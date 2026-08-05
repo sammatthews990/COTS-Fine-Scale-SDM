@@ -36,9 +36,9 @@ threshold <- 0.02
 block_km <- 50
 seed <- 123
 
-use_year <- TRUE # TRUE = include Year as a predictor; FALSE = agnostic across years
-predict_year <- 2025 # Year to predict for when use_year = TRUE
-use_reefguide <- TRUE # TRUE = use full stack with ReefGuide layers; FALSE = use clean stack
+if (!exists("use_year")) use_year <- TRUE # TRUE = include Year as a predictor; FALSE = agnostic across years
+if (!exists("predict_year")) predict_year <- 2025 # Year to predict for when use_year = TRUE
+if (!exists("use_reefguide")) use_reefguide <- TRUE # TRUE = use full stack with ReefGuide layers; FALSE = use clean stack
 cpue_field <- if (use_year) "CPUE_mean" else "CPUE_max"
 
 # --- 1. Load Predictors ---

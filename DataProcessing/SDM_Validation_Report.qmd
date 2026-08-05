@@ -48,6 +48,7 @@ predict_manta_clean_path <- "outputs/COTS_prob_manta_clean.tif"
 predict_manta_rg_path    <- "outputs/COTS_prob_manta_withRG.tif"
 predict_maxent_path      <- "outputs/COTS_maxent_suitability_clean.tif"
 predict_maxent_rg_path   <- "outputs/COTS_maxent_suitability_reefguide.tif"
+predict_ensemble_path    <- "outputs/COTS_prob_ensemble.tif"
 
 manta_csv <- "data/COTS Program  Manta Tow Data-2026-02-04.csv"
 cull_xlsx <- "data/250929_COTS-Manta-Cull-RHIS-Data-Matthews-and-Schlawinsky.xlsx"
@@ -82,6 +83,7 @@ prob_manta_clean <- if(file.exists(predict_manta_clean_path)) terra::rast(predic
 prob_manta_rg    <- if(file.exists(predict_manta_rg_path))    terra::rast(predict_manta_rg_path) else NULL
 prob_maxent      <- if(file.exists(predict_maxent_path))      terra::rast(predict_maxent_path) else NULL
 prob_maxent_rg   <- if(file.exists(predict_maxent_rg_path))   terra::rast(predict_maxent_rg_path) else NULL
+prob_ensemble    <- if(file.exists(predict_ensemble_path))    terra::rast(predict_ensemble_path) else NULL
 
 if(is.null(prob_year2025) || is.null(prob_agnostic)) stop("Missing core prediction rasters.")
 
@@ -187,10 +189,10 @@ cat("Mapping Range (2025):", p_min_2025, "to", p_max_2025, "\n")
 
 ## 1. Model Fitting Performance
 
-This section presents the internal performance metrics generated during the XGBoost model training process (`fit_predict_cots_sdm.R`). The model was trained using 5-fold Spatial Block Cross-Validation (50km blocks) on historical cull dive data. 
+This section presents the internal performance metrics generated during the model training process. The Cull Dive XGBoost models were trained using 5-fold Spatial Block Cross-Validation (50km blocks) on historical cull dive data, while the Ensemble Meta-Learners were evaluated via Spatial Out-of-Fold (OOF) cross-validation across reefs.
 
 - **Training (In-Fold)** represents the model's performance when tested on the data it was trained on.
-- **Validation (Out-of-Fold)** represents the model's performance on the hold-out spatial blocks, providing a robust estimate of how the model generalizes to new reefs.
+- **Validation (Out-of-Fold)** represents the model's performance on hold-out spatial blocks, providing a robust estimate of how models generalize to un-surveyed reefs.
 
 ```{r model_fitting_metrics, results='asis'}
 library(pROC)
@@ -198,6 +200,7 @@ library(yardstick)
 
 metrics_clean_file <- "outputs/fitted_model_clean.rds"
 metrics_rg_file    <- "outputs/fitted_model_withRG.rds"
+metrics_ens_file   <- "outputs/fitted_ensemble_model.rds"
 
 compute_detailed_metrics <- function(truth_vec, prob_vec, pred_class_vec = NULL, model_name, dataset_name, threshold = 0.5) {
   truth_b <- as.character(truth_vec) %in% c("1", "TRUE", "true")
@@ -257,19 +260,46 @@ if (file.exists(metrics_clean_file) && file.exists(metrics_rg_file)) {
   b_rg <- select_best(m_rg$cv_res, metric = "roc_auc")
   cv_rg <- collect_predictions(m_rg$cv_res) %>% filter(.config == b_rg$.config)
 
-  m_cv_clean <- compute_detailed_metrics(cv_clean$cots_problem, cv_clean$.pred_1, cv_clean$.pred_class, "Clean (12 Predictors)", "Cross-Validation (Out-of-Fold)")
-  m_cv_rg    <- compute_detailed_metrics(cv_rg$cots_problem, cv_rg$.pred_1, cv_rg$.pred_class, "Reef Guide (17 Predictors)", "Cross-Validation (Out-of-Fold)")
+  m_cv_clean <- compute_detailed_metrics(cv_clean$cots_problem, cv_clean$.pred_1, cv_clean$.pred_class, "Cull Dive Clean (12 Predictors)", "Cross-Validation (Out-of-Fold)")
+  m_cv_rg    <- compute_detailed_metrics(cv_rg$cots_problem, cv_rg$.pred_1, cv_rg$.pred_class, "Cull Dive Reef Guide (17 Predictors)", "Cross-Validation (Out-of-Fold)")
 
-  cat("### 1.1 Comparative Model Performance: Spatial Block Cross-Validation\n\n")
-  cv_table <- bind_rows(m_cv_clean, m_cv_rg)
+  cv_list <- list(m_cv_clean, m_cv_rg)
+
+  if (file.exists(metrics_ens_file)) {
+    m_ens <- readRDS(metrics_ens_file)
+    cv_list[[length(cv_list) + 1]] <- tibble(
+      Model = "Performance-Weighted Ensemble",
+      Dataset = "Cross-Validation (Out-of-Fold)",
+      AUC = round(m_ens$auc_weighted, 3),
+      Accuracy = NA, `Prec (>0.02)` = NA, `Rec (>0.02)` = NA, `F1 (>0.02)` = NA,
+      `Prec (<0.02)` = NA, `Rec (<0.02)` = NA, `F1 (<0.02)` = NA
+    )
+    cv_list[[length(cv_list) + 1]] <- tibble(
+      Model = "Stacked Logistic Meta-Learner",
+      Dataset = "Cross-Validation (Spatial OOF)",
+      AUC = round(m_ens$auc_logistic_oof, 3),
+      Accuracy = NA, `Prec (>0.02)` = NA, `Rec (>0.02)` = NA, `F1 (>0.02)` = NA,
+      `Prec (<0.02)` = NA, `Rec (<0.02)` = NA, `F1 (<0.02)` = NA
+    )
+    cv_list[[length(cv_list) + 1]] <- tibble(
+      Model = "Stacked XGBoost Meta-Learner",
+      Dataset = "Cross-Validation (Spatial OOF)",
+      AUC = round(m_ens$auc_xgb_oof, 3),
+      Accuracy = NA, `Prec (>0.02)` = NA, `Rec (>0.02)` = NA, `F1 (>0.02)` = NA,
+      `Prec (<0.02)` = NA, `Rec (<0.02)` = NA, `F1 (<0.02)` = NA
+    )
+  }
+
+  cat("### 1.1 Comparative Model Performance: Spatial Cross-Validation\n\n")
+  cv_table <- bind_rows(cv_list)
   print(kable(cv_table, caption = "Cross-Validation Evaluation Metrics: Precision, Recall & F1 for Successful (>=0.02) and Failed (<0.02) Dives"))
   cat("\n\n")
   
   # 2. Regional Metrics Table (Clean Model)
   if (file.exists("outputs/model_performance_metrics_clean.rds")) {
     m_clean_metrics <- readRDS("outputs/model_performance_metrics_clean.rds")
-    cat("### 1.2 Regional Validation Performance (Clean Model Out-of-Fold)\n\n")
-    print(kable(m_clean_metrics$By_Zone %>% arrange(ManagementZone), digits = 3, caption = "Clean Model Performance by Management Zone"))
+    cat("### 1.2 Regional Validation Performance (Cull Dive Clean Model Out-of-Fold)\n\n")
+    print(kable(m_clean_metrics$By_Zone %>% arrange(ManagementZone), digits = 3, caption = "Cull Dive Clean Model Performance by Management Zone"))
     cat("\n\n")
   }
 } else {
@@ -384,15 +414,16 @@ if(nrow(manta_selected) > 0) {
 }
 ```
 
-## 2b. Cull Dive Validation (ROC & AUC across All 6 Model Variants)
+## 2b. Cull Dive Validation (ROC & AUC across Base & Ensemble SDMs)
 
-Cull dive data provides a highly reliable validation target because divers directly count COTS at each site. We extract spatial predictions at each cull dive location (Jan 2025 onwards across top 30 evaluated reefs) and compare model discrimination and classification performance across all six model configurations:
-1. **RHIS XGBoost Clean (12-pred)**
-2. **RHIS XGBoost Reef Guide (17-pred)**
-3. **Manta Tow XGBoost Clean (12-pred)**
-4. **Manta Tow XGBoost Reef Guide (17-pred)**
+Cull dive data provides a highly reliable validation target because divers directly count COTS at each site. We extract spatial predictions at each cull dive location (Jan 2025 onwards across top 30 evaluated reefs) and compare model discrimination and classification performance across all base model configurations and the Performance-Weighted Ensemble:
+1. **Ensemble SDM (`COTS_prob_ensemble.tif`)**
+2. **Cull Dive XGBoost Reef Guide (17-pred)**
+3. **Cull Dive XGBoost Clean (12-pred)**
+4. **MaxEnt Reef Guide (17-pred, 10k bg)**
 5. **MaxEnt Clean (12-pred, 10k bg)**
-6. **MaxEnt Reef Guide (17-pred, 10k bg)**
+6. **Manta Tow XGBoost Clean (12-pred)**
+7. **Manta Tow XGBoost Reef Guide (17-pred)**
 
 ```{r step_a_cull_roc, fig.width=12, fig.height=10}
 # Prepare Cull Dive point locations
@@ -408,12 +439,13 @@ v_cull_pts <- terra::vect(cull_pts_sf)
 cull_val_df <- tibble(
   observed_presence = as.integer(pull(cull_pts_sub, CPUE) >= 0.02),
   CPUE              = pull(cull_pts_sub, CPUE),
-  rhis_clean  = if(!is.null(prob_year2025))    as.numeric(terra::extract(prob_year2025, v_cull_pts)[[2]]) else NA_real_,
-  rhis_rg     = if(!is.null(prob_2025_rg))     as.numeric(terra::extract(prob_2025_rg, v_cull_pts)[[2]]) else NA_real_,
+  cull_clean  = if(!is.null(prob_year2025))    as.numeric(terra::extract(prob_year2025, v_cull_pts)[[2]]) else NA_real_,
+  cull_rg     = if(!is.null(prob_2025_rg))     as.numeric(terra::extract(prob_2025_rg, v_cull_pts)[[2]]) else NA_real_,
   manta_clean = if(!is.null(prob_manta_clean)) as.numeric(terra::extract(prob_manta_clean, v_cull_pts)[[2]]) else NA_real_,
   manta_rg    = if(!is.null(prob_manta_rg))    as.numeric(terra::extract(prob_manta_rg, v_cull_pts)[[2]]) else NA_real_,
   maxent_clean= if(!is.null(prob_maxent))      as.numeric(terra::extract(prob_maxent, v_cull_pts)[[2]]) else NA_real_,
-  maxent_rg   = if(!is.null(prob_maxent_rg))   as.numeric(terra::extract(prob_maxent_rg, v_cull_pts)[[2]]) else NA_real_
+  maxent_rg   = if(!is.null(prob_maxent_rg))   as.numeric(terra::extract(prob_maxent_rg, v_cull_pts)[[2]]) else NA_real_,
+  ensemble    = if(!is.null(prob_ensemble))    as.numeric(terra::extract(prob_ensemble, v_cull_pts)[[2]]) else NA_real_
 ) %>% drop_na()
 
 cat("Cull dive validation dataset:", nrow(cull_val_df), "dives\n\n")
@@ -422,12 +454,13 @@ cat("Cull dive validation dataset:", nrow(cull_val_df), "dives\n\n")
 y_true <- pull(cull_val_df, observed_presence)
 
 roc_models <- list(
-  "RHIS XGBoost Reef Guide (17-pred)" = pull(cull_val_df, rhis_rg),
-  "RHIS XGBoost Clean (12-pred)"      = pull(cull_val_df, rhis_clean),
-  "MaxEnt Reef Guide (17-pred, 10k)"  = pull(cull_val_df, maxent_rg),
-  "MaxEnt Clean (12-pred, 10k)"       = pull(cull_val_df, maxent_clean),
-  "Manta XGBoost Clean (12-pred)"     = pull(cull_val_df, manta_clean),
-  "Manta XGBoost Reef Guide (17-pred)"= pull(cull_val_df, manta_rg)
+  "Ensemble SDM (Weighted)"              = pull(cull_val_df, ensemble),
+  "Cull Dive XGBoost Reef Guide (17-pred)"= pull(cull_val_df, cull_rg),
+  "Cull Dive XGBoost Clean (12-pred)"     = pull(cull_val_df, cull_clean),
+  "MaxEnt Reef Guide (17-pred, 10k)"    = pull(cull_val_df, maxent_rg),
+  "MaxEnt Clean (12-pred, 10k)"         = pull(cull_val_df, maxent_clean),
+  "Manta XGBoost Clean (12-pred)"       = pull(cull_val_df, manta_clean),
+  "Manta XGBoost Reef Guide (17-pred)"  = pull(cull_val_df, manta_rg)
 )
 
 roc_df_list <- list()
@@ -451,11 +484,11 @@ p_roc <- ggplot(roc_df_all, aes(x = FPR, y = TPR, color = Model)) +
   geom_line(linewidth = 1.2) +
   geom_abline(linetype = "dashed", color = "grey50") +
   scale_color_manual(values = c(
-    "#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02"
+    "#377eb8", "#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02"
   )) +
   theme_minimal(base_size = 13) +
   labs(
-    title = "ROC Curves: 6 Model Variants vs Cull Dive COTS Presence (2025)",
+    title = "ROC Curves: SDM Variants & Ensemble vs Cull Dive COTS Presence (2025)",
     subtitle = paste0("n = ", nrow(cull_val_df), " independent cull dives from top 30 reefs"),
     x = "False Positive Rate (1 - Specificity)",
     y = "True Positive Rate (Sensitivity)",
@@ -474,12 +507,13 @@ print(p_roc)
 cull_metrics_list <- list()
 
 model_cols <- list(
-  "RHIS XGBoost Reef Guide (17-pred)"  = "rhis_rg",
-  "RHIS XGBoost Clean (12-pred)"       = "rhis_clean",
-  "Manta XGBoost Clean (12-pred)"      = "manta_clean",
-  "Manta XGBoost Reef Guide (17-pred)" = "manta_rg",
-  "MaxEnt Clean (12-pred, 10k bg)"     = "maxent_clean",
-  "MaxEnt Reef Guide (17-pred, 10k bg)"= "maxent_rg"
+  "Ensemble SDM (Weighted)"              = "ensemble",
+  "Cull Dive XGBoost Reef Guide (17-pred)"= "cull_rg",
+  "Cull Dive XGBoost Clean (12-pred)"     = "cull_clean",
+  "Manta XGBoost Clean (12-pred)"        = "manta_clean",
+  "Manta XGBoost Reef Guide (17-pred)"   = "manta_rg",
+  "MaxEnt Clean (12-pred, 10k bg)"       = "maxent_clean",
+  "MaxEnt Reef Guide (17-pred, 10k bg)"  = "maxent_rg"
 )
 
 for (m_name in names(model_cols)) {
@@ -498,20 +532,20 @@ for (m_name in names(model_cols)) {
 }
 
 cull_perf_table <- bind_rows(cull_metrics_list)
-print(kable(cull_perf_table, caption = "Independent Cull Validation Performance Metrics across All 6 SDM Variants (Threshold = Median Probability)"))
+print(kable(cull_perf_table, caption = "Independent Cull Validation Performance Metrics across All Base Models & Ensemble (Threshold = Median Probability)"))
 cat("\n\n")
 
 # --- Optimal thresholds (Youden's J) ---
-roc_rhis_rg <- pROC::roc(response = y_true, predictor = pull(cull_val_df, rhis_rg), quiet = TRUE)
-opt_rhis_rg <- coords(roc_rhis_rg, "best", best.method = "youden", ret = c("threshold", "sensitivity", "specificity"))
+roc_cull_rg <- pROC::roc(response = y_true, predictor = pull(cull_val_df, cull_rg), quiet = TRUE)
+opt_cull_rg <- coords(roc_cull_rg, "best", best.method = "youden", ret = c("threshold", "sensitivity", "specificity"))
 
-cat("Optimal Threshold (Youden's J) for RHIS XGBoost Reef Guide Model:", round(opt_rhis_rg$threshold, 4),
-    "  Sensitivity:", round(opt_rhis_rg$sensitivity, 3),
-    "  Specificity:", round(opt_rhis_rg$specificity, 3), "\n\n")
+cat("Optimal Threshold (Youden's J) for Cull Dive XGBoost Reef Guide Model:", round(opt_cull_rg$threshold, 4),
+    "  Sensitivity:", round(opt_cull_rg$sensitivity, 3),
+    "  Specificity:", round(opt_cull_rg$specificity, 3), "\n\n")
 
 # --- Confusion Matrices at P88 and P95 thresholds ---
-thresh_rg_p88 <- quantile(cull_val_df$rhis_rg, 0.88, na.rm = TRUE)
-thresh_rg_p95 <- quantile(cull_val_df$rhis_rg, 0.95, na.rm = TRUE)
+thresh_rg_p88 <- quantile(cull_val_df$cull_rg, 0.88, na.rm = TRUE)
+thresh_rg_p95 <- quantile(cull_val_df$cull_rg, 0.95, na.rm = TRUE)
 
 plot_cull_cm <- function(prob_vec, obs_vec, threshold, title) {
   cm_df <- data.frame(
@@ -534,12 +568,12 @@ plot_cull_cm <- function(prob_vec, obs_vec, threshold, title) {
     theme(plot.title = element_text(face = "bold", hjust = 0.5), panel.grid = element_blank())
 }
 
-p_cm1 <- plot_cull_cm(cull_val_df$rhis_rg, cull_val_df$observed_presence == 1, 
-                       thresh_rg_p88, paste0("RHIS ReefGuide @ P88 (", round(thresh_rg_p88, 4), ")"))
-p_cm2 <- plot_cull_cm(cull_val_df$rhis_rg, cull_val_df$observed_presence == 1, 
-                       thresh_rg_p95, paste0("RHIS ReefGuide @ P95 (", round(thresh_rg_p95, 4), ")"))
-p_cm3 <- plot_cull_cm(cull_val_df$rhis_rg, cull_val_df$observed_presence == 1, 
-                       opt_rhis_rg$threshold, paste0("RHIS ReefGuide @ Optimal (", round(opt_rhis_rg$threshold, 4), ")"))
+p_cm1 <- plot_cull_cm(cull_val_df$cull_rg, cull_val_df$observed_presence == 1, 
+                       thresh_rg_p88, paste0("Cull Dive ReefGuide @ P88 (", round(thresh_rg_p88, 4), ")"))
+p_cm2 <- plot_cull_cm(cull_val_df$cull_rg, cull_val_df$observed_presence == 1, 
+                       thresh_rg_p95, paste0("Cull Dive ReefGuide @ P95 (", round(thresh_rg_p95, 4), ")"))
+p_cm3 <- plot_cull_cm(cull_val_df$cull_rg, cull_val_df$observed_presence == 1, 
+                       opt_cull_rg$threshold, paste0("Cull Dive ReefGuide @ Optimal (", round(opt_cull_rg$threshold, 4), ")"))
 
 gridExtra::grid.arrange(p_cm1, p_cm2, p_cm3, ncol = 3)
 ```
