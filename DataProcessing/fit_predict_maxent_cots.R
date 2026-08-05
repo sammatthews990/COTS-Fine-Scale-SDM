@@ -27,14 +27,15 @@ out_dir <- file.path(dp_dir, "outputs")
 dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
 
 seed <- 123
-n_bg <- 50000  # Background points
+n_bg <- 10000  # Background points (MaxEnt default)
 
-# Output file paths
-output_tif       <- file.path(out_dir, "COTS_maxent_suitability.tif")
-output_model     <- file.path(out_dir, "maxent_model_cots.rds")
-output_vip       <- file.path(out_dir, "maxent_vip_cots.png")
-output_response  <- file.path(out_dir, "maxent_response_curves.png")
-output_enmeval   <- file.path(out_dir, "maxent_enmeval_results.rds")
+# Output file paths (10k background points)
+output_tif       <- file.path(out_dir, "COTS_maxent_suitability_clean_10k.tif")
+output_model     <- file.path(out_dir, "maxent_model_cots_10k.rds")
+output_vip       <- file.path(out_dir, "maxent_vip_cots_10k.png")
+output_response  <- file.path(out_dir, "maxent_response_curves_10k.png")
+output_enmeval   <- file.path(out_dir, "maxent_enmeval_results_10k.rds")
+output_bg_gpkg   <- file.path(out_dir, "maxent_bg_points_10k.gpkg")
 
 # --- 1. Load Predictors (Clean 12-layer stack for full domain coverage into Torres Strait) ---
 print("Loading predictor stack...")
@@ -121,8 +122,8 @@ print(paste("Generating", n_bg, "background points..."))
 set.seed(seed)
 
 # Sample from non-NA cells (spatSample), avoiding presence cells
-bg_vect <- terra::spatSample(predictors[[1]], size = n_bg * 2,
-                              method = "random", na.rm = TRUE,
+bg_vect <- terra::spatSample(predictors[[1]], size = n_bg * 3,
+                              method = "random", na.rm = TRUE, exhaust = TRUE,
                               as.points = TRUE)
 bg_cells <- terra::cellFromXY(predictors, terra::crds(bg_vect))
 
@@ -138,6 +139,11 @@ if (nrow(bg_vect) > n_bg) {
 bg_coords <- as.data.frame(terra::crds(bg_vect))
 names(bg_coords) <- c("x", "y")
 print(paste("  Background points generated:", nrow(bg_coords)))
+
+# Export background points to GeoPackage for visual inspection
+print(paste("  Exporting background points to GeoPackage:", output_bg_gpkg))
+bg_sf <- st_as_sf(bg_coords, coords = c("x", "y"), crs = crs(predictors))
+st_write(bg_sf, output_bg_gpkg, delete_dsn = TRUE, quiet = TRUE)
 
 # --- 4. Extract Environmental Values ---
 print("Extracting environmental values...")
@@ -218,25 +224,23 @@ print("Generating variable importance plot...")
 
 # Extract variable contributions from the maxnet model coefficients
 # Group coefficient magnitudes by variable
-coef_vals <- best_model$betas
-if (is.null(coef_vals)) coef_vals <- coef(best_model)
+coef_vec <- best_model[['betas']]
+if (is.null(coef_vec)) coef_vec <- coef(best_model)
 
 # Parse variable names from coefficient names (maxnet uses e.g. "BPI", "BPI^2", "hinge(BPI)")
 var_contrib <- data.frame(
-  coef_name = names(coef_vals),
-  abs_coef  = abs(as.numeric(coef_vals)),
+  coef_name = names(coef_vec),
+  abs_coef  = abs(as.numeric(coef_vec)),
   stringsAsFactors = FALSE
 )
 
 # Map each coefficient to its base variable
 var_contrib$base_var <- sapply(var_contrib$coef_name, function(cn) {
-  # Remove hinge(), threshold(), categorical() wrappers and exponents
-  cn <- gsub("^(hinge|thresholds|categorical)\\(", "", cn)
-  cn <- gsub("\\)$", "", cn)
+  cn <- gsub("^(hinge|thresholds|categorical|I)\\((.*)\\)$", "\\2", cn)
   cn <- gsub("\\^[0-9]+$", "", cn)
-  # For interaction terms (var1:var2), take the first variable
+  cn <- gsub(":.*$", "", cn)
   cn <- strsplit(cn, ":")[[1]][1]
-  cn
+  trimws(cn)
 })
 
 vip_df <- var_contrib %>%

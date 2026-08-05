@@ -28,14 +28,14 @@ out_dir <- file.path(dp_dir, "outputs")
 dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
 
 seed <- 123
-n_bg <- 50000  # Background points
+n_bg <- 10000  # Background points (MaxEnt default)
 
-# Output file paths
-output_tif       <- file.path(out_dir, "COTS_maxent_suitability_reefguide.tif")
-output_model     <- file.path(out_dir, "maxent_model_reefguide.rds")
-output_vip       <- file.path(out_dir, "maxent_vip_reefguide.png")
-output_response  <- file.path(out_dir, "maxent_response_curves_reefguide.png")
-output_enmeval   <- file.path(out_dir, "maxent_enmeval_results_reefguide.rds")
+# Output file paths (10k background points)
+output_tif       <- file.path(out_dir, "COTS_maxent_suitability_reefguide_10k.tif")
+output_model     <- file.path(out_dir, "maxent_model_reefguide_10k.rds")
+output_vip       <- file.path(out_dir, "maxent_vip_reefguide_10k.png")
+output_response  <- file.path(out_dir, "maxent_response_curves_reefguide_10k.png")
+output_enmeval   <- file.path(out_dir, "maxent_enmeval_results_reefguide_10k.rds")
 
 # --- 1. Load Predictors (Full 17-layer stack including Reef Guide layers) ---
 print("Loading 17-layer full predictor stack (including Reef Guide layers)...")
@@ -122,8 +122,8 @@ set.seed(seed)
 
 # Sample from non-NA cells (spatSample), avoiding presence cells
 # Use layer 13 (RG_bathy) or full stack completeness mask to ensure background is within Reef Guide spatial footprint
-bg_vect <- terra::spatSample(predictors[["RG_bathy"]], size = n_bg * 2,
-                              method = "random", na.rm = TRUE,
+bg_vect <- terra::spatSample(predictors[["RG_bathy"]], size = n_bg * 3,
+                              method = "random", na.rm = TRUE, exhaust = TRUE,
                               as.points = TRUE)
 bg_cells <- terra::cellFromXY(predictors, terra::crds(bg_vect))
 
@@ -217,21 +217,21 @@ print(paste("Saved best MaxEnt model to:", output_model))
 # --- 6. Variable Importance & Response Curves ---
 print("Generating variable importance plot...")
 
-coef_vals <- best_model$betas
-if (is.null(coef_vals)) coef_vals <- coef(best_model)
+coef_vec <- best_model[['betas']]
+if (is.null(coef_vec)) coef_vec <- coef(best_model)
 
 var_contrib <- data.frame(
-  coef_name = names(coef_vals),
-  abs_coef  = abs(as.numeric(coef_vals)),
+  coef_name = names(coef_vec),
+  abs_coef  = abs(as.numeric(coef_vec)),
   stringsAsFactors = FALSE
 )
 
 var_contrib$base_var <- sapply(var_contrib$coef_name, function(cn) {
-  cn <- gsub("^(hinge|thresholds|categorical)\\(", "", cn)
-  cn <- gsub("\\)$", "", cn)
+  cn <- gsub("^(hinge|thresholds|categorical|I)\\((.*)\\)$", "\\2", cn)
   cn <- gsub("\\^[0-9]+$", "", cn)
+  cn <- gsub(":.*$", "", cn)
   cn <- strsplit(cn, ":")[[1]][1]
-  cn
+  trimws(cn)
 })
 
 vip_df <- var_contrib %>%
