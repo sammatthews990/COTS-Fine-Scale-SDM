@@ -41,14 +41,17 @@ library(tune)
 library(yardstick)
 
 # --- Configuration ---
-predict_agnostic_path    <- "outputs/COTS_prob_0.02_cpue_agnostic.tif"
-predict_year2025_path    <- "outputs/COTS_prob_0.02_cpue_year2025_clean.tif"  # native 30m raster
-predict_year2025_rg_path <- "outputs/COTS_prob_0.02_cpue_year2025_withRG.tif"
-predict_manta_clean_path <- "outputs/COTS_prob_manta_clean.tif"
-predict_manta_rg_path    <- "outputs/COTS_prob_manta_withRG.tif"
-predict_maxent_path      <- "outputs/COTS_maxent_suitability_clean.tif"
-predict_maxent_rg_path   <- "outputs/COTS_maxent_suitability_reefguide.tif"
-predict_ensemble_path    <- "outputs/COTS_prob_ensemble.tif"
+predict_agnostic_path       <- "outputs/COTS_prob_0.02_cpue_agnostic_withRG.tif"
+predict_agnostic_clean_path <- "outputs/COTS_prob_0.02_cpue_agnostic_clean.tif"
+predict_year2025_path       <- "outputs/COTS_prob_0.02_cpue_year2025_clean.tif"  # native 30m raster
+predict_year2025_rg_path    <- "outputs/COTS_prob_0.02_cpue_year2025_withRG.tif"
+predict_manta_clean_path    <- "outputs/COTS_prob_manta_clean.tif"
+predict_manta_rg_path       <- "outputs/COTS_prob_manta_withRG.tif"
+predict_maxent_path         <- "outputs/COTS_maxent_suitability_clean.tif"
+predict_maxent_rg_path      <- "outputs/COTS_maxent_suitability_reefguide.tif"
+predict_ensemble_2025_path  <- "outputs/COTS_prob_ensemble_2025.tif"
+predict_ensemble_agn_path   <- "outputs/COTS_prob_ensemble_agnostic.tif"
+predict_ensemble_path       <- "outputs/COTS_prob_ensemble.tif"
 
 manta_csv <- "data/COTS Program  Manta Tow Data-2026-02-04.csv"
 cull_xlsx <- "data/250929_COTS-Manta-Cull-RHIS-Data-Matthews-and-Schlawinsky.xlsx"
@@ -76,14 +79,18 @@ reef_select <- c(
 
 ```{r load_data}
 # Load Model Predictions
-prob_agnostic    <- if(file.exists(predict_agnostic_path))    terra::rast(predict_agnostic_path) else NULL
-prob_year2025    <- if(file.exists(predict_year2025_path))    terra::rast(predict_year2025_path) else NULL
-prob_2025_rg     <- if(file.exists(predict_year2025_rg_path)) terra::rast(predict_year2025_rg_path) else NULL
-prob_manta_clean <- if(file.exists(predict_manta_clean_path)) terra::rast(predict_manta_clean_path) else NULL
-prob_manta_rg    <- if(file.exists(predict_manta_rg_path))    terra::rast(predict_manta_rg_path) else NULL
-prob_maxent      <- if(file.exists(predict_maxent_path))      terra::rast(predict_maxent_path) else NULL
-prob_maxent_rg   <- if(file.exists(predict_maxent_rg_path))   terra::rast(predict_maxent_rg_path) else NULL
-prob_ensemble    <- if(file.exists(predict_ensemble_path))    terra::rast(predict_ensemble_path) else NULL
+prob_agnostic_clean <- if(file.exists(predict_agnostic_clean_path)) terra::rast(predict_agnostic_clean_path) else NULL
+prob_agnostic_rg    <- if(file.exists(predict_agnostic_path))       terra::rast(predict_agnostic_path) else NULL
+prob_agnostic       <- if(!is.null(prob_agnostic_rg)) prob_agnostic_rg else prob_agnostic_clean
+prob_year2025       <- if(file.exists(predict_year2025_path))       terra::rast(predict_year2025_path) else NULL
+prob_2025_rg        <- if(file.exists(predict_year2025_rg_path))    terra::rast(predict_year2025_rg_path) else NULL
+prob_manta_clean    <- if(file.exists(predict_manta_clean_path))    terra::rast(predict_manta_clean_path) else NULL
+prob_manta_rg       <- if(file.exists(predict_manta_rg_path))       terra::rast(predict_manta_rg_path) else NULL
+prob_maxent         <- if(file.exists(predict_maxent_path))         terra::rast(predict_maxent_path) else NULL
+prob_maxent_rg      <- if(file.exists(predict_maxent_rg_path))      terra::rast(predict_maxent_rg_path) else NULL
+prob_ensemble_2025  <- if(file.exists(predict_ensemble_2025_path)) terra::rast(predict_ensemble_2025_path) else NULL
+prob_ensemble_agn   <- if(file.exists(predict_ensemble_agn_path))  terra::rast(predict_ensemble_agn_path) else NULL
+prob_ensemble       <- if(!is.null(prob_ensemble_2025)) prob_ensemble_2025 else if(file.exists(predict_ensemble_path)) terra::rast(predict_ensemble_path) else NULL
 
 if(is.null(prob_year2025) || is.null(prob_agnostic)) stop("Missing core prediction rasters.")
 
@@ -416,17 +423,110 @@ if(nrow(manta_selected) > 0) {
 
 ## 2b. Cull Dive Validation (ROC & AUC across Base & Ensemble SDMs)
 
-Cull dive data provides a highly reliable validation target because divers directly count COTS at each site. We extract spatial predictions at each cull dive location (Jan 2025 onwards across top 30 evaluated reefs) and compare model discrimination and classification performance across all base model configurations and the Performance-Weighted Ensemble:
-1. **Ensemble SDM (`COTS_prob_ensemble.tif`)**
-2. **Cull Dive XGBoost Reef Guide (17-pred)**
-3. **Cull Dive XGBoost Clean (12-pred)**
-4. **MaxEnt Reef Guide (17-pred, 10k bg)**
-5. **MaxEnt Clean (12-pred, 10k bg)**
-6. **Manta Tow XGBoost Clean (12-pred)**
-7. **Manta Tow XGBoost Reef Guide (17-pred)**
+Cull dive data provides a highly reliable validation target because divers directly count COTS at each site. We evaluate model discrimination and classification performance across **all 23,439 historical cull dives (2018–2025)** and the **2025 operational dive subset**, comparing all base model variants and the dual ensemble rasters:
+1. **Performance-Weighted Ensemble 2025 (`COTS_prob_ensemble_2025.tif`)**
+2. **Outbreak Persistence Ensemble Agnostic (`COTS_prob_ensemble_agnostic.tif`)**
+3. **Cull Dive XGBoost 2025 Reef Guide (17-pred)**
+4. **Cull Dive XGBoost 2025 Clean (12-pred)**
+5. **Cull Dive XGBoost Agnostic Reef Guide (17-pred)**
+6. **Cull Dive XGBoost Agnostic Clean (12-pred)**
+7. **MaxEnt Reef Guide (17-pred, 10k bg)**
+8. **MaxEnt Clean (12-pred, 10k bg)**
+9. **Manta Tow XGBoost Clean (12-pred)**
+10. **Manta Tow XGBoost Reef Guide (17-pred)**
 
 ```{r step_a_cull_roc, fig.width=12, fig.height=10}
-# Prepare Cull Dive point locations
+# --- PART 1: ALL HISTORICAL CULL DIVES (2018-2025) ---
+cull_pts_all_sf <- st_as_sf(cull_raw, coords = c("Longitude", "Latitude"), crs = 4326) %>%
+  st_transform(crs = crs(prob_year2025))
+
+v_cull_all_pts <- terra::vect(cull_pts_all_sf)
+
+cull_val_all_df <- tibble(
+  observed_presence = as.integer(pull(cull_raw, CPUE) >= 0.02),
+  CPUE              = pull(cull_raw, CPUE),
+  ens_2025     = if(!is.null(prob_ensemble_2025)) as.numeric(terra::extract(prob_ensemble_2025, v_cull_all_pts)[[2]]) else NA_real_,
+  ens_agn      = if(!is.null(prob_ensemble_agn))  as.numeric(terra::extract(prob_ensemble_agn, v_cull_all_pts)[[2]]) else NA_real_,
+  cull_2025_rg = if(!is.null(prob_2025_rg))       as.numeric(terra::extract(prob_2025_rg, v_cull_all_pts)[[2]]) else NA_real_,
+  cull_2025_cl = if(!is.null(prob_year2025))      as.numeric(terra::extract(prob_year2025, v_cull_all_pts)[[2]]) else NA_real_,
+  cull_agn_rg  = if(!is.null(prob_agnostic_rg))   as.numeric(terra::extract(prob_agnostic_rg, v_cull_all_pts)[[2]]) else NA_real_,
+  cull_agn_cl  = if(!is.null(prob_agnostic_clean)) as.numeric(terra::extract(prob_agnostic_clean, v_cull_all_pts)[[2]]) else NA_real_,
+  manta_clean  = if(!is.null(prob_manta_clean))   as.numeric(terra::extract(prob_manta_clean, v_cull_all_pts)[[2]]) else NA_real_,
+  manta_rg     = if(!is.null(prob_manta_rg))      as.numeric(terra::extract(prob_manta_rg, v_cull_all_pts)[[2]]) else NA_real_,
+  maxent_clean = if(!is.null(prob_maxent))        as.numeric(terra::extract(prob_maxent, v_cull_all_pts)[[2]]) else NA_real_,
+  maxent_rg    = if(!is.null(prob_maxent_rg))     as.numeric(terra::extract(prob_maxent_rg, v_cull_all_pts)[[2]]) else NA_real_
+) %>% drop_na()
+
+cat("### 2b.1 Performance across ALL Historical Cull Dives (2018–2025: n =", nrow(cull_val_all_df), "dives)\n\n")
+
+y_true_all <- pull(cull_val_all_df, observed_presence)
+
+roc_models_all <- list(
+  "Ensemble 2025 (Weighted)"            = pull(cull_val_all_df, ens_2025),
+  "Ensemble Agnostic (Persistence)"     = pull(cull_val_all_df, ens_agn),
+  "Cull XGBoost 2025 Reef Guide (17)"   = pull(cull_val_all_df, cull_2025_rg),
+  "Cull XGBoost Agnostic Reef Guide(17)"= pull(cull_val_all_df, cull_agn_rg),
+  "Cull XGBoost 2025 Clean (12)"        = pull(cull_val_all_df, cull_2025_cl),
+  "Cull XGBoost Agnostic Clean (12)"     = pull(cull_val_all_df, cull_agn_cl),
+  "MaxEnt Reef Guide (17, 10k)"         = pull(cull_val_all_df, maxent_rg),
+  "MaxEnt Clean (12, 10k)"              = pull(cull_val_all_df, maxent_clean),
+  "Manta XGBoost Clean (12)"            = pull(cull_val_all_df, manta_clean)
+)
+
+roc_df_all_list <- list()
+for (m_label in names(roc_models_all)) {
+  p_vec <- roc_models_all[[m_label]]
+  if (!all(is.na(p_vec))) {
+    roc_obj <- pROC::roc(response = y_true_all, predictor = p_vec, quiet = TRUE)
+    auc_val <- as.numeric(pROC::auc(roc_obj))
+    roc_df_all_list[[m_label]] <- data.frame(
+      FPR = 1 - roc_obj$specificities,
+      TPR = roc_obj$sensitivities,
+      Model = paste0(m_label, " (AUC = ", round(auc_val, 3), ")")
+    )
+  }
+}
+
+p_roc_all <- ggplot(bind_rows(roc_df_all_list), aes(x = FPR, y = TPR, color = Model)) +
+  geom_line(linewidth = 1.2) +
+  geom_abline(linetype = "dashed", color = "grey50") +
+  theme_minimal(base_size = 13) +
+  labs(
+    title = "ROC Curves: All Historical Cull Dives (2018–2025)",
+    subtitle = paste0("n = ", nrow(cull_val_all_df), " historical cull dives across GBR"),
+    x = "False Positive Rate (1 - Specificity)",
+    y = "True Positive Rate (Sensitivity)",
+    color = "Model Variant"
+  ) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = c(0.68, 0.28),
+    legend.background = element_rect(fill = "white", color = "grey80")
+  ) +
+  coord_equal()
+
+print(p_roc_all)
+
+# Detailed metric table across all historical dives
+cull_all_metrics_list <- list()
+for (m_name in names(roc_models_all)) {
+  p_vec <- roc_models_all[[m_name]]
+  if (!all(is.na(p_vec))) {
+    c_thresh <- median(p_vec, na.rm = TRUE)
+    cull_all_metrics_list[[m_name]] <- compute_detailed_metrics(
+      truth_vec = y_true_all,
+      prob_vec  = p_vec,
+      model_name = m_name,
+      dataset_name = "All Historical Cull Dives (2018-2025)",
+      threshold = c_thresh
+    )
+  }
+}
+
+print(kable(bind_rows(cull_all_metrics_list), caption = "Performance Metrics across ALL Historical Cull Dives (2018–2025, Threshold = Median Probability)"))
+cat("\n\n")
+
+# --- PART 2: OPERATIONAL 2025 CULL DIVES ---
 cull_pts_sub <- cull_raw %>% 
   filter(ReefName %in% reef_select_eval, as.Date(SurveyDate) >= as.Date("2025-01-01"))
 
@@ -435,12 +535,12 @@ cull_pts_sf <- st_as_sf(cull_pts_sub, coords = c("Longitude", "Latitude"), crs =
 
 v_cull_pts <- terra::vect(cull_pts_sf)
 
-# Extract predictions for all model variants
 cull_val_df <- tibble(
   observed_presence = as.integer(pull(cull_pts_sub, CPUE) >= 0.02),
   CPUE              = pull(cull_pts_sub, CPUE),
   cull_clean  = if(!is.null(prob_year2025))    as.numeric(terra::extract(prob_year2025, v_cull_pts)[[2]]) else NA_real_,
   cull_rg     = if(!is.null(prob_2025_rg))     as.numeric(terra::extract(prob_2025_rg, v_cull_pts)[[2]]) else NA_real_,
+  cull_agn_rg = if(!is.null(prob_agnostic_rg)) as.numeric(terra::extract(prob_agnostic_rg, v_cull_pts)[[2]]) else NA_real_,
   manta_clean = if(!is.null(prob_manta_clean)) as.numeric(terra::extract(prob_manta_clean, v_cull_pts)[[2]]) else NA_real_,
   manta_rg    = if(!is.null(prob_manta_rg))    as.numeric(terra::extract(prob_manta_rg, v_cull_pts)[[2]]) else NA_real_,
   maxent_clean= if(!is.null(prob_maxent))      as.numeric(terra::extract(prob_maxent, v_cull_pts)[[2]]) else NA_real_,
@@ -448,19 +548,18 @@ cull_val_df <- tibble(
   ensemble    = if(!is.null(prob_ensemble))    as.numeric(terra::extract(prob_ensemble, v_cull_pts)[[2]]) else NA_real_
 ) %>% drop_na()
 
-cat("Cull dive validation dataset:", nrow(cull_val_df), "dives\n\n")
+cat("### 2b.2 Performance across Operational 2025 Cull Dives (n =", nrow(cull_val_df), "dives)\n\n")
 
-# --- Calculate ROC curves ---
 y_true <- pull(cull_val_df, observed_presence)
 
 roc_models <- list(
   "Ensemble SDM (Weighted)"              = pull(cull_val_df, ensemble),
   "Cull Dive XGBoost Reef Guide (17-pred)"= pull(cull_val_df, cull_rg),
   "Cull Dive XGBoost Clean (12-pred)"     = pull(cull_val_df, cull_clean),
+  "Cull Dive XGBoost Agnostic RG (17)"   = pull(cull_val_df, cull_agn_rg),
   "MaxEnt Reef Guide (17-pred, 10k)"    = pull(cull_val_df, maxent_rg),
   "MaxEnt Clean (12-pred, 10k)"         = pull(cull_val_df, maxent_clean),
-  "Manta XGBoost Clean (12-pred)"       = pull(cull_val_df, manta_clean),
-  "Manta XGBoost Reef Guide (17-pred)"  = pull(cull_val_df, manta_rg)
+  "Manta XGBoost Clean (12-pred)"       = pull(cull_val_df, manta_clean)
 )
 
 roc_df_list <- list()
@@ -477,19 +576,13 @@ for (m_label in names(roc_models)) {
   }
 }
 
-roc_df_all <- bind_rows(roc_df_list)
-
-# ggplot ROC curves
-p_roc <- ggplot(roc_df_all, aes(x = FPR, y = TPR, color = Model)) +
+p_roc <- ggplot(bind_rows(roc_df_list), aes(x = FPR, y = TPR, color = Model)) +
   geom_line(linewidth = 1.2) +
   geom_abline(linetype = "dashed", color = "grey50") +
-  scale_color_manual(values = c(
-    "#377eb8", "#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02"
-  )) +
   theme_minimal(base_size = 13) +
   labs(
-    title = "ROC Curves: SDM Variants & Ensemble vs Cull Dive COTS Presence (2025)",
-    subtitle = paste0("n = ", nrow(cull_val_df), " independent cull dives from top 30 reefs"),
+    title = "ROC Curves: Operational 2025 Cull Dives",
+    subtitle = paste0("n = ", nrow(cull_val_df), " independent cull dives from top 30 reefs (2025)"),
     x = "False Positive Rate (1 - Specificity)",
     y = "True Positive Rate (Sensitivity)",
     color = "Model Variant"
@@ -503,36 +596,22 @@ p_roc <- ggplot(roc_df_all, aes(x = FPR, y = TPR, color = Model)) +
 
 print(p_roc)
 
-# --- Comprehensive Metric Table on Cull Dives ---
 cull_metrics_list <- list()
-
-model_cols <- list(
-  "Ensemble SDM (Weighted)"              = "ensemble",
-  "Cull Dive XGBoost Reef Guide (17-pred)"= "cull_rg",
-  "Cull Dive XGBoost Clean (12-pred)"     = "cull_clean",
-  "Manta XGBoost Clean (12-pred)"        = "manta_clean",
-  "Manta XGBoost Reef Guide (17-pred)"   = "manta_rg",
-  "MaxEnt Clean (12-pred, 10k bg)"       = "maxent_clean",
-  "MaxEnt Reef Guide (17-pred, 10k bg)"  = "maxent_rg"
-)
-
-for (m_name in names(model_cols)) {
-  col_name <- model_cols[[m_name]]
-  p_vec    <- cull_val_df[[col_name]]
+for (m_name in names(roc_models)) {
+  p_vec <- roc_models[[m_name]]
   if (!all(is.na(p_vec))) {
     c_thresh <- median(p_vec, na.rm = TRUE)
     cull_metrics_list[[m_name]] <- compute_detailed_metrics(
-      truth_vec = (cull_val_df$CPUE >= 0.02),
+      truth_vec = y_true,
       prob_vec  = p_vec,
       model_name = m_name,
-      dataset_name = "Independent Cull Validation",
+      dataset_name = "2025 Operational Cull Validation",
       threshold = c_thresh
     )
   }
 }
 
-cull_perf_table <- bind_rows(cull_metrics_list)
-print(kable(cull_perf_table, caption = "Independent Cull Validation Performance Metrics across All Base Models & Ensemble (Threshold = Median Probability)"))
+print(kable(bind_rows(cull_metrics_list), caption = "Operational 2025 Cull Validation Performance Metrics (Threshold = Median Probability)"))
 cat("\n\n")
 
 # --- Optimal thresholds (Youden's J) ---

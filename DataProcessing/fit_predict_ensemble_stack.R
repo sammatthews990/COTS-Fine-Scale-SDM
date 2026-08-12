@@ -1,7 +1,8 @@
 ############################################################
 # fit_predict_ensemble_stack.R
 # Script to build, cross-validate, and predict Ensemble / Stacked
-# Species Distribution Models (SDMs) for COTS across the GBR.
+# Species Distribution Models (SDMs) for COTS across the GBR
+# using ALL historical cull dive data (2018-2025) and time-agnostic models.
 ############################################################
 
 library(terra)
@@ -13,109 +14,114 @@ library(yardstick)
 library(tidyr)
 library(xgboost)
 
-out_dir <- "c:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs"
-data_dir <- "c:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data"
+out_dir   <- "c:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs"
+data_dir  <- "c:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data"
 cull_xlsx <- file.path(data_dir, "250929_COTS-Manta-Cull-RHIS-Data-Matthews-and-Schlawinsky.xlsx")
 
 cat("=== 1. Loading Base Model Rasters ===\n")
-r_cull_clean  <- terra::rast(file.path(out_dir, "COTS_prob_0.02_cpue_year2025_clean.tif"))
-r_cull_rg     <- terra::rast(file.path(out_dir, "COTS_prob_0.02_cpue_year2025_withRG.tif"))
-r_manta_clean <- terra::rast(file.path(out_dir, "COTS_prob_manta_clean.tif"))
-r_manta_rg    <- terra::rast(file.path(out_dir, "COTS_prob_manta_withRG.tif"))
-r_max_clean   <- terra::rast(file.path(out_dir, "COTS_maxent_suitability_clean.tif"))
-r_max_rg      <- terra::rast(file.path(out_dir, "COTS_maxent_suitability_reefguide.tif"))
+r_cull_2025_clean <- terra::rast(file.path(out_dir, "COTS_prob_0.02_cpue_year2025_clean.tif"))
+r_cull_2025_rg    <- terra::rast(file.path(out_dir, "COTS_prob_0.02_cpue_year2025_withRG.tif"))
+r_cull_agn_clean  <- terra::rast(file.path(out_dir, "COTS_prob_0.02_cpue_agnostic_clean.tif"))
+r_cull_agn_rg     <- terra::rast(file.path(out_dir, "COTS_prob_0.02_cpue_agnostic_withRG.tif"))
+r_manta_clean     <- terra::rast(file.path(out_dir, "COTS_prob_manta_clean.tif"))
+r_manta_rg        <- terra::rast(file.path(out_dir, "COTS_prob_manta_withRG.tif"))
+r_max_clean       <- terra::rast(file.path(out_dir, "COTS_maxent_suitability_clean.tif"))
+r_max_rg          <- terra::rast(file.path(out_dir, "COTS_maxent_suitability_reefguide.tif"))
 
 base_rasters <- list(
-  cull_rg     = r_cull_rg,
-  cull_clean  = r_cull_clean,
-  max_rg      = r_max_rg,
-  manta_clean = r_manta_clean,
-  max_clean   = r_max_clean,
-  manta_rg    = r_manta_rg
+  cull_2025_rg    = r_cull_2025_rg,
+  cull_2025_clean = r_cull_2025_clean,
+  cull_agn_rg     = r_cull_agn_rg,
+  cull_agn_clean  = r_cull_agn_clean,
+  max_rg          = r_max_rg,
+  max_clean       = r_max_clean,
+  manta_rg        = r_manta_rg,
+  manta_clean     = r_manta_clean
 )
 
-cat("=== 2. Extracting Base Predictions on Cull Validation Dataset ===\n")
+cat("=== 2. Extracting Base Predictions on ALL Historical Cull Dives (2018-2025) ===\n")
 cull_raw <- read_excel(cull_xlsx, sheet = 4) %>%
   filter(!is.na(Longitude), !is.na(Latitude), !is.na(Bottomtime), Bottomtime > 0, Longitude != 0, Latitude != 0) %>%
   filter(as.Date(SurveyDate) > as.Date("2018-11-30")) %>%
   mutate(Total = Cohort1 + Cohort2 + Cohort3 + Cohort4, CPUE = Total / Bottomtime, ReefName = as.character(ReefName))
 
-reef_select_eval <- cull_raw %>% 
-  filter(as.Date(SurveyDate) >= as.Date("2025-01-01")) %>%
-  group_by(ReefName) %>%
-  summarise(Total_Hours = sum(Bottomtime, na.rm=TRUE) / 60) %>%
-  arrange(desc(Total_Hours)) %>% slice_head(n = 30) %>% pull(ReefName)
+cat("Total historical cull dives loaded:", nrow(cull_raw), "\n")
 
-cull_sub <- cull_raw %>% filter(ReefName %in% reef_select_eval, as.Date(SurveyDate) >= as.Date("2025-01-01"))
-cull_pts <- st_as_sf(cull_sub, coords = c("Longitude", "Latitude"), crs = 4326)
-cull_pts_proj <- st_transform(cull_pts, crs = crs(r_cull_clean))
+cull_pts <- st_as_sf(cull_raw, coords = c("Longitude", "Latitude"), crs = 4326)
+cull_pts_proj <- st_transform(cull_pts, crs = crs(r_cull_2025_clean))
 v_pts <- terra::vect(cull_pts_proj)
 
-df_val <- tibble(
-  truth       = as.numeric(pull(cull_sub, CPUE) >= 0.02),
-  ReefName    = pull(cull_sub, ReefName),
-  cull_rg     = as.numeric(terra::extract(r_cull_rg, v_pts)[[2]]),
-  cull_clean  = as.numeric(terra::extract(r_cull_clean, v_pts)[[2]]),
-  max_rg      = as.numeric(terra::extract(r_max_rg, v_pts)[[2]]),
-  manta_clean = as.numeric(terra::extract(r_manta_clean, v_pts)[[2]]),
-  max_clean   = as.numeric(terra::extract(r_max_clean, v_pts)[[2]]),
-  manta_rg    = as.numeric(terra::extract(r_manta_rg, v_pts)[[2]])
+df_all <- tibble(
+  truth           = as.numeric(pull(cull_raw, CPUE) >= 0.02),
+  CPUE            = pull(cull_raw, CPUE),
+  ReefName        = pull(cull_raw, ReefName),
+  SurveyDate      = pull(cull_raw, SurveyDate),
+  cull_2025_rg    = as.numeric(terra::extract(r_cull_2025_rg, v_pts)[[2]]),
+  cull_2025_clean = as.numeric(terra::extract(r_cull_2025_clean, v_pts)[[2]]),
+  cull_agn_rg     = as.numeric(terra::extract(r_cull_agn_rg, v_pts)[[2]]),
+  cull_agn_clean  = as.numeric(terra::extract(r_cull_agn_clean, v_pts)[[2]]),
+  max_rg          = as.numeric(terra::extract(r_max_rg, v_pts)[[2]]),
+  max_clean       = as.numeric(terra::extract(r_max_clean, v_pts)[[2]]),
+  manta_rg        = as.numeric(terra::extract(r_manta_rg, v_pts)[[2]]),
+  manta_clean     = as.numeric(terra::extract(r_manta_clean, v_pts)[[2]])
 ) %>% drop_na()
 
-y_val <- pull(df_val, truth)
-cat("Validation sample size:", nrow(df_val), "cull dives across top 30 reefs\n\n")
+cat("Valid historical cull dives with predictions:", nrow(df_all), "\n\n")
 
-# --- Strategy A: Performance-Weighted Average ---
-auc_vals <- c(
-  cull_rg     = 0.865,
-  cull_clean  = 0.660,
-  max_rg      = 0.559,
-  manta_clean = 0.535,
-  max_clean   = 0.534,
-  manta_rg    = 0.499
-)
+y_all <- pull(df_all, truth)
 
-w_auc <- (pmax(0, auc_vals - 0.5))^2
-w_auc <- w_auc / sum(w_auc)
-names(w_auc) <- names(auc_vals)
+# --- Calculate Base Model AUCs across All Historical Dives ---
+model_names <- c("cull_2025_rg", "cull_2025_clean", "cull_agn_rg", "cull_agn_clean", 
+                 "max_rg", "max_clean", "manta_rg", "manta_clean")
 
-cat("=== Performance Ensemble Weights ===\n")
-print(round(w_auc, 4))
+auc_all <- numeric(length(model_names))
+names(auc_all) <- model_names
+
+for (m in model_names) {
+  auc_all[m] <- as.numeric(pROC::auc(pROC::roc(response = y_all, predictor = df_all[[m]], quiet = TRUE)))
+}
+
+cat("=== AUC across ALL Historical Cull Dives (2018-2025) ===\n")
+print(round(auc_all, 3))
 cat("\n")
 
-m_matrix <- as.matrix(df_val %>% select(all_of(names(w_auc))))
-pred_weighted_ens <- as.numeric(m_matrix %*% w_auc)
+# Calculate Performance Ensemble Weights (All Dives)
+w_auc_all <- (pmax(0, auc_all - 0.5))^2
+names(w_auc_all) <- model_names
+w_auc_all <- w_auc_all / sum(w_auc_all)
 
-auc_weighted <- as.numeric(pROC::auc(pROC::roc(response = y_val, predictor = pred_weighted_ens, quiet = TRUE)))
-cat("Performance-Weighted Ensemble AUC:", round(auc_weighted, 3), "\n\n")
+cat("=== Performance Ensemble Weights (All Dives) ===\n")
+print(round(w_auc_all, 4))
+cat("\n")
 
-# --- Strategy B: Spatially Cross-Validated Logistic / Ridge Meta-Learner ---
+m_matrix_all <- as.matrix(df_all %>% select(all_of(model_names)))
+pred_ens_all <- as.numeric(m_matrix_all %*% w_auc_all)
+
+auc_weighted_all <- as.numeric(pROC::auc(pROC::roc(response = y_all, predictor = pred_ens_all, quiet = TRUE)))
+cat("All-Historical Performance-Weighted Ensemble AUC:", round(auc_weighted_all, 3), "\n\n")
+
+# --- Strategy B: Spatial Out-of-Fold (OOF) Stacking ---
 set.seed(123)
-# Group folds by ReefName to evaluate true Spatial CV
-unique_reefs <- unique(df_val$ReefName)
+unique_reefs <- unique(df_all$ReefName)
 reef_folds   <- sample(rep(1:5, length.out = length(unique_reefs)))
 names(reef_folds) <- unique_reefs
 
-df_val$fold <- reef_folds[df_val$ReefName]
+df_all$fold <- reef_folds[df_all$ReefName]
 
-oof_logistic <- numeric(nrow(df_val))
-oof_xgb      <- numeric(nrow(df_val))
-
-features <- names(w_auc)
+oof_logistic <- numeric(nrow(df_all))
+oof_xgb      <- numeric(nrow(df_all))
 
 for (k in 1:5) {
-  train_df <- df_val %>% filter(fold != k)
-  test_df  <- df_val %>% filter(fold == k)
-  test_idx <- which(df_val$fold == k)
+  train_df <- df_all %>% filter(fold != k)
+  test_df  <- df_all %>% filter(fold == k)
+  test_idx <- which(df_all$fold == k)
   
-  # Fit Logistic Meta-Learner
-  meta_log <- glm(truth ~ cull_rg + cull_clean + max_rg + manta_clean + max_clean + manta_rg,
+  meta_log <- glm(truth ~ cull_2025_rg + cull_2025_clean + cull_agn_rg + cull_agn_clean + max_rg + max_clean + manta_rg + manta_clean,
                   data = train_df, family = binomial())
   oof_logistic[test_idx] <- predict(meta_log, newdata = test_df, type = "response")
   
-  # Fit XGBoost Meta-Learner (shallow tree, heavy regularization to prevent overfitting)
-  dtrain <- xgb.DMatrix(data = as.matrix(train_df %>% select(all_of(features))), label = train_df$truth)
-  dtest  <- xgb.DMatrix(data = as.matrix(test_df %>% select(all_of(features))), label = test_df$truth)
+  dtrain <- xgb.DMatrix(data = as.matrix(train_df %>% select(all_of(model_names))), label = train_df$truth)
+  dtest  <- xgb.DMatrix(data = as.matrix(test_df %>% select(all_of(model_names))), label = test_df$truth)
   
   params <- list(
     booster = "gbtree",
@@ -131,39 +137,70 @@ for (k in 1:5) {
   oof_xgb[test_idx] <- predict(meta_xgb, dtest)
 }
 
-auc_logistic_oof <- as.numeric(pROC::auc(pROC::roc(response = y_val, predictor = oof_logistic, quiet = TRUE)))
-auc_xgb_oof      <- as.numeric(pROC::auc(pROC::roc(response = y_val, predictor = oof_xgb, quiet = TRUE)))
+auc_logistic_oof <- as.numeric(pROC::auc(pROC::roc(response = y_all, predictor = oof_logistic, quiet = TRUE)))
+auc_xgb_oof      <- as.numeric(pROC::auc(pROC::roc(response = y_all, predictor = oof_xgb, quiet = TRUE)))
 
-cat("=== Spatial Out-of-Fold (OOF) Ensemble Meta-Learner Performance ===\n")
+cat("=== Spatial Out-of-Fold (OOF) Ensemble Performance (All Historical Dives) ===\n")
 cat("Spatial OOF Stacked Logistic Meta-Model AUC:", round(auc_logistic_oof, 3), "\n")
 cat("Spatial OOF Stacked XGBoost Meta-Model AUC: ", round(auc_xgb_oof, 3), "\n\n")
 
-cat("=== 3. Generating Spatial GBR Ensemble Raster (`COTS_prob_ensemble.tif`) ===\n")
+cat("=== 3. Writing Ensemble Prediction Rasters ===\n")
 
-# Combine rasters using the performance-weighted strategy for stable, leak-free spatial extrapolation
-r_ensemble <- r_cull_rg * w_auc["cull_rg"]
-for (m_name in setdiff(names(w_auc), "cull_rg")) {
-  if (w_auc[m_name] > 0) {
-    # Resample to match r_cull_rg geometry if necessary
+# 1. Operational 2025 Ensemble Raster (`COTS_prob_ensemble_2025.tif`)
+r_ens_2025 <- r_cull_2025_rg * unname(w_auc_all["cull_2025_rg"]) +
+              r_cull_2025_clean * unname(w_auc_all["cull_2025_clean"])
+
+for (m_name in c("max_rg", "max_clean", "manta_rg", "manta_clean")) {
+  w_val <- unname(w_auc_all[m_name])
+  if (w_val > 0) {
     r_sub <- base_rasters[[m_name]]
-    if (!terra::compareGeom(r_ensemble, r_sub, stopOnError = FALSE)) {
-      r_sub <- terra::resample(r_sub, r_ensemble, method = "bilinear")
+    if (!terra::compareGeom(r_ens_2025, r_sub, stopOnError = FALSE)) {
+      r_sub <- terra::resample(r_sub, r_ens_2025, method = "bilinear")
     }
-    r_ensemble <- r_ensemble + (r_sub * w_auc[m_name])
+    r_ens_2025 <- r_ens_2025 + (r_sub * w_val)
   }
 }
+names(r_ens_2025) <- "ensemble_prob_2025"
+terra::writeRaster(r_ens_2025, file.path(out_dir, "COTS_prob_ensemble_2025.tif"), overwrite = TRUE)
+terra::writeRaster(r_ens_2025, file.path(out_dir, "COTS_prob_ensemble.tif"), overwrite = TRUE) # Default alias
+cat("2025 Ensemble raster saved to outputs/COTS_prob_ensemble_2025.tif\n")
 
-names(r_ensemble) <- "ensemble_prob"
-ensemble_tif_path <- file.path(out_dir, "COTS_prob_ensemble.tif")
-terra::writeRaster(r_ensemble, ensemble_tif_path, overwrite = TRUE)
-cat("Ensemble raster successfully written to:", ensemble_tif_path, "\n\n")
+# 2. Outbreak Persistence Time-Agnostic Ensemble Raster (`COTS_prob_ensemble_agnostic.tif`)
+w_agnostic <- c(
+  cull_agn_rg    = unname(w_auc_all["cull_agn_rg"]) + unname(w_auc_all["cull_2025_rg"])*0.5,
+  cull_agn_clean = unname(w_auc_all["cull_agn_clean"]) + unname(w_auc_all["cull_2025_clean"])*0.5,
+  max_rg         = unname(w_auc_all["max_rg"]),
+  max_clean      = unname(w_auc_all["max_clean"]),
+  manta_rg       = unname(w_auc_all["manta_rg"]),
+  manta_clean    = unname(w_auc_all["manta_clean"])
+)
+w_agnostic <- w_agnostic / sum(w_agnostic)
+
+r_ens_agnostic <- r_cull_agn_rg * unname(w_agnostic["cull_agn_rg"]) +
+                  r_cull_agn_clean * unname(w_agnostic["cull_agn_clean"])
+
+for (m_name in c("max_rg", "max_clean", "manta_rg", "manta_clean")) {
+  w_val <- unname(w_agnostic[m_name])
+  if (w_val > 0) {
+    r_sub <- base_rasters[[m_name]]
+    if (!terra::compareGeom(r_ens_agnostic, r_sub, stopOnError = FALSE)) {
+      r_sub <- terra::resample(r_sub, r_ens_agnostic, method = "bilinear")
+    }
+    r_ens_agnostic <- r_ens_agnostic + (r_sub * w_val)
+  }
+}
+names(r_ens_agnostic) <- "ensemble_prob_agnostic"
+terra::writeRaster(r_ens_agnostic, file.path(out_dir, "COTS_prob_ensemble_agnostic.tif"), overwrite = TRUE)
+cat("Agnostic Persistence Ensemble raster saved to outputs/COTS_prob_ensemble_agnostic.tif\n\n")
 
 # Save summary metrics
 ensemble_summary <- list(
-  weights = w_auc,
-  auc_weighted = auc_weighted,
+  auc_all = auc_all,
+  weights_all = w_auc_all,
+  auc_weighted_all = auc_weighted_all,
   auc_logistic_oof = auc_logistic_oof,
-  auc_xgb_oof = auc_xgb_oof
+  auc_xgb_oof = auc_xgb_oof,
+  sample_size_all = nrow(df_all)
 )
 
 saveRDS(ensemble_summary, file.path(out_dir, "fitted_ensemble_model.rds"))
