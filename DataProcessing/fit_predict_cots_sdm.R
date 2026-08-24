@@ -19,13 +19,22 @@ library(vip)
 
 tidymodels::tidymodels_prefer()
 
+# --- Run Timestamp (for unique output filenames) ---
+# Set run_timestamp before sourcing this script to override
+if (!exists("run_timestamp")) run_timestamp <- format(Sys.time(), "%Y%m%d_%H%M")
+cat(sprintf("=== Run Timestamp: %s ===\n", run_timestamp))
+
 # Set up paths
 # Clean 12-layer stack (env + coral only, no RG_*/SDM_* layers that restrict extent)
 predict_stack_clean <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/predictors_clean_12layer.tif"
 # Full 17-layer stack (includes RG_* — full extent!)
 predict_stack_full <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/predictors_terra_30m_full_extended.tif"
 
-cull_data_file <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/250929_COTS-Manta-Cull-RHIS-Data-Matthews-and-Schlawinsky.xlsx"
+# Cull data file — set before sourcing to override
+if (!exists("cull_data_file")) {
+  cull_data_file <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/260529-COTS-Manta-Cull-RHIS-Lawrence-CSIRO.xlsx"
+}
+cat(sprintf("Using cull data file: %s\n", basename(cull_data_file)))
 
 dir.create("C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs",
   showWarnings = FALSE, recursive = TRUE
@@ -40,6 +49,10 @@ if (!exists("use_year")) use_year <- TRUE # TRUE = include Year as a predictor; 
 if (!exists("predict_year")) predict_year <- 2025 # Year to predict for when use_year = TRUE
 if (!exists("use_reefguide")) use_reefguide <- TRUE # TRUE = use full stack with ReefGuide layers; FALSE = use clean stack
 if (!exists("cpue_metric")) cpue_metric <- NULL
+# Optional: filter training data to only include years within a window
+# e.g., train_year_min = 2024, train_year_max = 2026 for FY25/26
+if (!exists("train_year_min")) train_year_min <- NULL
+if (!exists("train_year_max")) train_year_max <- NULL
 
 cpue_field <- if (!is.null(cpue_metric)) cpue_metric else if (use_year) "CPUE_mean" else "CPUE_max"
 print(paste("Using CPUE field:", cpue_field))
@@ -73,17 +86,18 @@ if (use_reefguide) {
   print(paste("Using clean stack (no RG/SDM layers). Predictors:", length(pred_cols)))
 }
 
-# Build output filenames based on mode
+# Build output filenames based on mode — with timestamp to preserve existing outputs
 metric_suffix <- if (cpue_field == "CPUE_max" && use_year) "_maxCPUE" else ""
 mode_label <- if (use_year) paste0("year", predict_year, metric_suffix) else "agnostic"
 rg_label <- if (use_reefguide) "_withRG" else "_clean"
+ts_suffix <- paste0("_", run_timestamp)
 output_tif <- sprintf(
-  "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/COTS_prob_%s_cpue_%s%s.tif",
-  threshold, mode_label, rg_label
+  "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/COTS_prob_%s_cpue_%s%s%s.tif",
+  threshold, mode_label, rg_label, ts_suffix
 )
 output_vip_plot <- sprintf(
-  "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/COTS_vip_%s_cpue_%s%s.png",
-  threshold, mode_label, rg_label
+  "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/COTS_vip_%s_cpue_%s%s%s.png",
+  threshold, mode_label, rg_label, ts_suffix
 )
 
 print(paste("Output TIF:", output_tif))
@@ -104,7 +118,7 @@ print("Loading and preparing survey data...")
 raw_cull <- read_excel(cull_data_file, sheet = 4) %>%
   mutate(
     VoyageTitle = as.factor(VoyageTitle),
-    SurveyDate  = as.Date(SurveyDate),
+    SurveyDate  = as.Date(substr(as.character(SurveyDate), 1, 10)),
     Year        = lubridate::year(SurveyDate),
     Total       = Cohort1 + Cohort2 + Cohort3 + Cohort4,
     CPUE        = Total / Bottomtime
@@ -113,6 +127,17 @@ raw_cull <- read_excel(cull_data_file, sheet = 4) %>%
     !is.na(Longitude), !is.na(Latitude),
     !is.na(Bottomtime), Bottomtime > 0
   )
+
+# Apply optional year filter for training data window
+if (!is.null(train_year_min)) {
+  raw_cull <- raw_cull %>% filter(Year >= train_year_min)
+  cat(sprintf("Filtered to Year >= %d\n", train_year_min))
+}
+if (!is.null(train_year_max)) {
+  raw_cull <- raw_cull %>% filter(Year <= train_year_max)
+  cat(sprintf("Filtered to Year <= %d\n", train_year_max))
+}
+cat(sprintf("Training data: %d rows, Year range: %d-%d\n", nrow(raw_cull), min(raw_cull$Year), max(raw_cull$Year)))
 
 # Aggregate survey data
 print("Aggregating survey data to locations...")
@@ -339,7 +364,7 @@ train_overall <- train_preds %>%
 perf_overall <- bind_rows(train_overall, val_overall) %>%
   select(Split, accuracy, sens, spec, roc_auc)
 
-# Save to RDS dynamically based on RG label
+# Save to RDS dynamically based on RG label — with timestamp
 metrics_list <- list(
   Overall = perf_overall,
   By_Zone = val_by_zone,
@@ -347,13 +372,15 @@ metrics_list <- list(
 )
 rg_suffix <- if (use_reefguide) "_withRG" else "_clean"
 
-metrics_file <- sprintf("C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/model_performance_metrics%s.rds", rg_suffix)
+metrics_file <- sprintf("C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/model_performance_metrics%s%s.rds", rg_suffix, ts_suffix)
 saveRDS(metrics_list, metrics_file)
 print(paste("Saved model performance metrics to", metrics_file))
 
 # Save the model objects so they can be reloaded
-model_file <- sprintf("C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/fitted_model%s.rds", rg_suffix)
-saveRDS(list(fit = fit_cls, wf = final_wf, cv_res = res), model_file)
+model_file <- sprintf("C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/fitted_model%s%s.rds", rg_suffix, ts_suffix)
+saveRDS(list(fit = fit_cls, wf = final_wf, cv_res = res, run_timestamp = run_timestamp,
+             cull_data_file = cull_data_file, predict_year = predict_year,
+             train_year_min = train_year_min, train_year_max = train_year_max), model_file)
 print(paste("Saved fitted model to", model_file))
 
 # --- 6. Variable Importance Plot ---

@@ -19,12 +19,18 @@ library(vip)
 
 tidymodels::tidymodels_prefer()
 
+# --- Run Timestamp (for unique output filenames) ---
+if (!exists("run_timestamp")) run_timestamp <- format(Sys.time(), "%Y%m%d_%H%M")
+cat(sprintf("=== Run Timestamp: %s ===\n", run_timestamp))
+
 # Setup Parameters
 if (!exists("point_strategy")) point_strategy <- "ecoCentroid" # "ecoCentroid" or "pseudorepsN5"
 if (!exists("use_year")) use_year <- TRUE
 if (!exists("predict_year")) predict_year <- 2025
 if (!exists("use_reefguide")) use_reefguide <- FALSE # FALSE = clean 12-layer stack, TRUE = full stack with RG
 if (!exists("cpue_metric")) cpue_metric <- NULL
+if (!exists("train_year_min")) train_year_min <- NULL
+if (!exists("train_year_max")) train_year_max <- NULL
 
 threshold <- 0.02
 seed <- 123
@@ -35,7 +41,12 @@ cat(sprintf("=== Running COTS SDM: Strategy = %s | ReefGuide = %s | Year = %s ==
 # Paths
 predict_stack_clean <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/predictors_clean_12layer.tif"
 predict_stack_full  <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/predictors_terra_30m_full_extended.tif"
-cull_data_file       <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/250929_COTS-Manta-Cull-RHIS-Data-Matthews-and-Schlawinsky.xlsx"
+
+# Cull data file — set before sourcing to override
+if (!exists("cull_data_file")) {
+  cull_data_file <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/260529-COTS-Manta-Cull-RHIS-Lawrence-CSIRO.xlsx"
+}
+cat(sprintf("Using cull data file: %s\n", basename(cull_data_file)))
 
 eco_gpkg_path    <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/cull_ecological_centroids.gpkg"
 pseudo_gpkg_path <- "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/cull_pseudo_replicates_N5.gpkg"
@@ -65,14 +76,15 @@ metric_suffix <- if (cpue_field == "CPUE_max" && use_year) "_maxCPUE" else ""
 mode_label    <- if (use_year) paste0("year", predict_year, metric_suffix) else "agnostic"
 rg_label      <- if (use_reefguide) "_withRG" else "_clean"
 strat_label   <- paste0("_", point_strategy)
+ts_suffix     <- paste0("_", run_timestamp)
 
 output_tif <- sprintf(
-  "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/COTS_prob_%s_cpue_%s%s%s.tif",
-  threshold, mode_label, rg_label, strat_label
+  "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/COTS_prob_%s_cpue_%s%s%s%s.tif",
+  threshold, mode_label, rg_label, strat_label, ts_suffix
 )
 output_vip_plot <- sprintf(
-  "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/COTS_vip_%s_cpue_%s%s%s.png",
-  threshold, mode_label, rg_label, strat_label
+  "C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/COTS_vip_%s_cpue_%s%s%s%s.png",
+  threshold, mode_label, rg_label, strat_label, ts_suffix
 )
 
 print(paste("Output TIF:", output_tif))
@@ -87,7 +99,7 @@ print("Loading survey data...")
 raw_cull <- read_excel(cull_data_file, sheet = 4) %>%
   mutate(
     VoyageTitle = as.factor(VoyageTitle),
-    SurveyDate  = as.Date(SurveyDate),
+    SurveyDate  = as.Date(substr(as.character(SurveyDate), 1, 10)),
     Year        = lubridate::year(SurveyDate),
     Total       = Cohort1 + Cohort2 + Cohort3 + Cohort4,
     CPUE        = Total / Bottomtime
@@ -95,6 +107,17 @@ raw_cull <- read_excel(cull_data_file, sheet = 4) %>%
   filter(
     !is.na(Bottomtime), Bottomtime > 0
   )
+
+# Apply optional year filter
+if (!is.null(train_year_min)) {
+  raw_cull <- raw_cull %>% filter(Year >= train_year_min)
+  cat(sprintf("Filtered to Year >= %d\n", train_year_min))
+}
+if (!is.null(train_year_max)) {
+  raw_cull <- raw_cull %>% filter(Year <= train_year_max)
+  cat(sprintf("Filtered to Year <= %d\n", train_year_max))
+}
+cat(sprintf("Training data: %d rows, Year range: %d-%d\n", nrow(raw_cull), min(raw_cull$Year), max(raw_cull$Year)))
 
 # Aggregate survey data to CullSiteName (and Year if use_year=TRUE)
 if (use_year) {
@@ -297,12 +320,14 @@ metrics_list <- list(
   By_Fold = val_by_fold
 )
 
-metrics_file <- sprintf("C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/model_performance_metrics%s%s.rds", rg_label, strat_label)
+metrics_file <- sprintf("C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/model_performance_metrics%s%s%s.rds", rg_label, strat_label, ts_suffix)
 saveRDS(metrics_list, metrics_file)
 print(paste("Saved model performance metrics to", metrics_file))
 
-model_file <- sprintf("C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/fitted_model%s%s.rds", rg_label, strat_label)
-saveRDS(list(fit = fit_cls, wf = final_wf, cv_res = res), model_file)
+model_file <- sprintf("C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/fitted_model%s%s%s.rds", rg_label, strat_label, ts_suffix)
+saveRDS(list(fit = fit_cls, wf = final_wf, cv_res = res, run_timestamp = run_timestamp,
+             cull_data_file = cull_data_file, predict_year = predict_year,
+             point_strategy = point_strategy), model_file)
 print(paste("Saved fitted model to", model_file))
 
 # --- 6. Variable Importance Plot ---

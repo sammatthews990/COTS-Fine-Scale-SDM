@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+  <div id="map" style="width:500px;height:500px;"></div>
+  <script>
+    const map = L.map('map');
+    try {
+        map.flyToBounds([[-15, 144], [-14, 146]]);
+        console.log('success');
+    } catch(e) {
+        console.log('error', e.message);
+    }
+  </script>
+</body>
+</html>
