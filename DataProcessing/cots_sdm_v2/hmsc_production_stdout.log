@@ -1,0 +1,29 @@
+Cross-validation, fold 1 out of 5
+Cross-validation, fold 2 out of 5
+Cross-validation, fold 3 out of 5
+Cross-validation, fold 4 out of 5
+Cross-validation, fold 5 out of 5
+# A tibble: 1 × 17
+  package_version grid_m  rows cells reefs years response_count covariate_count
+  <chr>            <dbl> <int> <int> <int> <int>          <int>           <int>
+1 3.3.7              200  6253  3449   302    15              4              12
+# ℹ 9 more variables: chains <int>, posterior_samples_per_chain <int>,
+#   thin <int>, transient <int>, mcmc_minutes <dbl>,
+#   cross_validation_minutes <dbl>, minimum_ess <dbl>,
+#   maximum_psrf_upper <dbl>, site_blocked_folds <int>
+# A tibble: 4 × 13
+  response   evaluation     n positives prevalence roc_auc pr_auc brier log_loss
+  <chr>      <chr>      <int>     <int>      <dbl>   <dbl>  <dbl> <dbl>    <dbl>
+1 cull_dire… five_fold…  6253      4867      0.778   0.877  0.961 0.110    0.343
+2 cull_high… five_fold…  6253      2825      0.452   0.857  0.852 0.151    0.459
+3 manta_dir… five_fold…  6253       927      0.148   0.804  0.463 0.102    0.335
+4 manta_sca… five_fold…  6253      3038      0.486   0.718  0.713 0.213    0.613
+# ℹ 4 more variables: calibration_intercept <dbl>, calibration_slope <dbl>,
+#   capture_top_10pct <dbl>, capture_top_20pct <dbl>
+# A tibble: 1 × 9
+  model            rows reefs mixed_reefs overall_roc_auc between_reef_only_ro…¹
+  <chr>           <int> <int>       <int>           <dbl>                  <dbl>
+1 hmsc_joint_200m  6253   911         339           0.857                  0.823
+# ℹ abbreviated name: ¹​between_reef_only_roc_auc
+# ℹ 3 more variables: within_reef_roc_auc <dbl>,
+#   within_positive_negative_pairs <int>, mean_within_reef_sd <dbl>

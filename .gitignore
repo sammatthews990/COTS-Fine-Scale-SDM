@@ -10,6 +10,8 @@ data/
 DataProcessing/outputs/
 
 *.tif
+*.csv
+*.rds
 
 DataProcessing/validation_outputs/tiles_cache/Esri.WorldImagery/
 

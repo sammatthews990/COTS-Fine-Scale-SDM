@@ -17,7 +17,9 @@ initialise_v2 <- function(script_file) {
   invisible(lapply(
     c(
       "io.R", "targets.R", "manta.R", "predictors.R", "resampling.R",
-      "metrics.R", "models.R"
+      "metrics.R", "models.R", "calibration.R", "mapping.R",
+      "site_habitat.R", "multiscale.R", "presence_only.R",
+      "two_part.R", "joint_visits.R", "gaussian_terrain.R"
     ),
     function(f) source(file.path(v2_dir, "R", f), local = FALSE)
   ))

@@ -1,0 +1,17 @@
+Package: RosettaCOTS
+Type: Package
+Title: Calbration and Translation tool for COTS and Coral measurement
+        tools
+Version: 1.0.2
+Authors@R: c(person("Scott", "Foster", role = c("aut", "cre"),
+                     email = "scott.foster@data61.csiro.au"))
+Maintainer: Scott Foseter <scott.foster@data61.csiro.au>
+Depends: R (>= 4.1.0)
+Imports: methods, stats
+Suggests: rjags, readxl
+VignetteBuilder: knitr, rmarkdown
+Description: Predicts measurements from one type of sampling tool (e.g. Manta Tows) to another type (e.g. Cull dives). The range of COTS measurement tools are: Cull dives, SALAD dives, eDNA (concentration), eDNA (proportion). The range of Scar measurement tools are: Manta Tows, SALAD. The range of Coral cover measurement tools are: Manta Tows, ReefScan-transom, ReefScan-Deep, Transect (from SALAD dives).
+License: GPL (>= 2)
+Encoding: UTF-8
+Author: Scott Foster [aut, cre]
+Built: R 4.5.0; ; 2026-09-10 21:36:04 UTC; windows

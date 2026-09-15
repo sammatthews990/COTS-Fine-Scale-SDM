@@ -12,6 +12,14 @@ default_config <- function(repo_root, v2_dir) {
         repo_root, "DataProcessing", "data",
         "predictors_clean_12layer.tif"
       ),
+      predictor_stack_rg = file.path(
+        repo_root, "DataProcessing", "data",
+        "predictors_terra_30m_full_extended.tif"
+      ),
+      geomorphic_raster = file.path(
+        repo_root, "DataProcessing", "data",
+        "GBR10_GBRMP_Geomorphic", "GBR10 GBRMP Geomorphic.tif"
+      ),
       outbreak_hindcast_file = file.path(
         repo_root, "DataProcessing", "data", "gbrPredsAdj_20262408.csv"
       ),
@@ -25,6 +33,18 @@ default_config <- function(repo_root, v2_dir) {
       manta_current_workbook = file.path(
         repo_root, "DataProcessing", "data",
         "260529-COTS-Manta-Cull-RHIS-Lawrence-CSIRO.xlsx"
+      ),
+      salad_workbook = file.path(
+        repo_root, "DataProcessing", "data",
+        "COTS SALAD MASTER 2021-2026.xlsx"
+      ),
+      legacy_2026_raster = file.path(
+        repo_root, "DataProcessing", "outputs",
+        "COTS_prob_0.02_cpue_year2026_clean_20260820_1041.tif"
+      ),
+      legacy_agnostic_raster = file.path(
+        repo_root, "DataProcessing", "outputs",
+        "COTS_prob_0.02_cpue_agnostic_clean_20260821_1046.tif"
       ),
       artifacts_dir = file.path(v2_dir, "artifacts"),
       models_dir = file.path(v2_dir, "models"),
@@ -66,6 +86,22 @@ default_config <- function(repo_root, v2_dir) {
       minimum_tow_distance_m = 100,
       require_absent_scar_code = TRUE,
       integration_role = "presence_stage_negative_evidence"
+    ),
+    site_habitat = list(
+      manta_site_grid_m = 200,
+      manta_minimum_tows = 5L,
+      manta_minimum_years = 2L,
+      manta_local_conflict_distance_m = 250,
+      manta_maximum_negative_weight_ratio = 1.0,
+      manta_weight_sensitivity_ratios = c(0.10, 0.25, 0.50),
+      within_reef_folds = 5L
+    ),
+    visual = list(
+      probability_min = 0.20,
+      probability_max = 0.80,
+      difference_limit = 0.30,
+      raster_aggregation_factor = 5L,
+      forecast_voronoi_buffer_degrees = 1.0
     )
   )
 }

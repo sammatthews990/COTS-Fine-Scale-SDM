@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>COTS blind fine-scale review</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#07111f;color:#e2e8f0;font-family:Inter,Segoe UI,sans-serif}#map{height:100vh;width:100vw}.panel{position:absolute;z-index:1000;top:12px;right:12px;width:410px;max-height:calc(100vh - 24px);overflow:auto;background:rgba(8,20,38,.96);border:1px solid #274060;border-radius:14px;padding:16px;box-shadow:0 16px 42px #0009}.title{font-weight:750;color:#67e8f9;font-size:17px}.sub,.note{font-size:11px;color:#94a3b8;line-height:1.45}.section{font-size:11px;color:#a5b4fc;text-transform:uppercase;letter-spacing:.08em;margin:13px 0 7px}select,input,textarea,button{font:inherit}select,input[type=text],textarea{width:100%;background:#17243a;color:#fff;border:1px solid #416180;border-radius:7px;padding:7px}textarea{min-height:64px;resize:vertical}.surfaces{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}.surface{padding:7px 3px;border:1px solid #416180;border-radius:7px;background:#17243a;color:#e2e8f0;cursor:pointer}.surface.active{background:#0f766e;border-color:#67e8f9}.question{margin:9px 0}.question label{display:block;font-size:11px;margin-bottom:4px}.score{display:flex;gap:4px}.score button{flex:1;background:#17243a;color:#cbd5e1;border:1px solid #334b66;border-radius:6px;padding:5px;cursor:pointer}.score button.active{background:#0f766e;color:white;border-color:#67e8f9}.actions{display:flex;gap:7px;margin-top:12px}.actions button{flex:1;border:0;border-radius:7px;padding:8px;background:#2563eb;color:#fff;cursor:pointer}.actions button.secondary{background:#334155}.legend{height:11px;border-radius:6px;background:linear-gradient(90deg,#440154,#3b528b,#21908d,#5dc963,#fde725);margin-top:9px}.legend-labels{display:flex;justify-content:space-between;font-size:10px;color:#94a3b8}.status{margin-top:8px;font-size:11px;color:#67e8f9}.note{margin-top:10px;border-top:1px solid #263b55;padding-top:9px}@media(max-width:720px){.panel{left:8px;right:8px;top:auto;bottom:8px;width:auto;max-height:55vh}#map{height:55vh}}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<aside class="panel">
+  <div class="title">Blind fine-scale habitat review</div>
+  <div class="sub">All layers are anonymous percentile-rank surfaces. Probability range and colour stretch are not being assessed.</div>
+  <div class="section">Reviewer</div>
+  <input id="reviewer" type="text" placeholder="Reviewer name or initials">
+  <div class="section">Region</div>
+  <select id="region"></select>
+  <div class="section">Anonymous surface</div>
+  <div class="surfaces" id="surfaces"></div>
+  <div class="legend"></div><div class="legend-labels"><span>Lower rank</span><span>Median</span><span>Higher rank</span></div>
+  <div class="section">Scores: 1 poor, 5 strong</div>
+  <div id="questions"></div>
+  <div class="question"><label for="confidence">Reviewer confidence</label><select id="confidence"><option value="">Choose</option><option>Low</option><option>Moderate</option><option>High</option></select></div>
+  <div class="question"><label for="notes">Specific known areas, false hotspots, or reasons</label><textarea id="notes"></textarea></div>
+  <div class="actions"><button id="save">Save score</button><button class="secondary" id="export">Export CSV</button></div>
+  <div class="status" id="status"></div>
+  <div class="note">Do not open the separate model key until all independent scores have been exported. No observations or reef outbreak layer are displayed.</div>
+</aside>
+<script>
+const data=__MAP_DATA__;
+const questionDefs=[
+  ["known_rank","Known high-density areas receive high relative rank"],
+  ["fine_scale","Fine-scale reef pattern is ecologically plausible"],
+  ["few_false_hotspots","Implausible or misleading hotspots are uncommon"],
+  ["operational_use","Useful for prioritising dives within a selected reef"]
+];
+const map=L.map("map",{preferCanvas:true,zoomControl:false});
+L.control.zoom({position:"bottomleft"}).addTo(map);
+L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{attribution:"Esri World Imagery"}).addTo(map);
+let region=Object.keys(data)[0],surface=Object.keys(data[region].images)[0],overlay=null,scores={};
+const regionSelect=document.getElementById("region"),surfaceBox=document.getElementById("surfaces"),questions=document.getElementById("questions");
+Object.values(data).forEach(d=>{const o=document.createElement("option");o.value=d.name;o.textContent=d.label;regionSelect.appendChild(o)});
+questionDefs.forEach(([key,label])=>{const wrap=document.createElement("div");wrap.className="question";wrap.innerHTML=`<label>${label}</label><div class="score" data-key="${key}">${[1,2,3,4,5].map(v=>`<button type="button" data-value="${v}">${v}</button>`).join("")}</div>`;questions.appendChild(wrap)});
+function scoreKey(){return `${region}||${surface}`}
+function renderSurfaces(){surfaceBox.innerHTML="";Object.keys(data[region].images).forEach(name=>{const b=document.createElement("button");b.type="button";b.className=`surface ${name===surface?"active":""}`;b.textContent=name;b.onclick=()=>{saveDraft();surface=name;renderSurfaces();load(false);loadDraft()};surfaceBox.appendChild(b)})}
+function load(fit=true){const d=data[region],bounds=[[d.bounds.south,d.bounds.west],[d.bounds.north,d.bounds.east]];if(overlay)map.removeLayer(overlay);overlay=L.imageOverlay(d.images[surface],bounds,{opacity:.9}).addTo(map);if(fit)map.fitBounds(bounds)}
+function selectedScores(){const out={};document.querySelectorAll(".score").forEach(g=>{const active=g.querySelector("button.active");out[g.dataset.key]=active?active.dataset.value:""});return out}
+function saveDraft(){scores[scoreKey()]={region_label:data[region].label,surface,...selectedScores(),confidence:document.getElementById("confidence").value,notes:document.getElementById("notes").value}}
+function loadDraft(){const x=scores[scoreKey()]||{};document.querySelectorAll(".score").forEach(g=>{g.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b.dataset.value===String(x[g.dataset.key]||"")))});document.getElementById("confidence").value=x.confidence||"";document.getElementById("notes").value=x.notes||"";updateStatus()}
+document.querySelectorAll(".score").forEach(g=>g.onclick=e=>{if(e.target.dataset.value){g.querySelectorAll("button").forEach(b=>b.classList.remove("active"));e.target.classList.add("active")}});
+function updateStatus(){document.getElementById("status").textContent=`${Object.keys(scores).length} of ${Object.keys(data).length*Object.keys(data[region].images).length} region-surface scores saved`}
+document.getElementById("save").onclick=()=>{saveDraft();updateStatus()};
+regionSelect.onchange=e=>{saveDraft();region=e.target.value;surface=Object.keys(data[region].images)[0];renderSurfaces();load(true);loadDraft()};
+document.getElementById("export").onclick=()=>{saveDraft();const reviewer=document.getElementById("reviewer").value;const headers=["reviewer","region","region_label","surface",...questionDefs.map(x=>x[0]),"confidence","notes","exported_at"];const rows=Object.values(scores).map(x=>[reviewer,x.region,x.region_label,x.surface,...questionDefs.map(q=>x[q[0]]||""),x.confidence||"",x.notes||"",new Date().toISOString()]);const cell=v=>`"${String(v).replaceAll('"','""')}"`;const csv=[headers,...rows].map(r=>r.map(cell).join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="cots_blind_expert_review.csv";a.click();URL.revokeObjectURL(a.href)};
+renderSurfaces();load(true);loadDraft();
+</script>
+</body>
+</html>

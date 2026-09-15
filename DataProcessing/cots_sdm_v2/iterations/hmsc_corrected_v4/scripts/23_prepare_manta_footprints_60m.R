@@ -1,0 +1,7 @@
+args <- commandArgs(trailingOnly = FALSE)
+script_file <- sub("^--file=", "", grep("^--file=", args, value = TRUE))
+v4_dir <- normalizePath(file.path(dirname(script_file), ".."), winslash = "/")
+source_file <- file.path(v4_dir, "scripts", "01c_prepare_manta_footprints_120m_fixed.R")
+code <- readLines(source_file, warn = FALSE)
+code <- gsub("120m", "60m", code, fixed = TRUE)
+eval(parse(text = code, keep.source = TRUE), envir = globalenv())

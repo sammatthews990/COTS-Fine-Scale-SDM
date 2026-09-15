@@ -1,0 +1,7 @@
+args <- commandArgs(trailingOnly = FALSE)
+script_file <- sub("^--file=", "", grep("^--file=", args, value = TRUE))
+v5_dir <- normalizePath(file.path(dirname(script_file), ".."), winslash = "/")
+source_file <- file.path(v5_dir, "scripts", "04_validate_shared_state_120m.R")
+code <- readLines(source_file, warn = FALSE)
+code <- sub("    validation = label, fold = as.character\\(fold\\), objective = fit\\$objective,", "    validation = label, fold = as.character(fold), objective_value = fit$objective,", code)
+eval(parse(text = code, keep.source = TRUE), envir = globalenv())

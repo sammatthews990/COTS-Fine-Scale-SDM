@@ -18,20 +18,33 @@ default_feature_sets <- function(static_predictors) {
   )
 }
 
-fit_xgb_binary <- function(train, features, model_cfg, seed_offset = 0L) {
+fit_xgb_binary <- function(
+    train, features, model_cfg, seed_offset = 0L,
+    weight_col = NULL) {
   assert_required_columns(train, c("high_density", features), "Model training data")
   x <- data.matrix(train[, features, drop = FALSE])
   y <- as.numeric(train$high_density)
   fit_seed <- as.integer(model_cfg$seed + seed_offset)
   set.seed(fit_seed)
 
-  dtrain <- xgboost::xgb.DMatrix(data = x, label = y)
+  weights <- if (is.null(weight_col)) {
+    rep(1, nrow(train))
+  } else {
+    as.numeric(train[[weight_col]])
+  }
+  if (any(!is.finite(weights)) || any(weights <= 0)) {
+    stop("Training weights must be finite and positive.")
+  }
+  dtrain <- xgboost::xgb.DMatrix(
+    data = x, label = y, weight = weights
+  )
   params <- list(
     objective = "binary:logistic",
     eval_metric = "logloss",
     eta = model_cfg$eta,
     max_depth = model_cfg$max_depth,
     min_child_weight = model_cfg$min_child_weight,
+    gamma = if (is.null(model_cfg$gamma)) 0 else model_cfg$gamma,
     subsample = model_cfg$subsample,
     colsample_bytree = model_cfg$colsample_bytree,
     lambda = model_cfg$lambda,
@@ -48,6 +61,7 @@ fit_xgb_binary <- function(train, features, model_cfg, seed_offset = 0L) {
 }
 
 predict_xgb_binary <- function(model, new_data, features) {
+  requireNamespace("xgboost", quietly = TRUE)
   x <- data.matrix(new_data[, features, drop = FALSE])
   as.numeric(stats::predict(model, xgboost::xgb.DMatrix(x)))
 }
@@ -187,4 +201,58 @@ summarise_benchmark_predictions <- function(predictions) {
       .x$truth, .x$probability
     )) |>
     dplyr::ungroup()
+}
+
+fit_additive_operational_bridge <- function(
+    truth, static_probability, outbreak_probability) {
+  training <- data.frame(
+    truth = as.integer(truth),
+    static_logit = stats::qlogis(
+      safe_probability(static_probability)
+    ),
+    outbreak_logit = stats::qlogis(
+      safe_probability(outbreak_probability)
+    )
+  )
+  training <- training[stats::complete.cases(training), , drop = FALSE]
+  fit <- stats::glm(
+    truth ~ static_logit + outbreak_logit,
+    data = training,
+    family = stats::binomial(),
+    model = FALSE,
+    x = FALSE,
+    y = FALSE
+  )
+  coefficients <- stats::coef(fit)
+  if (!isTRUE(fit$converged) || any(!is.finite(coefficients))) {
+    stop("The additive operational bridge did not converge.")
+  }
+  if (coefficients[["static_logit"]] <= 0) {
+    stop(
+      "The fitted static coefficient is not positive; the bridge would ",
+      "not preserve the fine-scale habitat ranking."
+    )
+  }
+  structure(
+    list(
+      coefficients = coefficients,
+      training_rows = nrow(training),
+      converged = fit$converged,
+      rank_preserving_within_reef = TRUE
+    ),
+    class = "cots_additive_operational_bridge"
+  )
+}
+
+predict_additive_operational_bridge <- function(
+    bridge, static_probability, outbreak_probability) {
+  coefficients <- bridge$coefficients
+  linear_predictor <- coefficients[["(Intercept)"]] +
+    coefficients[["static_logit"]] * stats::qlogis(
+      safe_probability(static_probability)
+    ) +
+    coefficients[["outbreak_logit"]] * stats::qlogis(
+      safe_probability(outbreak_probability)
+    )
+  stats::plogis(linear_predictor)
 }

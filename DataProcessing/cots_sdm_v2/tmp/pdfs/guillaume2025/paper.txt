@@ -1,0 +1,1288 @@
+Ecology and Evolution
+
+
+
+
+   RESEARCH ARTICLE                           OPEN ACCESS
+
+
+
+
+Harnessing Multiscale Topographic Environmental
+Variables for Regional Coral Species Distribution Models
+Annie S. Guillaume1    | Renata Ferrari2     | Oliver Selmoni3,4   | Véronique J. L. Mocellin2                                                     | Hugo Denis5,6,7              |
+Melissa Naugle 7   | Emily Howells 7    | Line K. Bay 2    | Stéphane Joost1
+
+1Geospatial Molecular Epidemiology Group (GEOME), Laboratory for Biological Geochemistry (LGB), École Polytechnique Fédérale de Lausanne (EPFL),
+
+Lausanne, Switzerland | 2 Australian Institute of Marine Science, Townsville, Queensland, Australia | 3Department of Embryology, Carnegie Institution
+for Science, Baltimore, Maryland, USA | 4Department of Plant Biology, Carnegie Institution for Science, Stanford, California, USA | 5UMR250/9220
+ENTROPIE (IRD-­CNRS-­U R-­I FREMER-­U NC), Noumea Cedex, New Caledonia, France | 6ED 129, SU Sorbonne Université, Paris, France | 7 National
+Marine Science Centre, Faculty of Science and Engineering, Southern Cross University, Coffs Harbour, New South Wales, Australia
+
+Correspondence: Annie S. Guillaume (annie.guillaume@alumni.epfl.ch) | Stéphane Joost (stephane.joost@epfl.ch)
+
+Received: 16 October 2024 | Revised: 27 March 2025 | Accepted: 2 April 2025
+
+Funding: This work was supported by the Great Barrier Reef Foundation; the Australian Government's Reef Trust; École Polytechnique Fédérale de
+Lausanne, Doc.Mobility grant.
+
+Keywords: bathymetry digital elevation model (DEMs) | multiscale analyses | seascape ecology | spatial scale | species distribution modelling (SDM) |
+terrain attributes
+
+
+   ABSTRACT
+   Effective biodiversity conservation requires knowledge of species' distributions across large areas, yet prevalence data for marine
+   sessile species is scarce, with traditional variables often unavailable at appropriate temporal and spatial resolutions. As marine
+   organism distributions generally depend on terrain heterogeneity, topographic variables derived from digital elevation models
+   (DEMs) can be useful proxies in ecological modelling, given appropriate spatial resolutions. Here, we use three reef-­building
+   Acropora coral species across the Great Barrier Reef, Australia, in a case study to (1) assess high-­resolution bathymetry DEM
+   sources for accuracy, (2) harness their derived topographic variables for regional coral species distribution models (SDMs), and (3)
+   develop a transferable framework to produce, select and integrate multi-­resolution variables into marine spatial models. For this,
+   we obtained and processed three distinct bathymetric digital depth models that we treat as DEMs, which are available across the
+   GBR extent: (i) Allen Coral Atlas (ACA) at 10 m, (ii) DeepReef at 30 m and (iii) DeepReef at 100 m. We generalised the three DEMs
+   to multiple nested spatial resolutions (15 m–120 m) and derived the same eight topographic variables to assess SDM sensitivity to
+   bathymetry source and spatial resolution. The ACA and DeepReef DEMs shared similar vertical accuracies, each producing top-
+   ographic variables relevant to marine SDMs. Slope and vector ruggedness measure (VRM), capturing hydrodynamic movement
+   and shelter or exposure, were the most relevant variables in SDMs of all three species. Interestingly, variables at the finest resolu-
+   tion (15 m) were not always the most relevant for producing accurate coral SDMs, with optimal resolutions between 15 and 60 m
+   depending on the variable type and species. Using multi-­resolution topographic variables in SDMs provided nuanced insights
+   into the multiscale drivers of regional coral distributions. Drawing from this case study, we provide a practical and transferable
+   framework to facilitate the adoption of multiscale SDMs for better-­informed conservation and management planning.
+
+
+
+
+This is an open access article under the terms of the Creative Commons Attribution License, which permits use, distribution and reproduction in any medium, provided the original work is
+properly cited.
+
+© 2025 The Author(s). Ecology and Evolution published by British Ecological Society and John Wiley & Sons Ltd.
+
+
+Ecology and Evolution, 2025; 15:e71292                                                                                                                                                1 of 21
+https://doi.org/10.1002/ece3.71292
+                                                                                                                                                   20457758, 2025, 4, Downloaded from https://onlinelibrary.wiley.com/doi/10.1002/ece3.71292 by National Health And Medical Research Council, Wiley Online Library on [30/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+1   |   Introduction                                                    availabilities (Kool et al. 2013; Lecours, Dolan, et al. 2016; Pygas
+                                                                        et al. 2020; Tokeshi and Arakaki 2012). Topographic variables
+Changing oceanic conditions are placing many populations                are therefore expected to be important metrics driving adapta-
+of reef-­building corals at extinction risk globally (Hughes            tion, distribution and physiology of sessile organisms, including
+et al. 2017; Ortiz et al. 2021; Otto 2018), calling for targeted spa-   corals, that need to be explicitly considered in modelling for reef
+tial biodiversity conservation and management plans to protect          conservation. Though topographic variables were originally de-
+keystone species of reef ecosystems (Goetze et al. 2021; Pittman        veloped to model geological and hydrological processes of ter-
+et al. 2021). Over the last 25 years, considerable effort has been      restrial systems (Wilson and Gallant 2000), they have also been
+made to harness remote-­sensed satellite imagery for produc-            used to represent important marine ecological patterns and
+ing high-­resolution geomorphic and benthic habitat maps of             processes (Harris and Baker 2012; Lecours, Brown, et al. 2016;
+coral reefs globally. Examples of open-­      source resources in-      McArthur et al. 2010). A plethora of DEM-­derived variables
+clude the Millennium Coral Reef Mapping Project (Andréfouët             have been developed to capture marine topographic structure,
+and Bionaz 2021; Andréfouët and Riegl 2004), the Khaled bin             notably to model seabed roughness and structural complexity
+Sultan Living Oceans Foundation (Carlton et al. 2021; Purkis            (see Lecours, Devillers, Simms, et al. 2017; Pygas et al. 2020;
+et al. 2019), Reef Cover (Kennedy et al. 2021) and the Allen            Smith 2014; Sous et al. 2024; Wilson and Gallant 2000). Such
+Coral Atlas (ACA; Allen Coral Atlas 2022; Lyons et al. 2024).           variables have been used, alone or alongside oceanographic
+Whilst such coral habitat maps provide valuable insights into           variables, to accurately model benthic biota distributions (e.g.,
+coral reef diversity and health for conservation outcomes (e.g.,        Bridge et al. 2012; Tong et al. 2016; Winship et al. 2020; Yuen
+Bakker et al. 2024; Lyons et al. 2024; Roelfsema et al. 2020),          et al. 2023).
+managers and researchers often require species-­specific distri-
+bution maps for fieldwork and species-­targeted management              In the present study, we selected a combination of eight easily
+plans. To this end, species distribution models (SDMs; Elith            computable terrain attributes commonly used in the marine
+and Leathwick 2009) are simple and powerful tools that can              and terrestrial literature (Table 1). First, the primary terrain at-
+help predict the location of target species across large areas          tributes of slope, curvature (both horizontal and vertical) and
+(Winship et al. 2020), offering a streamlined and cost-­effective       aspect (as northness and eastness) are directly calculated from
+approach to identify priority areas for research and management         DEMs (Böhner et al. 2002; Wilson and Gallant 2000). These
+intervention.                                                           variables were selected to capture processes such as energy
+                                                                        modification across terrain, affecting water velocity (Moore
+Accurate and informative SDMs require incorporating envi-               et al. 1991; Wilson et al. 2007), erosion and deposition rates
+ronmental predictor variables that are expected to influence            (Lecours, Dolan, et al. 2016; Wilson and Gallant 2000), expo-
+the fitness, and therefore distribution, of the species being mod-      sure to currents and wind (Lecours, Dolan, et al. 2016; Wilson
+elled (Winship et al. 2020; Yuen et al. 2023). When modelling           and Gallant 2000; Wilson et al. 2007), and solar radiation levels
+coral distributions, oceanographic and climatic variables are ex-       (Moore et al. 1991; Pygas et al. 2020). From these, more com-
+pected to be important predictors (Lukoschek et al. 2016; Lyons         plex secondary terrain attributes are derived that are specifically
+et al. 2020; McClanahan and Azali 2021) as they capture con-            designed to describe a given pattern as a function of a process
+ditions that can constrain coral development and growth (e.g.,          (Wilson and Gallant 2000). For instance, we derived terrain
+temperature, light, water quality, pH and benthic composition;          complexity variables, including vector ruggedness measure
+Abrego et al. 2021; Cornwall et al. 2021; Donovan et al. 2021;          (VRM; Sappington et al. 2007) and bathymetric position index
+Pratchett et al. 2015; Vega Thurber et al. 2020). However, such         (BPI; Lundblad et al. 2006), to capture the three-­dimensional
+variables are rarely available at fine-­enough temporal and spa-        physical environment, where VRM quantifies local variation in
+tial resolutions required to model sessile marine organisms             terrain independent of slope (Sappington et al. 2007) and BPI
+(Lecours, Brown, et al. 2016; McArthur et al. 2010). Indeed,            captures broad terrain variation, such as crests and channels
+they are typically available at either 30 m resolution spanning         (Deng et al. 2007; Montesano et al. 2017; Pygas et al. 2020).
+only the last decade (e.g., Zuo et al. 2023) or at 1–5 km resolu-       These variations influence processes such as hydrodynamic
+tions spanning multiple decades (e.g., Selmoni et al. 2023).            movement, shelter or exposure, attachment sites and turbu-
+Alternatively, high-­ resolution, point-­measured conditions on         lence (Pygas et al. 2020), where VRM and BPI are associated
+reefs can be obtained, but these require mathematical interpola-        with benthic fauna density in marine environments (Graham
+tions to obtain values across the entire target study extent (e.g.,     and Nash 2013; Price et al. 2021). We also derive sky view fac-
+Colberg et al. 2020; Devlin et al. 2013). Given the limitations of      tor (SVF), a common metric used in modelling sessile terrestrial
+these more ‘traditional’ variables, topographic variables repre-        species distributions (e.g., Guillaume et al. 2021) that captures
+senting terrain heterogeneity at finer spatial resolutions (≤ 30 m)     processes of light attenuation and exposure to the surrounds
+could provide convenient alternatives for distribution modelling        (Häntzschel et al. 2007). Alongside depth, these eight variables
+of marine sessile organisms across regional extents (Bongaerts          are expected to capture a majority (> 70%) of topographic struc-
+et al. 2021; Duce et al. 2016; Lecours, Dolan, et al. 2016; Lepczyk     tures required when modelling species-­environmental relation-
+et al. 2021; Pittman et al. 2021).                                      ships (Lecours, Devillers, Simms, et al. 2017).
+
+Fine-­scale topographic variables derived from digital elevation        Accurate derivations of topographic variables require high-­
+models (DEMs) represent seascape heterogeneity, which dic-              resolution bathymetric DEMs that continuously capture a
+tates important environmental conditions that directly affect           given study extent (Pygas et al. 2020). The technology used
+habitat suitability for sessile marine organisms (such as corals),      to obtain these DEMs dictates spatial resolution, extent and
+including surface attachment sites, micro-­climates and nutrient        accuracy (reviewed in Lecours, Dolan, et al. 2016), where a
+
+2 of 21                                                                                                              Ecology and Evolution, 2025
+                 TABLE 1    |    Description and interpretation of bathymetric digital elevation models (DEM) and eight independent variables derived from three open-­source bathymetric models, the Allen Coral Atlas (ACA
+                 at 10 m) and DeepReef (DR at 30 m and 100 m).
+
+                                                                                                                                                                                                                                                       A.                              A.                                                          Overall
+                                                      Variable                       Abbreviation                                                                    Description                                                                   hyacinthus                      spathulata                        A. kenti                      optimal
+                    Primary                         Bathymetry                                DEM                                    DEM of the bathymetry obtained from Allen                                                                             n/a                     15 m ACA+                      15 m ACA+                      15 m ACA
+                    terrain                                                                                                        Coral Atlas (Allen Coral Atlas 2022) or DeepReef
+                    attributes                                                                                                       (Beaman 2010). When used as a variable, it is
+                                                                                                                                    referred to as ‘depth’. In meters below sea level.
+                                                                                                                                                   DEM = 0 → sea level
+                                                                                                                                               DEM < 0 → below sea level
+                                                          Slope                             SLOPE                         Morphometry. Maximum rate of change in DEM. Proxy for                                                                     60 m ACA*                      60 m ACA+                       60 m ACA*                     60 m ACA
+                                                                                                                           water flow, wave direction, wave intensity, erosion, solar
+                                                                                                                          radiation, currents, nutrition, etc. Affects habitat formation
+                                                                                                                            (e.g., sand, reef flat, reef crests, strata, etc.). In radians.
+                                                                                                                                    Slope = 0 rad =0° → completely flat surface
+                                                                                                                                        Slope = 1 rad =57.2° → steep slope
+                                                        Aspect                                                             Morphometry. Orientation of the slope in the downward
+                                                                                                                         direction, that describes energy modification across terrain:
+                                                                                                                           e.g., wave direction, erosion, light, currents. In radians.
+                                                       Eastness                               EAST                                                 Represents the sine Aspect.                                                                             n/a                             n/a                            n/a                           n/a
+                                                                                                                                                    EAST = −1 → west-­facing
+                                                                                                                                                 EAST = 0 → north-­ or south-­facing
+                                                                                                                                                     EAST = 1 → east-­facing
+                                                     Northness                             NORTH                                                   Represents the cosine Aspect.                                                                           n/a                             n/a                            n/a                           n/a
+                                                                                                                                                    NORTH = −1 → south-­facing
+                                                                                                                                                  NORTH = 0 → east-­ or west-­facing
+                                                                                                                                                    NORTH =1 → north-­facing
+                                               Vertical (profile)                              VCU                            Morphometry. The level of convexity or concavity in                                                                   30 m ACA*                      30 m ACA+                        30 m DR*                       30 m
+                                                  curvature                                                                 parallel to slope. Important for understanding variations                                                                                                                                                             ACA/DR
+                                                                                                                             in terrain and complexity and quantifying the energy
+                                                                                                                             modification across terrain, explaining acceleration or
+                                                                                                                               deceleration of flow across terrain. In radians m−1.
+                                                                                                                                           VCU < 0 → upwardly convex
+                                                                                                                                             VCU = 0 → linear surface
+                                                                                                                                           VCU > 0 → upwardly concave
+
+                                                                                                                                                                                                                                                                                                                                                     (Continues)
+
+
+
+
+    3 of 21
+20457758, 2025, 4, Downloaded from https://onlinelibrary.wiley.com/doi/10.1002/ece3.71292 by National Health And Medical Research Council, Wiley Online Library on [30/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+                                  TABLE 1    |    (Continued)
+
+
+
+
+    4 of 21
+                                                                                                                                                                                                                                                       A.                              A.                                                          Overall
+                                                           Variable                  Abbreviation                                                                    Description                                                                   hyacinthus                      spathulata                        A. kenti                      optimal
+                                                         Horizontal                           HCU                                 Morphometry. The level of convexity or concavity                                                                         n/a                             n/a                            n/a                           n/a
+                                                      (plan) curvature                                                          perpendicular to slope. Important for understanding
+                                                                                                                                variations in terrain and complexity and quantifying
+                                                                                                                                 the energy modification across terrain explaining
+                                                                                                                                 convergence or divergence of flow. In radians m−1.
+                                                                                                                                            HCU < 0 → sideward concave
+                                                                                                                                               HCU = 0 → linear surface
+                                                                                                                                             HCU > 0 → sideward convex
+                                    Secondary              Vector                             VRM                                 Morphometry. Quantifies local variation in seabed                                                                  30 m DR−                      60 m ACA−                      60 m ACA−                       30–60 m
+                                    terrain              ruggedness                                                               rugosity with less correlation to slope, indicating a                                                                                                                                                           ACA/DR
+                                    attributes            measure                                                                 combined variability in slope and aspect. Predictor
+                                                                                                                                    of habitat suitability and biodiversity. No unit.
+                                                                                                                                   VRM = 0 → no variation in terrain around target
+                                                                                                                                   VRM = 1 → complete variation in terrain around
+                                                         Bathymetry                             BPI                            Morphometry. Indicates a pixel's relative position with                                                             15 m ACA+                       15 m ACA+                      15 m ACA+                      15 m ACA
+                                                        Position Index                                                          regards to surrounding pixels, giving an indication
+                                                                                                                                of local topography (peaks and troughs). Calculated
+                                                                                                                                 using an annulus-­shaped focal window. Predictor
+                                                                                                                                  of habitat suitability and biodiversity. In meters.
+                                                                                                                                         BPI < 0 → local lows in terrain (pits)
+                                                                                                                                                 BPI = 0 → flat terrain
+                                                                                                                                       BPI > 0 → local highs in terrain (peaks)
+                                                       Sky view factor                         SVF                         Lighting. Quantifies the proportion of sky visible from a                                                                       n/a                         100 m+                        120 m or                     Variable
+                                                                                                                         point around a particular radius, by calculating the ratio of                                                                                                                                15 m−                       ACA/DR
+                                                                                                                          the radiation received by a planar surface to the radiation
+                                                                                                                         emitted by the entire hemispheric environment. It uses only
+                                                                                                                            the zenith angles above the horizontal plane. No unit.
+                                                                                                                                SVF = 0 → light completely obstructed to target
+                                                                                                                              SVF = 1 → light completely unobstructed to target
+                                  Note: A summary of the most important spatial resolution and bathymetric sources for each variable is provided for all three Acropora species (A. hyacinthus, A. spathulata and A. kenti), based on the Jackknife evaluations of
+                                  the variables used in the MaxEnt SDMs, where ‘top variables’ are those with AUCONLY > 0.7 (see Figure 6). The symbols denote a positive (+), negative (−), or complex (*) relationship according to variable response curves, and
+                                  ‘n/a’ indicates that the variable was not a ‘top variable’ in MaxEnt models and therefore its relationship with coral distribution was not assessed. The parameters used for calculations are provided in Table S3 of the Supporting
+                                  Information.
+
+
+
+
+    Ecology and Evolution, 2025
+20457758, 2025, 4, Downloaded from https://onlinelibrary.wiley.com/doi/10.1002/ece3.71292 by National Health And Medical Research Council, Wiley Online Library on [30/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+                                                                                                                                                                        20457758, 2025, 4, Downloaded from https://onlinelibrary.wiley.com/doi/10.1002/ece3.71292 by National Health And Medical Research Council, Wiley Online Library on [30/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+trade-­off between spatial resolution and extent exists. Here,                       a necessary first step prior to use in ecological models for re-
+we focus on the world's largest reef system, the Great Barrier                       gional marine spatial management.
+Reef (GBR) off the north-­east Australian coast, where the finest
+resolution regional bathymetry models are available between                          The relevance of high-­resolution variables in ecological models
+10 m and 100 m across an extent of approximately 344,000 km 2 .                      depends on their spatial resolutions (Lecours, Devillers, Edinger,
+There are two open-­source regional bathymetric digital depth                        et al. 2017; Pradervand et al. 2014). Whilst some recommend
+models available across the GBR, which we treat here as                              using the finest available resolution when possible (Chauvier
+DEMs: the Allen Coral Atlas (ACA; Allen Coral Atlas 2022;                            et al. 2022; Cushman and Landguth 2010; Moudrý et al. 2023),
+Li, Schill, et al. 2019; Li et al. 2021) and the DeepReef proj-                      this may not always be appropriate (Carlson et al. 2024; Pygas
+ects (Beaman 2010, 2017; Hamylton et al. 2015). These are                            et al. 2020) owing to computational constraints, the necessity
+summarised in Table 2. Briefly, the ACA provides a satellite-­                       of expert knowledge in manipulating large rasters, and an in-
+derived bathymetry model available at approximately 10 m                             creased risk of amplifying sampling artefacts from fine-­scale
+resolution across the world's coral reef habitats. This data-                        DEM acquisition and processing (Lecours, Devillers, Edinger,
+set is aggregated from unobstructed surface reflectance im-                          et al. 2017). Furthermore, topographic attributes at different
+ages obtained predominantly from the Google Earth Engine                             spatial resolutions capture distinct environmental aspects
+Sentinel-­2 satellite, calculated to a median depth of 20 m using                    that affect species in unique ways (Wood 1996; Woodcock and
+an automated algorithm (Li, Knapp, et al. 2019), with the high-                      Strahler 1987). Indeed, optimal resolutions depend on variable
+est accuracy in the top 10 m (Li et al. 2021; Table 2). However,                     type, reef terrain characteristics and the species being modelled
+the ACA contains some missing pixels resulting in sometimes                          (Connor et al. 2018; Guillaume et al. 2021; Tong et al. 2012, 2016).
+patchy coverage. The DeepReef project provides two bathymet-                         To appropriately capture unique and species-­specific patterns
+ric models covering the entire GBR and Coral Sea regions at                          across different spatial resolutions for a given variable, a mul-
+approximately 30 m resolution (0.0003-­arc degree) and 100 m                         tiscale framework can be implemented (Guillaume, Leempoel,
+resolution (0.001-­arc degree). Despite availability at coarser                      et al. 2024; Lecours et al. 2015; Misiuk et al. 2021). To do this,
+resolutions, the two DeepReef bathymetry models are expected                         a DEM at its finest resolution is generalised to multiple nested
+to be of higher accuracy than ACA (Table 2), notably in areas                        resolutions using a Gaussian pyramid algorithm (Kalbermatten
+> 10 m depth, as they complement satellite-­derived depth esti-                      et al. 2012; Leempoel et al. 2015), before deriving topographic
+mates with shipborne deep-­water multibeam and single-­beam                          variables required for the study (Guillaume et al. 2021; Misiuk
+sonar, as well as airborne LiDAR (Beaman 2010, 2017, 2020).                          et al. 2021). Once datasets of multiscale variables are generated,
+Both ACA and DeepReef bathymetry DEMs can be used to de-                             variable selection methods can be used to create sets of species-­
+rive topographic variables for use in regional ecological mod-                       specific predictor variables for use in ecological modelling (for
+els of marine organisms. However, despite overlapping extents                        more information on this multiscale framework, see Guillaume,
+in the GBR, their relative accuracies across the GBR reefs and                       Leempoel, et al. 2024). Whilst spatial resolution is well known
+suitability of derived variable products have yet to be assessed;                    to impact ecological models, the optimal resolution of variables
+
+
+TABLE 2    |    Summary of the three raw open-­access bathymetric digital elevation model (DEM) sources spanning the Great Barrier Reef (GBR)
+extent: The Allen Coral Atlas (ACA) and the DeepReef project at 30 m and 100 m resolutions.
+
+                                         Allen Coral Atlas (ACA)                            DeepReef 30 m                            DeepReef 100 m
+ Downloaded spatial res.                              ~10 m                           ~30 m (0.0003-­arc degrees)              ~100 m (0.001-­arc degrees)
+ Target spatial res.                15 m (generalised to 30, 60, 120 m)                    30 m (generalised                                100 m
+                                                                                             to 60, 120 m)
+ File format                                        GeoTIFF                                      GeoTIFF                                      adf
+ Data source                               Google Earth Engine                       Deep-­water multibeam and                 Deep-­water multibeam and
+                                        Sentinel-­2 satellite – median               single beam sonar surveys,                single beam sonar surveys,
+                                           depth over 12 months                     airborne LiDAR bathymetric                airborne LiDAR bathymetric
+                                                                                      surveys, and satellite data               surveys, and satellite data
+ Approximate accuracy                       0-­10 m: RMSE*⋍1.4 m                         0-­10 m: TVU§ = 1.05 m                   0-­10 m: TVU§ = 1.05 m
+                                           10-­15 m: RMSE*⋍1.5 m                        10-­15 m: TVU§ = 1.18 m                  10-­15 m: TVU§ = 1.18 m
+                                           15-­20 m: RMSE*⋍2.5 m                        15-­20 m: TVU§ = 1.18 m                  15-­20 m: TVU§ = 1.18 m
+ Website                                      allen​coral​atlas.​org                    pid.​geosc​ience.​gov.​au/​                 deepr​eef.​org/​2010/​
+                                                                                          datas​et/​ga/​115066                       07/​06/​gbr-­​bathy​/
+ Accessed                                        January 2023                                   May 2023                               January 2023
+ Reference                                Allen Coral Atlas (2022),                          Beaman (2017)                            Beaman (2010)
+                                               Li et al. (2021)
+Note: All models represent mean sea level, whilst none have definitive accuracies available (see footnotes). RMSE = Root mean squared error; calculated for the ACA
+and assessed at Heron Island, southern GBR (Li et al. 2021). § TVU = total vertical uncertainty; reported as the mean TVU across the GBR marine protected area extent
+using the IHO S-­4 4 Order 2 formula for the depth categories (International Hydrographic Organization 2020).
+
+
+                                                                                                                                                             5 of 21
+                                                                                                                                                          20457758, 2025, 4, Downloaded from https://onlinelibrary.wiley.com/doi/10.1002/ece3.71292 by National Health And Medical Research Council, Wiley Online Library on [30/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+finer than 100 m for regional distribution models of various coral          coral species across the GBR using multiscale topographic vari-
+species remains unknown.                                                    ables derived from bathymetric DEMs (sourced from the ACA
+                                                                            and DeepReef). To avoid ambiguity, we define spatial resolution
+A hotspot for coral conservation research, the expansive GBR                as the pixel size of the variables, and extent as the boundary of
+offers rich datasets for investigating the relevance of multiscale          the region analysed (Anderson et al. 2010). Unless stated oth-
+topographic variables in SDMs. Three high-­      resolution open-­          erwise, all analyses were performed in R (v4.1.0, 2021; R Core
+source bathymetric DEMs are available across the study extent—              Team 2021).
+the ACA at 10 m and DeepReef at 30 m and 100 m (Table 2). Here,
+we derive multi-­resolution topographic variables from each DEM
+source using a multiscale framework and systematically evaluate              2.1   |   Study Species and Sites
+their relevance in regional SDMs for three dominant reef-­building
+Acropora coral species across the GBR extent. Specifically, we               We obtained coral presence-­only data for three reef-­building
+aim to (1) compare three high-­resolution open-­access bathymetry            Acropora species dominant at the 23 sampled reefs of the GBR,
+DEMs for their accuracy, (2) harness DEM-­derived topographic                spread across 1400 km of latitude from varying locations on
+variables in regional SDMs for three coral species and (3) develop           the reef shelf (Figure 2; Table S1). This biological data comes
+a transferable framework to produce, select and integrate multi-­            from the Reef Restoration and Adaptation Program (RRAP;
+resolution topographic variables into marine spatial modelling.              www.​gbrre​stora​tion.​org), where 3 years of field campaigns
+Ultimately, we look to assess and develop a framework for pro-               were undertaken to collect coral phenotypic and genomic data
+ducing more nuanced marine spatial ecology models using mul-                 (Figure 2). Here, we use the GPS location coordinates and
+tiscale variables, which can provide more informed conservation              the colony depth metadata from the RRAP field campaigns.
+planning for restoration efforts globally.                                   Sampled reef areas were selected based on expert knowledge
+                                                                             of habitat preferences of the three target species. Whilst reef
+                                                                             condition was not explicitly collected as part of this study, in-
+2   |   Methods                                                              formation can be found on the AIMS reef monitoring website
+                                                                             with continual updates (https://​apps.​aims.​gov.​au/​reef-­​monit​
+A visual schematic of the methods is provided in Figure 1, indi-             oring/​​). Colonies were haphazardly sampled up to a maximum
+cating the workflow followed to model the distribution of three              depth of 8 m along reef crests and upper slopes, resulting in
+
+
+
+
+FIGURE 1    |    Schema of the workflow used to develop and integrate multiscale topographic variables derived from three bathymetric digital
+elevation models (DEMs) for use in species distribution modelling (SDM) of three Acropora species (A. hyacinthus, A. spathulata and A. kenti).
+Topographic variables were obtained from three open-­access bathymetry models: The Allen Coral Atlas (ACA) at 10 m, and DeepReef (DR) at 30 m
+and 100 m spatial resolutions, where a multiscale framework was applied to obtain variables at nested spatial resolutions (defined in Table 1). Coral
+presence-­only coordinates were obtained for each Acropora species from across 23 reefs of the Great Barrier Reef, Australia (Figure 2). Topographic
+variables and presence-­only data were integrated into SDMs using MaxEnt machine learning algorithms to assess performance and produce predic-
+tion maps.
+
+6 of 21                                                                                                                     Ecology and Evolution, 2025
+                                                                                                                                                             20457758, 2025, 4, Downloaded from https://onlinelibrary.wiley.com/doi/10.1002/ece3.71292 by National Health And Medical Research Council, Wiley Online Library on [30/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+FIGURE 2    |    Sampling distribution of three Acropora coral species at 23 reefs across the Great Barrier Reef marine protected area (GBRMPA; red
+outline in EPSG:7855 projection) along the north-­east coast of Australia (insert). Pie charts indicate the proportion of colonies sampled per species (A.
+hyacinthus, A. spathulata and A. kenti) at each reef, where pie chart size reflects the relative sampling intensity at each reef. Raw values are provided
+in Table S1. The asterisk indicates the location of Chicken Reef, used as an example in Figure 7 (indicated with a purple box). The bathymetric map
+was obtained from the DeepReef Project at 100 m spatial resolution.
+
+
+
+either clustered (sampled across 40–75 m) or elongated transects               maximum of 2 m above each colony. Coordinates were projected
+(up to 400 m) of occurrence records per site. Each colony was                  to the GDA2020/MGA zone 55 (EPSG:7855) coordinate system.
+geolocated in situ for coordinates using a Garmin eTrex10 hand-                Colony depth was simultaneously recorded using dive comput-
+held GPS receiver (2011) towed along the surface by scuba div-                 ers (with an expected error of ±1 m; Marlowe et al. 2021) and
+ers, where the GPS gives a location accuracy of approximately                  later standardised to the lowest astronomical tide (LAT) using
+3 m (Fator and Zomrawi 2015). Latitude and longitude were                      a custom R script. Tide measurements for sampling dates were
+attributed based on photograph timestamps, as per Lukoschek                    obtained from the reef's closest tide station (Table S1; Australian
+et al. (2016), where the GPS tow line was allowed to drift to a                Bureau of Meteorology via tides.​w illy ​weath​er.​com.​au, accessed
+
+                                                                                                                                                  7 of 21
+                                                                                                                                                  20457758, 2025, 4, Downloaded from https://onlinelibrary.wiley.com/doi/10.1002/ece3.71292 by National Health And Medical Research Council, Wiley Online Library on [30/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+May 2023). Tide stations were generally within 17 km of the sam-       colonies with a |∆hi| three times greater than the root mean
+ple sites, and we expect interpolations to be relatively robust,       square error (RMSE; Höhle and Potuckova 2006).
+with three tide stations located further away that could result
+in larger interpolation errors (Chicken Reef: 39 km; Davies Reef:
+46 km; St Crispin: 61 km; Table S1).                                   2.3   |   Derived Topographic Variables
+
+Three species of broadcast spawning coral of the genus Acropora        We derived eight topographic variables relating to terrain
+were investigated here: A. hyacinthus (Dana, 1846; n = 768 in-         morphometry and light availability from each DEM (Table 1;
+dividuals), A. spathulata (Brook, 1891; n = 828 individuals) and       Ferrari et al. 2018; Lundblad et al. 2006; Price et al. 2021;
+A. kenti (Brook, 1892; n = 772 individuals; see Bridge et al. 2023)    Tong et al. 2012): slope (SLOPE), eastness (EAST; sine of as-
+(Tables S1 and S2). These species were selected due to their           pect), northness (NORTH; cosine of aspect), vertical curvature
+importance as habitat-­  forming species in the GBR (Cooke             (VCU), horizontal curvature (HCU), vector ruggedness mea-
+et al. 2020; Ortiz et al. 2021), where diversity in morphology         sure (VRM), bathymetry position index (BPI) and sky view fac-
+and habitat preferences makes Acropora coral early succes-             tor (SVF). Calculations were performed using ‘MultiscaleDTM’
+sion colonisers following disturbance events (Guest et al. 2012;       (Ilich et al. 2023) and ‘RSAGA’ (Brenning et al. 2022; R-­package
+Hazraty-­Kari et al. 2022; Yuen et al. 2023). Furthermore, they        interface with SAGA GIS v8.4.1: Conrad et al. 2015). Detailed
+are well studied with regards to adaptation, recovery and reef         descriptions and calculation parameters are in Table S3. A total
+restoration potential (Denis et al. 2024; Hazraty-­kari et al. 2022;   of 72 variables were available for downstream models (i.e.,
+Madin et al. 2012; Morais et al. 2023; Quigley et al. 2022; Rose       one DEM and eight variables obtained from each of the eight
+et al. 2021). As A. hyacinthus represents a species complex            resolution-­bathymetry sources).
+(Ladner and Palumbi 2012), colonies with morphology matching
+the ‘neat’ putative species were targeted in this study (Naugle        To compare ACA15 m and DeepReef30 m DEMs and derived
+et al. 2024).                                                          variables at the common spatial resolutions of 30 m, 60 m and
+                                                                       120 m, we used scatterplots based on values from 15,000 random
+                                                                       points across the 23 sampled reefs.
+2.2   |   Bathymetric DEMs
+
+Bathymetric DEM rasters were freely obtained from their online         2.4   |   Regional Species Distribution Modelling
+archives, with the ACA at 10 m and DeepReef at 30 m and 100 m          Using MaxEnt
+(Table 2). These bathymetry models cover the same extents of
+the GBR, importantly providing depth measurements at the               The suitability of the eight topographic variables were sys-
+reefs sampled for coral colony data. All DEMs were reprojected         tematically assessed for each resolution–bathymetric source
+and resampled to the GDA2020/MGA zone 55 (EPSG:7855) sys-              combination using the MaxEnt SDM algorithm, following the
+tem at the target resolutions of 30 m and 100 m for DeepReef           methods of Guillaume et al. (2021). MaxEnt (Phillips et al. 2006)
+and 15 m for ACA (the finest resolution for comparison with            is a machine learning method accessible through ‘maxnet’
+DeepReef30m), where DeepReef 30 m tiles were first merged              in R (Phillips et al. 2017). MaxEnt estimates probability dis-
+into one raster file in QGIS (v3.18.2-­Zürich). The rasters were       tributions of a species across a user-­defined landscape (Elith
+cropped to a 500 m buffer around each sampled reef to facilitate       et al. 2011; Phillips and Dudík 2008), and automatically han-
+calculations. The ACA DEM required further processing: pixels          dles imbalanced-­biassed occurrence datasets and collinearity
+were divided by −100 to convert values to meters below sea level,      amongst predictor variables (Ahmadi et al. 2023; De Marco
+before filling small NA pixel gaps (1.4% of the pre-­processed ras-    Júnior and Nóbrega 2018; Feng et al. 2019).
+ter, with seven samples allocated to NA cells at the finest reso-
+lution) with the mean of a 3 × 3 window around each NA pixel,          We performed SDMs for each of the three Acropora species sepa-
+filling remaining gaps with the DeepReef30m.                           rately. To reduce model biases from high-­density coral sampling,
+                                                                       we thinned occurrence records to retain one coordinate per 15 m
+Processed DEMs were generalised to multiple resolutions using          pixel (Table S1). Despite thinning, multiple occurrence points
+a Gaussian pyramid algorithm through the ‘impyramid’ func-             remained per grid at coarser resolutions, which we accepted to
+tion in MATLAB (MathWorks: MATLAB R2019a, 2019), fol-                  facilitate comparisons between SDMs at multiple resolutions
+lowing Kalbermatten et al. (2012). This produced eight DEMs:           (Guillaume et al. 2021; Guisan et al. 2007). Pseudo-­absence
+ACA15 m at 15 m, 30 m, 60 m and 120 m; DeepReef30 m at 30 m,           background coordinates were obtained following MaxEnt best
+60 m and 120 m; and DeepReef100 m at 100 m (Table 2). The              practice guidelines (Phillips and Dudík 2008), with 10,000 ran-
+maximum resolution of 120 m was restricted by the sampling             domly selected points from across the 23 reefs, biassed to areas
+scheme whilst allowing for comparisons with DeepReef100 m.             of high coral sampling intensity (Phillips et al. 2009) using all
+                                                                       georeferenced coordinates (n = 2368). Values from the 72 vari-
+All bathymetric DEMs represent Mean Sea Level (MSL) without            ables were extracted using the occurrence and background
+definitive accuracy measures across the whole GBR extent (but          coordinates.
+see Table 2 for estimated accuracy values). We assessed vertical
+error (∆h) by comparing the LAT-­standardised colony depths            Model parameters were optimised (Merow et al. 2013) by per-
+with the DEM modelled depth (∆hi = in situ–DEM; n = 2368;              forming MaxEnt with all 72 predictor variables, varying the
+Höhle and Höhle 2009), summarised using the normalised                 combination of non-­linear feature class transformation (FC; lin-
+median absolute deviation (NMAD). Outliers were defined as             ear, linear-­product, linear-­quadratic, linear-­product-­quadratic)
+
+8 of 21                                                                                                             Ecology and Evolution, 2025
+                                                                                                                                                          20457758, 2025, 4, Downloaded from https://onlinelibrary.wiley.com/doi/10.1002/ece3.71292 by National Health And Medical Research Council, Wiley Online Library on [30/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+with regularisation multiplier (RM; 1, 2, 5, 10; Phillips and                 (Smith et al. 2023). To assess the prediction map performance,
+Dudík 2008). Each FC-­R M combination was run over multiple                   the spatial distribution of presence probabilities were overlaid
+iterations, using a leave-­one-­reef-­out cross-­validation method            onto maps of potentially suitable habitat (‘coral/algae’ and
+for model testing and training, performed in triplicate to ran-               ‘rock’) derived from the independent benthic habitat maps of the
+domly divide background points into 75% training and 25% test-                Allen Coral Atlas (accessed: allen​coral​atlas.​org on 09.02.2023;
+ing. The optimal parameter was selected as the FC-­R M model                  Allen Coral Atlas 2022).
+that minimised the sum of ranks when a performance ranking
+was assigned for each mean Area Under the Receiver Operating
+Curve (AUCTEST; Bradley 1997) and Bayesian information cri-                   3   |   Results
+teria (BIC; McCullagh and Nelder 1989). A linear-­quadratic FC
+with an RM of 2 (LQ2) was the top-­ranking parameter combina-                 3.1   |   Bathymetry DEM Accuracy Assessment
+tion for all three species (Table S4) and thus used to transform
+input variables for all following models.                                     Vertical error (∆h) of DEMs compared to in situ sampled depth
+                                                                              points revealed a reduction in relative accuracies at larger pixel
+We systematically assessed the impact of spatial resolution                   sizes (Figure 3; exact values provided in Table S5). Q–Q plots
+and DEM source on MaxEnt model performance, running                           of ∆h highlighted non-­normal error distributions, where plots
+eight single resolution models for each resolution–bathymetric                for fine resolution DEMs had strong right skews indicating shal-
+source combination (n = 9 variable types per model) alongside                 lower predictions, whilst plots for coarser resolution DEMs had
+one multi-­resolution model with all variables at all resolutions             strong left skews indicating deeper predictions (Figure 3 for
+(n = 72 variables, ‘all variable’ model). Ten iterations were run             base DEMs; Figure S1 for all Q–Q plots). At matching spatial
+per model to select different background points per cross-­                   resolutions, ACA and DeepReef DEMs revealed similar rela-
+validation. Model significance was assessed for AUCTEST and                   tive accuracies, where the DEMs all predicted depths across
+BIC metrics separately for each species. Models were grouped                  the GBR as shallower than the in situ coral measurements
+using the non-­parametric Kruskal–Wallis one-­way analysis of                 (Figure 3; Table S5). Median (± standard deviation) errors in-
+variance and Dunn's post hoc test of pairwise multiple compari-               creased with pixel size for all sources: the ACA DEM at 15 m
+sons, applying Holm's correction for multiple testing.                        had 2.0 ± 2.7 m error, 30 m had 3.2 ± 3.2 m, 60 m had 4.7 ± 4.8 m,
+                                                                              and 120 m had 6.2 ± 8.9 m. Similarly, the DeepReef DEM at 30 m
+Final MaxEnt models per species used all 72 variables. Jackknife              had 3.6 ± 3.9 m error, 60 m predicted 5.0 ± 5.0 m error, and 120 m
+analyses and variable response curves indicated the relative im-              predicted 6.7 ± 9.7 m error, whilst the 100 m DeepReef DEM had
+portance of each variable, performed with ‘maxnet’. Prediction                7.6 ± 9.3 m. Normalised median absolute deviation (NMAD; vi-
+maps across the sampled reefs were made using ‘enmSdmX’                       sualised in Figure S2; Table S5) highlighted less ∆h variation
+
+
+
+
+FIGURE 3    |    Accuracy of three bathymetry models (Allen Coral Atlas 15 m: Orange; DeepReef 30 m: Light blue; DeepReef 100 m: Dark blue) gen-
+eralised to multiple spatial resolutions, assessed using sampled coral depths at 23 reefs of the Great Barrier Reef: (a) Boxplots for each bathymetry
+model highlight vertical error (∆h; in meters), which was calculated as the difference between the tide-­corrected depth of sampled colonies (n = 2368)
+and the predicted depth from the bathymetry models. Quantile-­quantile (Q-­Q ) plots were used to assess the normality of ∆h distributions for the (b)
+Allen Coral Atlas at 15 m resolution, (c) DeepReef 30 m at 30 m resolution, and (d) DeepReef 100 m at 100 m resolution. Here, the theoretical ∆h values
+that were obtained from a normalised distribution (‘Theoretical’) are plotted against the actual sampled values of ∆h (‘Sampled’). Q-­Q plots of the
+∆h for the other spatial resolutions per bathymetry model are available in Figure S1. We note that in situ measurements were corrected to Lowest
+Astronomical Tide (LAT) whilst the bathymetric models give mean sea level (MSL) values.
+
+                                                                                                                                               9 of 21
+                                                                                                                                                                                                               20457758, 2025, 4, Downloaded from https://onlinelibrary.wiley.com/doi/10.1002/ece3.71292 by National Health And Medical Research Council, Wiley Online Library on [30/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+                                                                                                              100
+                                                                  100
+                      100
+
+                       50                                          50                                             50                                             DEM (m)
+                        0                                           0                                               0
+
+                      -50                                         -50                                             -50
+                                     0                  100                        0                  100                          0                100
+
+
+
+                      0.8
+                                                                                                                  0.5
+                                                                  0.6
+                      0.6
+
+                      0.4
+                                                                  0.4
+                                                                                                              0.25
+                                                                                                                                                                 Slope (rad)
+                      0.2                                         0.2
+
+                      0.0                                         0.0                                             0.0
+                             0.0     0.2          0.4     0.6           0.0        0.2       0.4            0.6         0.0            0.2          0.4
+
+
+
+                      1.0                                         1.0                                             1.0
+
+
+
+                      0.0                                         0.0                                             0.0
+                                                                                                                                                                 East (rad)
+
+                      -1.0                                        -1.0                                        -1.0
+                             -1.0             0.0               1.0 -1.0                   0.0              1.0 -1.0                      0.0             1.0
+
+
+
+                      1.0                                         1.0                                             1.0
+
+
+
+                      0.0                                         0.0                                             0.0
+                                                                                                                                                                 North (rad)
+
+                      -1.0                                        -1.0                                        -1.0
+                          -1.0                0.0               1.0 -1.0                   0.0              1.0 -1.0                     0.0              1.0
+           DeepReef
+
+
+
+
+                       0.01                                       0.04
+                                                                                                                  0.01
+
+
+                        0.0                                        0.0
+                                                                                                                   0.0                                           VCU (rad m-1)
+                                                                                                              -0.01
+                      -0.01
+                                                                 -0.04
+                             -0.01            0.0               0.01 -0.04                 0.0              0.04              -0.01          0.0      0.01
+
+
+
+                                                                    1
+                                                                                                                   0
+                        0
+                                                                    0
+                                                                                                                  -1                                             HCU (rad m-1)
+                       -5
+                                                                   -1                                             -2
+
+                      -10
+                         -10             -5               0                   -1                 0            1               -2          -1          0
+
+
+
+
+                      0.03
+                                                                 0.02                                         0.02
+                      0.02                                                                                                                                       VRM
+                                                                 0.01                                         0.01
+                      0.01
+
+
+                      0.00                                       0.00                                         0.00
+                          0.0        0.01          0.02       0.03    0.0          0.01              0.02               0.0        0.01            0.02
+
+
+
+                                                                                                              100
+                       20                                          40
+
+                                                                   20                                             50                                             BPI (m)
+                        0
+                                                                    0
+                                                                                                                    0
+                                                                  -20
+                      -20
+                             -20              0            20            -20           0     20        40               -50        0           50         100
+
+
+
+                      1.00                                        1.00                                            1.00
+
+                      0.95
+                                                                  0.95                                            0.96
+                                                                                                                                                                 SVF
+                      0.90
+
+
+                      0.85                                        0.90
+                                                                                                            0.92
+                             0.85     0.90          0.95 1.00           0.90               0.95         1.00 0.92                       0.96              1.00
+
+
+                                         30m                                             60m                                       90m
+                                                    Allen Coral Atlas
+
+
+
+10 of 21                                                                                                                                                                         Ecology and Evolution, 2025
+                                                                                                                                                         20457758, 2025, 4, Downloaded from https://onlinelibrary.wiley.com/doi/10.1002/ece3.71292 by National Health And Medical Research Council, Wiley Online Library on [30/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+FIGURE 4    |    Scatterplots with spearman correlations are used to assess the calculation of eight topographic variables (plot rows, with associated
+units) derived from two bathymetric digital elevation model (DEMs) sources at the three common resolutions of 30 m, 60 m and 120 m (plot columns).
+DEMs were obtained from two publicly available sources: Allen Coral Atlas 15 m (ACA15; x-­a xis), and DeepReef 30 m (y-­a xis). Values were obtained
+at 15,000 random points across 23 sampled reefs of the Great Barrier Reef (GBR), selected using the 120 m DEM raster with a limit of one point per
+pixel. We used Spearman's rho (values above each plot) to compare values derived from ACA and DeepReef, where a straight line along x = y and
+rho = 1.0 is expected when DEMs compute the exact same variables, whilst low correlation indicates differences in computed values between DEMs
+that could potentially impact SDMs performance. Abbreviations and information about variables are provided in Table 1.
+
+
+
+
+with DeepReef than ACA at 30 m and 60 m (DeepReef30m = 2.23                  H AUCTEST(8) = 171.1, HBIC(8) = 1021.9; p < 0.001). Dunn's non-­
+vs. ACA 30m = 2.66; DeepReef60m = 3.87 vs. ACA60m = 4.97),                   parametric post hoc tests for each species highlighted that SDMs
+with the inverse true at 120 m (DeepReef 120m = 7.35 vs.                     with input variables at 15–60 m produced statistically similar
+ACA120m = 6.55). Similar ∆h variation was seen for the 100 m                 models, which consistently outperformed 100 m and 120 m mod-
+DEM (DeepReef 100m = 6.53).                                                  els (Figure 5; formal statistical values provided in Table S7).
+                                                                             Bathymetry source had little impact on model performance
+                                                                             at matching resolutions, except at 30 m when ACA outper-
+3.2   |   Derived Topographic Variable Assessment                            formed DeepReef (Figure 5; formal statistical values provided in
+                                                                             Table S7). Often, the predictive abilities of the ‘all variable’ models
+The DEMs from the three bathymetric sources and eight topo-                  (n = 72 variables) were statistically similar to 15–60 m single reso-
+graphic variables were generally independent using a Spearman                lution models at both AUCTEST and BIC metrics (Figure 5; formal
+correlation threshold of |rs| ≥ 0.8 across the multiple spatial              statistical values provided in Table S7).
+resolutions analysed (heat map summarising correlations in
+Figure S3). However, strong positive correlations rs ≥ 0.5 were
+found within variable types for DEPTH, SLOPE, VRM and SVF                    3.4   |   Importance of Multiscale Topographic
+across all spatial resolutions, and strong negative correlations             Variables for Regional Species Distribution Models
+between multiple resolutions of SVF with VRM and SLOPE.
+Scatterplots showed strong correlations (rs ≥ 0.84) between the              Jackknife analyses revealed the relative importance of the 72
+bathymetric models of ACA and DeepReef at the common res-                    variables used in SDM (top variables: Figure 6a–c; all variables
+olutions of 30 m, 60 m and 120 m (Figure 4). However, the high               shown in Figure S5). Here, we focus on the general trends of ‘top’
+scatter between topographic variables at matching resolutions                variables that, when used alone, produced models with ‘accept-
+from ACA and DeepReef indicates inconsistencies between                      able’ discrimination between occurrence and background points
+calculated values, particularly at finer resolutions. This was no-           (i.e., AUCONLY > 0.7; Hosmer Jr. et al. 2013). Their interpreta-
+table for VCU, HCU, EAST and NORTH, where variables were                     tions were complemented with marginal response curves to vi-
+poorly correlated at 30 m resolutions (rs = 0.15, rs = 0.03, rs = 0.24       sualise the variable's additive effect in MaxEnt models, given all
+and rs = 0.22, respectively), but more consistent at 120 m resolu-           other variables, along with the variable's independent effects on
+tions (rs = 0.58, rs = 0.32, rs = 0.52 and rs = 0.50, respectively). For     predictions (examples: Figure 6d; all variables: Figure S6). The
+SLOPE, VRM, BPI, and SVF, variables were more similar be-                    species-­specific optimal resolutions for each variable are sum-
+tween ACA and DeepReef, with rs > 0.35 at the 15 m resolution                marised in Table 1. The most important variable for predicting
+and rs > 0.7 at the 120 m resolution.                                        the three species' occurrences was SLOPE across all resolutions,
+                                                                             notably at 30 m and 60 m. Considered with other variables, the
+                                                                             predictive presence of species was highest on moderate slopes,
+3.3   |   Predictive Power of Multiscale Topographic                         with low presence on both completely flat and steep inclines.
+Variables for Regional Species Distribution Models                           The terrain complexity variable of VRM was also important at
+                                                                             30 m or 60 m. When modelled with other variables, VRM at 30 m
+MaxEnt SDMs using only depth and the eight topographic vari-                 and 60 m highlight higher probabilities of A. spathulata and A.
+ables at multiple resolutions demonstrated extremely high pre-               kenti on smoother broad-­scale terrain features (e.g., reef flats and
+dictive capabilities for all three Acropora species across the GBR           straight lengths along reef slopes, rather than spur and groove
+(mean AUCTEST > 0.8; Figure 5a; Hosmer Jr. et al. 2013). SDM per-            systems), whilst A. hyacinthus appears to be less influenced by
+formance was subtly, yet significantly, different between species            VRM. Other common top variables amongst species included
+(Figure 5; formal statistical values provided in Table S6). Variation        VCU at 30 m and BPI at 15–60 m, where response curves were
+in predictive ability depended on which reef was excluded in                 highly sensitive to resolution. Generally, higher presence was
+cross-­
+      validation analyses (reef-­  level responses in Figure S4).            predicted on concave slopes (+VCU) and on local peaks and reef
+Overall, models for A. hyacinthus and A. kenti had statistically             crests (+BPI). Whilst neither depth nor SVF were important for
+similar performances, where larger AUCTEST values indicated im-              A. hyacinthus, both were top variables for A. spathulata (depth
+proved ability to differentiate occurrence from background points            at 15–60 m; SVF at 100 m) and A. kenti (depth at 15 m; SVF at
+than the models for A. spathulata. We saw consistent and signif-             15 m and 120 m). Interestingly, A. spathulata was slightly more
+icant (p < 0.001) responses of SDM performance to spatial reso-              associated with open areas (+SVF), whilst A. kenti was associ-
+lution within each species according to Kruskal-­Wallis tests for            ated with more covered areas (-­S VF). Models using only aspect
+each metric (A. hyacinthus: H AUCTEST(8) = 155.3, HBIC(8) = 688.8;           (EAST and NORTH) were no better than random, with slightly
+A. spathulata: H AUCTEST(8) = 211.3, HBIC(8) = 478.5; A. kenti:              higher occurrence along western slopes. Additionally, HCU had
+
+                                                                                                                                             11 of 21
+                                                                                                                                                                 20457758, 2025, 4, Downloaded from https://onlinelibrary.wiley.com/doi/10.1002/ece3.71292 by National Health And Medical Research Council, Wiley Online Library on [30/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+FIGURE 5    |    Performance evaluation of MaxEnt species distribution models (SDM) for three Acropora species (A. hyacinthus, A. spathulata, and
+A. kenti) on the Great Barrier Reef, using two metrics: (a) Area Under the receiver operating Curve based on the test data (AUC TEST) and (b) mean
+Bayesian Information Criterion (BIC). The x-­a xes represent the spatial resolution of predictor variables used in SDMs, coloured by the source of
+DEM bathymetry models: Allen Coral Atlas 15 m (ACA; orange), DeepReef 30 m (light blue), DeepReef 100 m (dark blue). The models built with all
+variables at all resolutions (n = 72; ‘All variables’) are indicated in black. Each point represents the 95% confidence interval of the evaluation criteria
+for all cross validations repeated over ten iterations. Lettering above each bar (e.g., ab, ac, bd, f, gf, etc.) groups the models with statistically similar
+performances, assessed using Kruskal-­Wallis tests for multiple comparisons, where the groupings are independent between species and metrics. Full
+statistical results are available in Table S7.
+
+
+
+no effect on predicted occurrence and was not used by MaxEnt                     distributions were predicted for A. hyacinthus (Figure 7d) and A.
+for any species. As before, the source of bathymetric model gen-                 kenti (Figure 7e), notably along reef crests and reef slopes, where
+erally had little impact on variable importance, though the top                  A. hyacinthus was more likely to be found around coral reef out-
+three variables for each species was based on ACA.                               crops. Meanwhile, A. spathulata was predicted to be more prev-
+                                                                                 alent across reef flats and lagoons than on reef crests and slopes
+Visual inspection of MaxEnt prediction maps, illustrated with                    (Figure 7e).
+an example from Chicken Reef (starred on the map of Figure 2),
+highlights higher occurrence probabilities coinciding with reef
+slopes and crests, based on satellite images (Figure 7a) and areas               4   |   Discussion
+of potentially suitable habitat (‘coral/algae’ and ‘rock’ from the
+ACA benthic habitat map; Figure 7b). Across all modelled reefs,                  Topographic variables derived from open-­     access bathymetry
+areas of high predicted presence (> 75%) were associated with                    DEMs produced high-­performing, species-­specific distribution
+70%–80% suitable habitat, whilst regions of low predicted pres-                  models for three Acropora coral species across the GBR. Using
+ence (0%–50%) contain < 20% suitable habitat (Figure 7c). Similar                only eight derived variable types plus depth, we generated maps
+
+
+12 of 21                                                                                                                           Ecology and Evolution, 2025
+                                                                                                                                                         20457758, 2025, 4, Downloaded from https://onlinelibrary.wiley.com/doi/10.1002/ece3.71292 by National Health And Medical Research Council, Wiley Online Library on [30/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+FIGURE 6    |    Jackknife assessments highlighting the relative importance of top predictor variables (i.e., those with AUCONLY > 0.7) used in MaxEnt
+distribution models for three Acropora coral species sampled across 23 reefs of the Great Barrier Reef: (a) A. hyacinthus, (b) A. spathulata, and (c)
+A. kenti. All 72 variables were used as predictors in the MaxEnt model for each species (full Jackknife results are in Figure S5). Relative impor-
+tance is assessed by comparing the Area Under the receiver operating Curve (AUC) of the full model (AUC TOTAL; red dashed lines), with the AUC
+of a model run only with one target variable (AUCONLY; coloured bars that match variable names in (d)) and with all variables except for the target
+(AUC WITHOUT; light grey bars). Variable abbreviations (detailed in Table 1) correspond to: DEM = digital elevation model, SLO = slope, EAST = east-
+ness, NORTH = northness, VCU = vertical curvature, HCU = horizontal curvature, VRM = vector ruggedness measure, BPI = bathymetry position
+index and SVF = sky view factor. Y-­a xis variable labels are coloured by the source of DEM: Allen Coral Atlas 15 m (ACA 15 m; orange), DeepReef 30 m
+(light blue), DeepReef 100 m (dark blue). Example response curves (d) highlight the individual effect of each variable type derived from ACA15 m on
+the predicted probability of A. spathulata occurrence (see Figures S6 and S7 for all marginal and individual response curves).
+
+
+predicting coral distributions that resolved reef morphology                 (e.g., Bridge et al. 2012; Dolan et al. 2008; Tong et al. 2012) and
+and correlated high occurrence probabilities of the species with             for identifying shallow-­water coral recruitment habitats (e.g.,
+areas of potentially suitable habitat, as determined by indepen-             Carlson et al. 2024; Radford et al. 2024). The novelty of the pres-
+dent remote sensed benthic maps (i.e., ACA benthic maps). Our                ent study lies in its assessment of very high-­resolution bathy-
+findings corroborate studies highlighting the power of topo-                 metric DEMs as fine as 15 m across an entire regional extent for
+graphic variables for modelling deep-­water coral distributions              shallow water coral distribution models. Here, we examine the
+
+
+                                                                                                                                             13 of 21
+                                                                                                                                                           20457758, 2025, 4, Downloaded from https://onlinelibrary.wiley.com/doi/10.1002/ece3.71292 by National Health And Medical Research Council, Wiley Online Library on [30/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+FIGURE 7    |    Visual assessment of MaxEnt prediction models compared with actual reef morphology and potential suitable habitat for three
+Acropora species, taking an example from the south-­west corner of Chicken Reef in the central Great Barrier Reef (indicated with a purple box in
+Figure 2). Reef morphology (a) is highlighted using satellite imagery superimposed on a bathymetry model, alongside mean current direction in
+summer (arrows), where sampled colonies of each species are indicated by coloured points. Areas of potential suitable habitat (b) are those identified
+as ‘coral/algae’ or ‘rock’ in the independent Allen Coral Atlas benthic map, where areas of high predicted occurrence (> 75% probability) according
+to MaxEnt models are superimposed for each species. Note that black areas indicate high predicted occurrence of multiple species. Panel (c) quan-
+tifies the relationship between mean ± standard error of potentially suitable habitat associated with the predicted probability of species' presences
+(grouped to 0%–25%, 25%–50%, 50%–75%, 75%–100%). Last, occurrence probability maps of (d) A. hyacinthus, (e) A. spathulata, and (f) A. kenti, de-
+termined using all 72 topographic variables in MaxEnt models, with photograph examples of sampled colonies for each species. Satellite imagery (a)
+is copyright to Planet Labs (2021, licenced CC BY-­SA-­NC 4.0).
+
+
+importance of considering topographic variables derived from                 be important for modelling distributions of three coral species
+high-­resolution bathymetry models. We then discuss the con-                 in shallow waters.
+sequences of using predictor variables at multiple spatial reso-
+lutions for mapping distributions of sessile marine organisms.               Contrary to the current paradigm that finer resolutions re-
+Our proposed methods can be applied to map species-­specific                 sult in higher SDM performance (e.g., Chauvier et al. 2022;
+marine organism distributions at other reef regions around the               Cushman and Landguth 2010; Moudrý et al. 2023), we find a
+world, which can ultimately guide global coral reef research and             slight improvement in SDM performance with 30 m and 60 m
+conservation projects.                                                       topographic variables. This suggests that the added compu-
+                                                                             tational time and expert knowledge required to process the
+                                                                             15 m variables from the ACA may not always be necessary.
+4.1   |   Bathymetric DEMs Share Similar                                     Simultaneously, the slightly lower performance of coarser vari-
+Vertical Accuracies and Are Both Important                                   able models suggests that the DeepReef100 m model may not
+for Shallow-­Water Coral Spatial Models                                      be resolved enough for modelling shallow water (< 10 m depth)
+                                                                             coral, despite its success in modelling deep-­water reefs (Bridge
+As DEM quality influences the relevance of derived topo-                     et al. 2012). For research in the GBR, we can recommend pri-
+graphic variables in ecological modelling, we first compared                 oritisation of the DeepReef30 m model, particularly when com-
+derived products of the open-­access and readily available ba-               putational limitations are a concern or when the target species
+thymetry models of the ACA (Allen Coral Atlas 2022) and                      are known to occur deeper than 10 m. Given that the highest
+DeepReef (Beaman 2010), filling missing pixels of ACA with                   AUC values were consistently attributed to ACA derived vari-
+the DeepReef30 m DEM. We found that the vertical accuracies                  ables (at 15, 30 and 60 m), when computational limitations are
+of DEMs, assessed to 10 m depth, were similar for DEMs from                  not a concern and the taxon of interest occurs predominantly
+both sources at matching resolutions, where coarser pixel sizes              in depths shallower than 10 m, the ACA would also be suitable.
+had larger vertical errors compared to in situ measurements. We              Furthermore, global availability of the ACA bathymetry maps
+expect that approximately 1 m of the vertical inaccuracies can               makes them excellent resources to derive topographic variables
+be attributed to technical factors of diving-­based sampling, as             for modelling shallow-­water corals in reefs outside of the GBR
+well as from tide corrections interpolated from the nearest tide             region, with the DeepReef also valuable across the GBR and
+stations. Regardless of these depth errors, we found the DEMs to             Coral Sea.
+
+
+14 of 21                                                                                                                     Ecology and Evolution, 2025
+                                                                                                                                                 20457758, 2025, 4, Downloaded from https://onlinelibrary.wiley.com/doi/10.1002/ece3.71292 by National Health And Medical Research Council, Wiley Online Library on [30/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+Whilst the results presented here will be relevant for most               these species. It could be that these variables incorrectly cap-
+coral species located on shallow reef (i.e., < 10 m depth; Lyons          ture environmental processes, either due to artefact errors
+et al. 2024), the accuracy and importance of the bathymetry               in high-­resolution DEMs that are amplified in these primary
+products for modelling species in waters deeper than 10 m can-            terrain attributes (Lecours, Dolan, et al. 2016) or because the
+not be specifically commented on here. We hypothesise that                variables need to be at resolutions < 15 m or > 100 m to be rel-
+DeepReef bathymetry models are more accurate than ACA at                  evant for modelling these species (Dolan et al. 2008; Pygas
+> 10 m depth, as DeepReef uses more precise LiDAR and sonar               et al. 2020). For example, distribution modelling of the cold-­
+data to complement satellite data (Beaman 2010, 2017, 2020).              water coral, Lophelia pertusa, across an Irish seamount required
+Furthermore, assessments of the ACA bathymetry maps in-                   aspect between 1.5–16 m, but not HCU at any resolution (Dolan
+dicate the maximum accuracy of DEMs is limited to 10–15 m                 et al. 2008), whilst HCU was instead important at 170 m across
+depths, where the root mean squared error of DEMs doubles at              a Norwegian deep-­reef margin (Tong et al. 2016). Though fine-­
+20 m depth (Li et al. 2021). Future work should compare the ac-           resolution topographic variables < 10 m are excellent predictors
+curacies and importance of bathymetric DEM products, includ-              in modelling coral habitats at local scales (Carlson et al. 2024;
+ing from DeepReef and ACA, at depths > 10 m prior to use for              Radford et al. 2024), they remain unattainable across entire
+deeper water species.                                                     reef networks with current technologies (Bongaerts et al. 2021)
+                                                                          and could therefore not be assessed in the present study. It is
+                                                                          also possible that these topographic variables were not closely
+4.2   |   Multiscale Topographic Variables Are                            related to the environmental variables that we assume them to
+Important in Coral Spatial Models                                         be environmental surrogates for (e.g., light availability), as we
+                                                                          did not ground truth these relationships (e.g., we assume that
+Regardless of bathymetric source, the top variables for modelling         aspect is a proxy for erosion and wave direction; Table 1). Here,
+all three Acropora species in shallow waters were those repre-            we based our assumptions on previous research (see references
+senting habitat complexity (i.e., Slope, VRM, VCU, BPI and SVF),          in Introduction and Table S3), but it could be that the assumed
+where discussions on optimal species-­specific terrain attributes         relationship does not extend to our study area. Future research
+are provided in Section 4.3. These top variables are those that           is needed to correlate derived topographic variables with empir-
+proxy for important physical processes that may impact coral              ically quantified environmental conditions.
+settlement, growth, and survival (Pratchett et al. 2015) and are
+known to be important for marine habitat mapping (e.g., Brown             Harnessing multi-­resolution variables can provide more nuanced
+et al. 2012; Dolan et al. 2008; Lecours, Brown, et al. 2016), includ-     information about processes impacting species distributions
+ing for coral SDMs (e.g., Bridge et al. 2012; Pygas et al. 2020; Tong     and lead to more accurate models for conservation manage-
+et al. 2012). Indeed, slope affects benthic habitat composition and       ment. The sensitivity of topographic variables to spatial scale is
+colonisation success by dictating sediment stability, water flow          known to be highly complex (e.g., Pygas et al. 2020; Smith 2014;
+and current acceleration (Lecours, Dolan, et al. 2016; Wilson             Sous et al. 2024), where we found in the current study that the
+et al. 2007). The habitat complexity variables represent terrain          optimal spatial resolution for coral SDMs depended on habitat
+structures that dictate coral exposure to biotic, abiotic and eco-        characteristics, species biology and ecology, and topographic
+logical factors, such as available surface for larval attachment          variable type. For instance, Jackknife analyses of the ‘all vari-
+and growth, access to nutrients and shelter that dictates preda-          able’ models revealed that the top-­performing variables were
+tion risk, as well as variations in local environmental conditions        often at 30 m or 60 m resolutions. These mid-­resolutions could
+(Asner et al. 2021; Chung et al. 2021; Whalan et al. 2015). For           be advantageous due to smoothing over DEM acquisition noise
+instance, VCU captures dominant landforms and geomorphic                  amplified at finer resolutions (Pradervand et al. 2014). We show
+processes, such as ridges and channels, influencing patterns of           that depth and habitat complexity variables were most relevant
+sedimentation and currents (Lecours, Dolan, et al. 2016; Rowden           at finer resolutions (i.e., 15 m and 30 m), whilst variables of gen-
+et al. 2017; Wilson et al. 2007). VRM and BPI indicate crests and         eral landform features, orientation, and openness were more rel-
+troughs impacting local habitat conditions, attachment sites, ex-         evant at mid resolutions (i.e., 60 m). By contrast, a similar study
+posure, and thermal regimes (Misiuk et al. 2021; Pygas et al. 2020;       on deep-­sea coral distributions found that BPI, curvature and
+Sappington et al. 2007; Tong et al. 2012; Wilson et al. 2007). Last,      rugosity at 170 m were more relevant than 30 m or 90 m (Tong
+terrain openness, captured through SVF, impacts overhead light            et al. 2012). The importance of finer resolution variables could
+and wave action, with consequences for energy acquisition (e.g.,          stem from sample bias in depth-­restricted sampling. For in-
+photosynthetic rates and nutrients) and stress tolerance (e.g., wave      stance, if a species is present deeper than what is sampled on a
+energy and UV exposure) (Böhner and Antonić 2009). Whilst                 reef slope, the 15 m model might underpredict presence, which
+in the present study we selected only a few commonly used and             would otherwise be captured with coarser-­pixel DEM models.
+easily calculated terrain variables, the importance of structural         The 100 m and 120 m resolution variables were generally less
+complexity on ecological, geomorphological and hydrodynamical             important and associated with decreased model performance,
+processes has resulted in the development of a plethora of other          likely due to loss of critical information related to terrain fea-
+terrain roughness metrics. Such variables that warrant investi-           tures and habitats such as reef outcrops.
+gation in future coral SDM studies include linear rugosity, skew-
+ness, effective and spectral slope, entropy and frontal solidity (e.g.,   As the relationships between variables at given spatial resolu-
+Chung et al. 2021; Pygas et al. 2020; Smith 2014; Sous et al. 2024).                                           dependent, extrapolation
+                                                                          tions are strongly site-­and species-­
+                                                                          to new areas is not advised, where unique sets of multiscale
+Variables representing aspect (EAST and NORTH) and HCU at                 variables must be produced for each new area and species. For
+the tested resolutions were seemingly irrelevant for modelling            researchers interested in producing and using species-­specific
+
+                                                                                                                                     15 of 21
+                                                                                                                                                 20457758, 2025, 4, Downloaded from https://onlinelibrary.wiley.com/doi/10.1002/ece3.71292 by National Health And Medical Research Council, Wiley Online Library on [30/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+marine SDMs built with DEM-­derived topographic variables in          multiresolution variables (Pittman et al. 2021; Pygas et al. 2020).
+other regions of the world, we recommend comparing SDM pre-           Here, we demonstrated that mid-­resolution variables (30 and
+diction maps with high-­resolution remote sensed coral habitat        60 m) performed just as well as 15 m models, with performance
+and benthic classification maps. These can be accessed through        dropping slightly at coarser resolutions (100 and 120 m), de-
+open-­source resources including Millennium Coral Reef                bunking the paradigm that the finest resolutions should be
+Mapping Project (Andréfouët and Bionaz 2021; Andréfouët and           used whenever possible (Moudrý et al. 2023). Therefore, when
+Riegl 2004), the Khaled bin Sultan Living Oceans Foundation           faced with limitations in finances, time, and computational re-
+(Carlton et al. 2021; Purkis et al. 2019), Reef Cover (Kennedy        sources, slightly coarser resolution variables remain a practical
+et al. 2021), and the Allen Coral Atlas (ACA; Allen Coral             option to obtain accurate SDMs. Whilst the present study fo-
+Atlas 2022).                                                          cuses on species in the expansive coral reef network of the GBR,
+                                                                      Australia, we propose a multiscale framework to facilitate se-
+                                                                      lecting context-­specific optimal spatial resolutions for coral reef
+4.3   |   Topographic Variable Importance Is                          researchers around the globe, given that presence-­only or pres-
+Species-­Specific                                                     ence/absence data is available for the target species.
+
+Distinct coral prediction maps were produced for the three            First, all potentially relevant variables must be generalised
+Acropora species, reflecting recorded habitat preferences             to multiple spatial resolutions. Here, we used a Gaussian pyr-
+(Veron 2000; Wallace et al. 2012) and aligning well with reef         amid to obtain DEMs at nested resolutions from which topo-
+satellite images and generic coral habitat maps. A. spathulata        graphic variables were derived (following Guillaume et al. 2021;
+was predicted across a broader range of geomorphic areas than         Kalbermatten et al. 2012; Leempoel et al. 2015). Whilst this
+the other species, reflecting its observed distribution across ex-    resample-­calculate method (Misiuk et al. 2021) based on wave-
+posed and sheltered reef slopes, outer reef flats, and lagoons.       let multi-­resolution decompositions is good when characterising
+Conversely, A. kenti and A. hyacinthus predictions were more          specific benthic features or processes, it may not be optimal for
+limited to reef crests and upper reef slopes, consistent with their   multiscale implementations for all groups of variables (e.g., cli-
+known habitat preferences for higher energy environments. The         matic, oceanographic, etc.). Other multiscale methods exist and
+subtlety in distribution patterns between these species could be      should be selected based on study goals and data characteristics
+due to taxonomic closeness as members of the Acropora genus,          (see Misiuk et al. 2021; Smith 2014). Further investigation into
+with overlapping habitat preferences and distributions. To better     different approaches could provide valuable knowledge for the
+understand coral relationships with topographic variables and         integration of multiscale variables.
+potentially make generalisations about optimal variable resolu-
+tions, future work should compare more distantly related coral        Once multiscale variables are produced, the second step involves
+species with diverse morphologies and/or life history traits (such    integrating them into an ecological model that is best suited to
+as investigating massive or dome-­shaped corals of the Poritidae      the presence data available. Here, we integrated all variables into
+or Pocilloporidae families) from contrasting habitats, particu-       MaxEnt as predictors of coral distribution, as this SDM model
+larly as the relevant spatial scale is expected to vary between       based on presence-­only data can handle redundancy automat-
+and within species (Winship et al. 2020).                             ically in its machine learning algorithm (De Marco Júnior and
+                                                                      Nóbrega 2018; Feng et al. 2019). Depending on the ecological
+Species-­specific variable importance underlies the observed          model, collinearity amongst multiresolution variables may first
+differences in predicted spatial distributions. The A. hyacinthus     need to be addressed. This can be done using simple correlation
+complex required fewer topographic variables than the other           assessments, such as Spearman's pairwise correlations using
+species, notably omitting depth and SVF, with some evidence           |rs| ≥ 0.8 (Fischer et al. 2013) or variation inflation factors with
+from cross-­validations that these models were less transferable      VIF < 10 (Dormann et al. 2013). Alternatively, automatised vari-
+to novel locations (Elith et al. 2011). Rather than fine resolution   able selection procedures using either a step-­w ise forward model
+topographic influences, this tabular species might be more af-        (Blanchet et al. 2008) or an embedded covariate algorithm (Adde
+fected by broader-­scale geographic, oceanographic or climatic        et al. 2023) aimed at optimising the predictive ability of SDMs
+variables, in line with its high sensitivity to storm damage, coral   could be used.
+bleaching, and disease (Ortiz et al. 2021; Pratchett et al. 2015).
+By contrast, A. spathulata and A. kenti distributions were driven     Here, we illustrate how topographic variables at multiple res-
+by topographic variables representing substrate composition,          olutions can produce species-­specific distribution models that
+terrain variability, openness, and relative position, potentially     are more nuanced than generic benthic habitat maps (e.g.,
+due to their corymbose morphologies (Veron 2000) with broader         the Millennium Coral Reef Mapping Project (Andréfouët and
+bases for solid attachments in heterogeneous environments             Bionaz 2021; Andréfouët and Riegl 2004); the Khaled bin
+(Cresswell et al. 2020; Madin et al. 2012; Pratchett et al. 2015).    Sultan Living Oceans Foundation (Carlton et al. 2021; Purkis
+                                                                      et al. 2019); Reef Cover (Kennedy et al. 2021); the Allen Coral
+                                                                      Atlas (Allen Coral Atlas 2022)). These species-­   specific pre-
+4.4   |   Harnessing a Multiscale Framework                           diction maps can provide nuanced insights into the drivers of
+                                                                      species distributions and act as null models against which to
+As the sensitivity of ecological models to spatial scale varies       study the effects of climate change, where topography-­     only
+with study species and topographic variable type, accurate map-       models can be compared to models using geomorphic, ocean-
+ping of species distributions for multi-­species conservation plan-   ographic and climatic variables (e.g., ocean temperatures, sea-
+ning requires pragmatic methods to integrate species-­specific        water chemical composition, connectivity, and wave exposure;
+
+16 of 21                                                                                                           Ecology and Evolution, 2025
+                                                                                                                                                     20457758, 2025, 4, Downloaded from https://onlinelibrary.wiley.com/doi/10.1002/ece3.71292 by National Health And Medical Research Council, Wiley Online Library on [30/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+Bertelli et al. 2023; Pygas et al. 2020; Winship et al. 2020; Yuen
+et al. 2023).
+                                                                      Author Contributions
+This research represents a first step towards producing multiple      Annie S. Guillaume: conceptualization (lead), data curation (equal),
+multiscale species-­specific distribution prediction maps across      formal analysis (lead), funding acquisition (supporting), investigation
+an entire reef network relatively quickly using only open-­access     (lead), methodology (lead), project administration (lead), validation
+                                                                      (lead), visualization (lead), writing – original draft (lead), writing –
+bathymetric data, providing initial information to guide field
+                                                                      review and editing (lead). Renata Ferrari: formal analysis (equal),
+expeditions for research and conservation planning alike. One         methodology (equal), resources (supporting), validation (supporting),
+such application might be to predict the distribution of bleached     writing – review and editing (equal). Oliver Selmoni: formal analy-
+coral colonies of a species, given the presence of thermally sen-     sis (equal), methodology (equal), writing – review and editing (equal).
+sitive individuals. The distribution maps obtained in this proj-      Véronique J. L. Mocellin: data curation (equal), formal analysis
+ect are to be validated and used in upcoming RRAP research to         (supporting), methodology (supporting), writing – review and editing
+                                                                      (equal). Hugo Denis: data curation (equal), formal analysis (support-
+guide the selection and prioritisation of sampling sites for con-
+                                                                      ing), methodology (supporting), writing – review and editing (equal).
+tinued coral restoration and adaptation research. Similar work        Melissa Naugle: data curation (equal), formal analysis (supporting),
+can be done in other coral reef regions around the world by fol-      methodology (supporting), writing – review and editing (equal). Emily
+lowing the proposed framework and harnessing region-­specific         Howells: data curation (equal), funding acquisition (equal), methodol-
+bathymetry models to produce site-­specific species distribution      ogy (supporting), resources (equal), supervision (supporting), writing
+maps to aid local coral reef restoration projects.                    – review and editing (equal). Line K. Bay: funding acquisition (equal),
+                                                                      project administration (equal), resources (equal), supervision (equal),
+                                                                      writing – review and editing (supporting). Stéphane Joost: concep-
+Beyond applications in SDM, this multiscale framework offers
+                                                                      tualization (equal), funding acquisition (equal), methodology (sup-
+potential benefits for spatial population genomic analyses. For       porting), project administration (equal), resources (equal), supervision
+instance, integrating variables at appropriate spatial resolutions    (lead), writing – review and editing (supporting).
+in seascape genomic (Riginos et al. 2016; Selmoni et al. 2020) ap-
+proaches using genotype–environment association models may            Acknowledgements
+lead to more accurate hypotheses of candidate loci under selec-
+tion (as shown in a terrestrial example of Guillaume, Leempoel,       The authors would like to thank Briony Stephenson, Samantha Goyen,
+                                                                      and the countless crew and volunteers involved in collecting the georef-
+et al. 2024). The integration of multiscale variables into evolu-
+                                                                      erenced coordinates in the field. The authors would also like to thank
+tionary ecology models will enable the development of robust          Juan Ortiz, Robert Beaman, Chris Roelfsema, Nicholas Brown, Mariana
+and effective predictions for marine ecosystems research, ulti-       Alvarez Noriega, Eoghan Aston and Tiny Remmers for valuable dis-
+mately contributing to improved conservation and management           cussions regarding bathymetric models, topographic variables and
+strategies.                                                           data analyses. The authors would like to acknowledge the Traditional
+                                                                      Owners of the Great Barrier Reef for permission to undertake coral
+                                                                      sampling in their Sea Country.
+5   |   Conclusions
+                                                                      Conflicts of Interest
+Distribution models offer a practical and powerful way to iden-       The authors declare no conflicts of interest.
+tify priority areas for research and management intervention
+for multiple at-­ risk species simultaneously, where the accu-        Data Availability Statement
+racy, and therefore relevance, of SDMs depends on the quality
+                                                                      All data and scripts that support the findings of this study are openly
+of the predictor variables. With increased access to predictor
+                                                                      available on Dryad at https://​doi.​org/​10.​5061/​dryad.​wdbrv​15vk
+variables at ever-­finer spatial resolutions, the ecological rele-    (Guillaume, Ferrari, et al. 2024). Publicly available data can be found at
+vance of variables must be assessed prior to their use in ecolog-     the following repositories: Coordinates (X, Y, depth) records maintained
+ical modelling. For the three GBR open-­access, high resolution       by AIMS (https://​doi.​org/​10.​25845/​​8DJ4-­​0V58). Multiscale DEMs and
+bathymetric models assessed here (ACA, DeepReef30 m and               topographic variables from the AIMS archive (https://​doi.​org/​10.​25845/​​
+DeepReef100 m), we found that the finest resolution of 15 m           ggyv-­​pq15). Allen Coral Atlas Digital Elevation Models (https://​doi.​
+was not always required for achieving high-­performing SDMs           org/​10.​5281/​zenodo.​3833242). DeepReef30m Digital Elevation Model
+                                                                      (https://​doi.​org/​10.​4225/​25/​5a207​b36022d2). DeepReef100m Digital
+for the Acropora species investigated. Instead, optimal spatial
+                                                                      Elevation Model (www.​deepr​eef.​org/​2 010/​07/​0 6/​gbr-­​bathy/​​).
+resolutions fell between 15 m and 60 m depending on the species
+and variable type. By using the multiscale framework described
+here, we included variables quickly and efficiently at resolutions    References
+important for each specific species. This shows how a multiscale      Abrego, D., E. J. Howells, S. D. A. Smith, et al. 2021. “Factors Limiting
+framework can be adapted to produce species-­specific distribu-       the Range Extension of Corals Into High-­           Latitude Reef Regions.”
+tion models for coral reefs around the world. Using multiscale        Diversity 13: 1–16. https://​doi.​org/​10.​3390/​d1312​0 632.
+variables as predictors in ecological models ultimately facilitates
+                                                                      Adde, A., P. L. Rey, F. Fopp, et al. 2023. “Too Many Candidates:
+conservation decision making. By deepening our understanding          Embedded Covariate Selection Procedure for Species Distribution
+of the environmental variables that drive spatial distributions we    Modelling With the Covsel R Package.” Ecological Informatics 75:
+can produce more nuanced prediction maps. This enables con-           102080. https://​doi.​org/​10.​1016/j.​ecoinf.​2 023.​102080.
+servation practitioners to better grasp the ecological dynamics       Ahmadi, M., M.-­R . Hemami, M. Kaboli, and F. Shabani. 2023. “MaxEnt
+at play across different spatial resolutions, ultimately enhancing    Brings Comparable Results When the Input Data Are Being Completed;
+our ability to predict marine species distributions and inform        Model Parameterization of Four Species Distribution Models.” Ecology
+spatial planning.                                                     and Evolution 13, no. 2: e9827. https://​doi.​org/​10.​1002/​ece3.​9827.
+
+
+                                                                                                                                        17 of 21
+                                                                                                                                                                    20457758, 2025, 4, Downloaded from https://onlinelibrary.wiley.com/doi/10.1002/ece3.71292 by National Health And Medical Research Council, Wiley Online Library on [30/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+Allen Coral Atlas. 2022. “Imagery, Maps and Monitoring of the World's             Bridge, T. C. L., P. F. Cowman, A. M. Quattrini, et al. 2023. “A Tenuis
+Tropical Coral Reefs [WWW Document].” https://​doi.​org/​10.​5281/​ze-            Relationship: Traditional Taxonomy Obscures Systematics and
+nodo.​3833242.                                                                    Biogeography of the ‘Acropora tenuis’ (Scleractinia: Acroporidae)
+                                                                                  Species Complex.” Zoological Journal of the Linnean Society 202, no. 1:
+Anderson, C. D., B. k. Epperson, M.-­J. Fortin, et al. 2010. “Considering
+                                                                                  zlad062. https://​doi.​org/​10.​1093/​zooli​nnean/​​zlad062.
+Spatial and Temporal Scale in Landscape-­     Genetic Studies of Gene
+Flow.” Molecular Ecology 19: 3565–3575. https://​doi.​org/​10.​1111/j.​1365-­​    Brown, C. J., J. A. Sameoto, and S. J. Smith. 2012. “Multiple Methods,
+294X.​2 010.​0 4757.​x.                                                           Maps, and Management Applications: Purpose Made Seafloor Maps
+                                                                                  in Support of Ocean Management.” Journal of Sea Research 72: 1–13.
+Andréfouët, S., and O. Bionaz. 2021. “Lessons From a Global Remote
+                                                                                  https://​doi.​org/​10.​1016/j.​seares.​2 012.​0 4.​0 09.
+Sensing Mapping Project. A Review of the Impact of the Millennium
+Coral Reef Mapping Project for Science and Management.” Science of                Carlson, R. R., L. B. Crowder, R. E. Martin, and G. P. Asner. 2024. “The
+the Total Environment 776: 145987. https://​doi.​org/​10.​1016/j.​scito​tenv.​    Effect of Reef Morphology on Coral Recruitment at Multiple Spatial
+2021.​145987.                                                                     Scales.” Proceedings of the National Academy of Sciences 121: 2017.
+                                                                                  https://​doi.​org/​10.​1073/​pnas.​23116​61121​.
+Andréfouët, S., and B. Riegl. 2004. “Remote Sensing: A Key Tool for
+Interdisciplinary Assessment of Coral Reef Processes.” Coral Reefs 23:            Carlton, R., A. Dempsey, L. Thompson, et al. 2021. Global Reef
+1–4. https://​doi.​org/​10.​1007/​s 0033​8-­​0 03-­​0360-­​z.                     Expedition Final Report. Annapolis, MD.
+Asner, G. P., N. R. Vaughn, S. A. Foo, J. Heckler, and R. E. Martin. 2021.        Chauvier, Y., P. Descombes, M. Guéguen, L. Boulangeat, W. Thuiller,
+“Abiotic and Human Drivers of Reef Habitat Complexity Throughout                  and N. E. Zimmermann. 2022. “Resolution in Species Distribution
+the Main Hawaiian Islands.” Frontiers in Marine Science 8: 1–13. https://​        Models Shapes Spatial Patterns of Plant Multifaceted Diversity.”
+doi.​org/​10.​3389/​f mars.​2 021.​631842.                                        Ecography 2022, no. 10: e05973. https://​doi.​org/​10.​1111/​ecog.​05973​.
+Bakker, A. C., A. C. R. Gleason, A. C. Dempsey, H. E. Fox, R. H. Green,           Chung, D., N. Hutchins, M. P. Schultz, and K. A. Flack. 2021. “Predicting
+and S. J. Purkis. 2024. “Remotely Sensed Habitat Diversity Predicts               the Drag of Rough Surfaces.” Annual Review of Fluid Mechanics 53:
+Species Diversity on Coral Reefs.” Remote Sensing of Environment 302:             439–471. https://​doi.​org/​10.​1146/​annur​ev-­​f luid​- ­​0 6252​0 -­​115127.
+113990. https://​doi.​org/​10.​1016/j.​rse.​2 024.​113990.
+                                                                                  Colberg, F., G. B. Brassington, P. Sandery, P. Sakov, and S. Aijaz. 2020.
+Beaman, R. J. 2010. Project 3D-­GBR: A high-­resolution depth model for           “High and Medium Resolution Ocean Models for the Great Barrier
+the Great Barrier Reef and Coral Sea. Marine and Tropical Sciences                Reef.” Ocean Modelling 145: 101507. https://​doi.​org/​10.​1016/j.​ocemod.​
+Research Facility (MTSRF) Project 2.5i.1a Final Report. https://​doi.​org/​       2019.​101507.
+10.​4225/​25/​5a207​b36022d2.
+                                                                                  Connor, T., V. Hull, A. Viña, et al. 2018. “Effects of Grain Size and Niche
+Beaman, R. J. 2017. “High-­Resolution Depth Model for the Great Barrier           Breadth on Species Distribution Modeling.” Ecography 41: 1270–1282.
+Reef – 30 m Dataset.” https://​doi.​org/​10.​4225/​25/​5a207​b36022d2.            https://​doi.​org/​10.​1111/​ecog.​03416​.
+Beaman, R. J. 2020. “High-­Resolution Depth Model for the Great                   Conrad, O., B. Bechtel, M. Bock, et al. 2015. “System for Automated
+Barrier Reef and Coral Sea – 100 m.” https://​doi.​org/​10.​2 6186/​​5e2f8​       Geoscientific Analyses (SAGA) v. 2.1.4.” Geoscientific Model
+bb629d07.                                                                         Development 8: 1991–2007. https://​doi.​org/​10.​5194/​gmd-­​8-­​1991-­​2 015.
+Bertelli, C. M., W. G. Bennett, H. Karunarathna, D. E. Reeve, R. K.               Cooke, I., H. Ying, S. Forêt, et al. 2020. “Genomic Signatures in the
+F. Unsworth, and J. C. Bull. 2023. “High-­Resolution Wave Data for                Coral Holobiont Reveal Host Adaptations Driven by Holocene Climate
+Improving Marine Habitat Suitability Models.” Frontiers in Marine                 Change and Reef Specific Symbionts.” Science Advances 6: eabc6318.
+Science 9: 1–14. https://​doi.​org/​10.​3389/​f mars.​2 022.​1004829.             https://​doi.​org/​10.​1126/​sciadv.​abc6318.
+Blanchet, F. G., P. Legendre, and D. Borcard. 2008. “Forward Selection            Cornwall, C. E., S. Comeau, N. A. Kornder, et al. 2021. “Global Declines
+of Explanatory Variables.” Ecology 89: 2623–2632. https://​doi.​org/​10.​         in Coral Reef Calcium Carbonate Production Under Ocean Acidification
+1890/​07-­​0 986.​1.                                                              and Warming.” Proceedings of the National Academy of Sciences of the
+Böhner, J., and O. Antonić. 2009. “Land-­Surface Parameters Specific to           United States of America 118, no. 21: e2015265118. https://​doi.​org/​10.​
+Topo-­Climatology.” In Developments in Soil Science, edited by T. Hengl           1073/​pnas.​2 0152​65118​.
+and H. I. Reuter, 195–226. Elsevier B.V. https://​doi.​org/​10.​1016/​S 0166​
+                                                                                  Cresswell, A. K., M. Orr, M. Renton, et al. 2020. “Structure-­From-­
+-­​2 481(08)​0 0008​-­​1.
+                                                                                  Motion Reveals Coral Growth Is Influenced by Colony Size and Wave
+Böhner, J., R. Köthe, O. Conrad, J. Gross, A. Ringeler, and T. Selige.            Energy on the Reef Slope at Ningaloo Reef, Western Australia.” Journal
+2002. Soil Regionalisation by Means of Terrain Analysis and Process               of Experimental Marine Biology and Ecology 530-­531: 151438. https://​
+Parameterisation, Soil Classification 2001. European Soil Bureau,                 doi.​org/​10.​1016/j.​jembe.​2 020.​151438.
+Research Report No. 7, EUR 20398 EN.
+                                                                                  Cushman, S. A., and E. L. Landguth. 2010. “Scale Dependent Inference
+Bongaerts, P., C. E. Dubé, K. E. Prata, J. C. Gijsbers, M. Achlatis, and A.       in Landscape Genetics.” Landscape Ecology 25: 967–979. https://​doi.​
+Hernandez-­A greda. 2021. “Reefscape Genomics: Leveraging Advances                org/​10.​1007/​s1098​0 -­​010-­​9467-­​0.
+in 3D Imaging to Assess Fine-­Scale Patterns of Genomic Variation on
+                                                                                  De Marco Júnior, P., and C. C. Nóbrega. 2018. “Evaluating Collinearity
+Coral Reefs.” Frontiers in Marine Science 8: 1–9. https://​doi.​org/​10.​3389/​
+                                                                                  Effects on Species Distribution Models: An Approach Based on Virtual
+fmars.​2 021.​638979.
+                                                                                  Species Simulation.” PLoS One 13, no. 9: e0202403. https://​doi.​org/​10.​
+Bradley, A. P. 1997. “The Use of the Area Under the ROC Curve in the              1371/​journ​al.​pone.​0202403.
+Evaluation of Machine Learning Algorithms.” Pattern Recognition 30:
+                                                                                  Deng, Y., J. P. Wilson, and B. O. Bauer. 2007. “DEM Resolution
+1145–1159. https://​doi.​org/​10.​1016/​S 0031​-­​3203(96)​0 0142​-­​2 .
+                                                                                  Dependencies of Terrain Attributes Across a Landscape.” International
+Brenning, A., D. Bangs, and M. Becker. 2022. “RSAGA: SAGA                         Journal of Geographical Information Science 21: 187–213. https://​doi.​
+Geoprocessing and Terrain Analysis.” R package version 1.4.0.                     org/​10.​1080/​13658​81060​0894364.
+Bridge, T., R. Beaman, T. Done, and J. Webster. 2012. “Predicting the             Denis, H., L. K. Bay, V. J. L. Mocellin, et al. 2024. “Thermal Tolerance
+Location and Spatial Extent of Submerged Coral Reef Habitat in the                Traits of Individual Corals Are Widely Distributed Across the Great
+Great Barrier Reef World Heritage Area, Australia.” PLoS One 7, no. 10:           Barrier Reef.” Proceedings of the Royal Society B: Biological Sciences 291:
+e48203. https://​doi.​org/​10.​1371/​journ​al.​pone.​0 048203.                    202420240587. https://​doi.​org/​10.​1098/​rspb.​2 024.​0587.
+
+
+
+18 of 21                                                                                                                              Ecology and Evolution, 2025
+                                                                                                                                                                            20457758, 2025, 4, Downloaded from https://onlinelibrary.wiley.com/doi/10.1002/ece3.71292 by National Health And Medical Research Council, Wiley Online Library on [30/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+Devlin, M. J., E. T. da Silva, C. Petus, et al. 2013. “Combining In-­Situ               Guillaume, A. S., K. Leempoel, A. Rogivue, F. Gugerli, C. Parisod,
+Water Quality and Remotely Sensed Data Across Spatial and Temporal                      and S. Joost. 2024. “Integrating Very High Resolution Environmental
+Scales to Measure Variability in Wet Season Chlorophyll-­      a: Great                 Proxies in Genotype–Environment Association Studies.” Ecological
+Barrier Reef Lagoon (Queensland, Australia).” Ecological Processes 2:                   Applications 17: e13737. https://​doi.​org/​10.​1111/​eva.​13737​.
+31. https://​doi.​org/​10.​1186/​2192-­​1709-­​2-­​31.
+                                                                                        Guisan, A., C. H. Graham, J. Elith, et al. 2007. “Sensitivity of Predictive
+Dolan, M. F. J., A. J. Grehan, J. C. Guinan, and C. Brown. 2008.                        Species Distribution Models to Change in Grain Size.” Diversity and
+“Modelling the Local Distribution of Cold-­Water Corals in Relation                     Distributions 13: 332–340. https://​doi.​org/​10.​1111/j.​1472-­​4 642.​2 007.​
+to Bathymetric Variables: Adding Spatial Context to Deep-­Sea Video                     00342.​x.
+Data.” Deep Sea Research Part I: Oceanographic Research Papers 55:
+                                                                                        Hamylton, S. M., J. D. Hedley, and R. J. Beaman. 2015. “Derivation of
+1564–1579. https://​doi.​org/​10.​1016/j.​dsr.​2 008.​06.​010.
+                                                                                        High-­ Resolution Bathymetry From Multispectral Satellite Imagery:
+Donovan, M. K., D. E. Burkepile, C. Kratochwill, et al. 2021. “Local                    A Comparison of Empirical and Optimisation Methods Through
+Conditions Magnify Coral Loss After Marine Heatwaves.” Science 372:                     Geographical Error Analysis.” Remote Sensing 7: 16257–16273. https://​
+977–980. https://​doi.​org/​10.​1126/​scien​ce.​abd9464.                                doi.​org/​10.​3390/​rs712​15829​.
+Dormann, C. F., J. Elith, S. Bacher, et al. 2013. “Collinearity: A Review               Häntzschel, J., V. Goldberg, and C. Bernhofer. 2007. “GIS-­            Based
+of Methods to Deal With It and a Simulation Study Evaluating Their                      Regionalisation of Radiation, Temperature and Coupling Measures
+Performance.” Ecography Cop. 36: 27–46. https://​doi.​org/​10.​1111/j.​                 in Complex Terrain for Low Mountain Ranges.” Meteorological
+1600- ­​0587.​2 012.​07348.​x.                                                          Applications 12: 33–42. https://​doi.​org/​10.​1017/​S1350​4 8270​5001489.
+Duce, S., A. Vila-­Concejo, S. M. Hamylton, J. M. Webster, E. Bruce, and                Harris, P. T., and E. K. Baker. 2012. Seafloor Geomorphology as Benthic
+R. J. Beaman. 2016. “A Morphometric Assessment and Classification of                    Habitat: GeoHab Atlas of Seafloor Geomorphic Features and Benthic
+Coral Reef Spur and Groove Morphology.” Geomorphology 265: 68–83.                       Habitats. Elsevier. https://​doi.​org/​10.​1016/​C2010​- ­​0 -­​67010​- ­​6.
+https://​doi.​org/​10.​1016/j.​geomo​r ph.​2 016.​0 4.​018.
+                                                                                        Hazraty-­ Kari, S., P. Tavakoli-­       Kolour, S. Kitanobo, et al. 2022.
+Elith, J., and J. R. Leathwick. 2009. “Species Distribution Models:                     “Adaptations by the Coral Acropora tenuis Confer Resilience to Future
+Ecological Explanation and Prediction Across Space and Time.” Annual                    Thermal Stress.” Communications Biology 5: 1–10. https://​doi.​org/​10.​
+Review of Ecology, Evolution, and Systematics 40: 677–697. https://​doi.​               1038/​s 4200​3 - ­​022- ­​0 4309 ​-­​5.
+org/​10.​1146/​annur​ev.​ecols​ys.​110308.​120159.
+                                                                                        Höhle, J., and M. Höhle. 2009. “Accuracy Assessment of Digital
+Elith, J., S. J. Phillips, T. Hastie, M. Dudík, Y. E. Chee, and C. J. Yates.            Elevation Models by Means of Robust Statistical Methods.” ISPRS
+2011. “A Statistical Explanation of MaxEnt for Ecologists.” Diversity and               Journal of Photogrammetry and Remote Sensing 64: 398–406. https://​
+Distributions 17: 43–57. https://​doi.​org/​10.​1111/j.​1472-­​4642.​2010.​0 0725.​x.   doi.​org/​10.​1016/j.​isprs​jprs.​2 009.​02.​0 03.
+Fator, M., and N. Zomrawi. 2015. “Etrex Garmin GPS Receiver Accuracy                    Höhle, J., and M. Potuckova. 2006. “The EuroSDR Test: Checking
+Testing.” International Journal on Recent and Innovation Trends in                      and Improving of Digital Terrain Models.” In European Spatial Data
+Computing and Communication 3: 2772–2774. https://​doi.​org/​10.​17762/​​               Research, 9–141. Gopher.
+ijrit​cc232​1-­​8169.​150558.
+                                                                                        Hosmer, D. W., Jr., S. Lemeshow, and R. X. Sturdivant. 2013. Applied
+Feng, X., D. S. Park, Y. Liang, R. Pandey, and M. Papeş. 2019. “Collinearity            Logistic Regression. 3rd ed. John Wiley & Sons, Inc. https://​doi.​org/​10.​
+in Ecological Niche Modeling: Confusions and Challenges.” Ecology                       1002/​97811​18548387.
+and Evolution 9: 10365–10376. https://​doi.​org/​10.​1002/​ece3.​5555.
+                                                                                        Hughes, T. P., J. T. Kerry, M. Álvarez-­Noriega, et al. 2017. “Global
+Ferrari, R., H. A. Malcolm, M. Byrne, et al. 2018. “Habitat Structural                  Warming and Recurrent Mass Bleaching of Corals.” Nature 543: 373–
+Complexity Metrics Improve Predictions of Fish Abundance and                            377. https://​doi.​org/​10.​1038/​natur​e21707.
+Distribution.” Ecography 41: 1077–1091. https://​doi.​org/​10.​1111/​ecog.​
+02580​.                                                                                 Ilich, A. R., B. Misiuk, V. Lecours, and S. A. Murawski. 2023.
+                                                                                        “MultiscaleDTM: An Open-­         Source R Package for Multiscale
+Fischer, M. C., C. Rellstab, A. Tedder, et al. 2013. “Population Genomic                Geomorphometric Analysis.” Transactions in GIS 27: 929–1286. https://​
+Footprints of Selection and Associations With Climate in Natural                        doi.​org/​10.​1111/​tgis.​13067​.
+Populations of Arabidopsis Halleri From the Alps.” Molecular Ecology
+22: 5594–5607. https://​doi.​org/​10.​1111/​mec.​12521​.                                International Hydrographic Organization. 2020. “Standards for
+                                                                                        Hydrographic Surveys: S-­4 4 Edition 6.1.0.”
+Goetze, J. S., S. Wilson, B. Radford, et al. 2021. “Increased Connectivity
+and Depth Improve the Effectiveness of Marine Reserves.” Global                         Kalbermatten, M., D. Van De Ville, P. Turberg, D. Tuia, and S. Joost.
+Change Biology 27: 3432–3447. https://​doi.​org/​10.​1111/​gcb.​15635​.                 2012. “Multiscale Analysis of Geomorphological and Geological
+                                                                                        Features in High Resolution Digital Elevation Models Using the Wavelet
+Graham, N. A. J., and K. L. Nash. 2013. “The Importance of Structural                   Transforms.” Geomorphology 138: 352–363. https://​doi.​org/​10.​1016/j.​
+Complexity in Coral Reef Ecosystems.” Coral Reefs 32: 315–326. https://​                geomo​r ph.​2 011.​0 9.​023.
+doi.​org/​10.​1007/​s 0033​8-­​012-­​0 984-­​y.
+                                                                                        Kennedy, E. V., C. M. Roelfsema, M. B. Lyons, et al. 2021. “Reef Cover,
+Guest, J. R., A. H. Baird, J. A. Maynard, et al. 2012. “Contrasting                     a Coral Reef Classification for Global Habitat Mapping From Remote
+Patterns of Coral Bleaching Susceptibility in 2010 Suggest an Adaptive                  Sensing.” Scientific Data 8: 1–20. https://​doi.​org/​10.​1038/​s 4159​7-­​021-­​
+Response to Thermal Stress.” PLoS One 7: 1–8. https://​doi.​org/​10.​1371/​             00958​-­​z.
+journ​al.​pone.​0 033353.
+                                                                                        Kool, J. T., A. Moilanen, and E. A. Treml. 2013. “Population Connectivity:
+Guillaume, A. S., R. Ferrari, O. Selmoni, et al. 2024. “Derived Variables
+                                                                                        Recent Advances and New Perspectives.” Landscape Ecology 28: 165–
+and Coordinates to Assess the Ecological Relevance of Multiscale
+                                                                                        185. https://​doi.​org/​10.​1007/​s1098​0 -­​012-­​9819-­​z.
+Bathymetry for Coral Species Distribution Modelling Across the Great
+Barrier Reef [Dataset].” https://​doi.​org/​10.​5061/​dryad.​wdbrv​15vk.Dryad.          Ladner, J. T., and S. R. Palumbi. 2012. “Extensive Sympatry, Cryptic
+                                                                                        Diversity and Introgression Throughout the Geographic Distribution
+Guillaume, A. S., K. Leempoel, E. Rochat, et al. 2021. “Multiscale Very
+                                                                                        of Two Coral Species Complexes.” Molecular Ecology 21: 2224–2238.
+High Resolution Topographic Models in Alpine Ecology: Pros and
+                                                                                        https://​doi.​org/​10.​1111/j.​1365-­​294X.​2 012.​05528.​x.
+Cons of Airborne LiDAR and Drone-­Based Stereo-­Photogrammetry
+Technologies.” Remote Sensing 13: 1588. https://​doi.​org/​10.​3390/​rs130​             Lecours, V., C. J. Brown, R. Devillers, V. L. Lucieer, and E. N. Edinger.
+81588​.                                                                                 2016. “Comparing Selections of Environmental Variables for Ecological
+
+
+                                                                                                                                                               19 of 21
+                                                                                                                                                                         20457758, 2025, 4, Downloaded from https://onlinelibrary.wiley.com/doi/10.1002/ece3.71292 by National Health And Medical Research Council, Wiley Online Library on [30/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+Studies: A Focus on Terrain Attributes.” PLoS One 11: 1–18. https://​doi.​          McClanahan, T. R., and M. K. Azali. 2021. “Environmental Variability
+org/​10.​1371/​journ​al.​pone.​0167128.                                             and Threshold Model's Predictions for Coral Reefs.” Frontiers in Marine
+                                                                                    Science 8: 1–16. https://​doi.​org/​10.​3389/​f mars.​2 021.​77812​12021​.
+Lecours, V., R. Devillers, E. N. Edinger, C. J. Brown, and V. L. Lucieer.
+2017. “Influence of Artefacts in Marine Digital Terrain Models                      McCullagh, P., and J. A. Nelder. 1989. Generalized Linear Model.
+on Habitat Maps and Species Distribution Models: A Multiscale                       Chapman and Hall. https://​doi.​org/​10.​1007/​978-­​1-­​4 899-­​3242-­​6.
+Assessment.” Remote Sensing in Ecology and Conservation 3: 232–246.
+                                                                                    Merow, C., M. J. Smith, and J. A. Silander. 2013. “A Practical Guide to
+https://​doi.​org/​10.​1002/​rse2.​49.
+                                                                                    MaxEnt for Modeling Species' Distributions: What It Does, and Why
+Lecours, V., R. Devillers, D. C. Schneider, V. L. Lucieer, C. J. Brown, and         Inputs and Settings Matter.” Ecography Cop. 36: 1058–1069. https://​doi.​
+E. N. Edinger. 2015. “Spatial Scale and Geographic Context in Benthic               org/​10.​1111/j.​1600-­​0587.​2 013.​07872.​x.
+Habitat Mapping: Review and Future Directions.” Marine Ecology
+                                                                                    Misiuk, B., V. Lecours, M. F. J. Dolan, and K. Robert. 2021. “Evaluating
+Progress Series 535: 259–284. https://​doi.​org/​10.​3354/​meps1​1378.
+                                                                                    the Suitability of Multi-­Scale Terrain Attribute Calculation Approaches
+Lecours, V., R. Devillers, A. E. Simms, V. L. Lucieer, and C. J. Brown.             for Seabed Mapping Applications.” Marine Geodesy 44: 327–385. https://​
+2017. “Towards a Framework for Terrain Attribute Selection in                       doi.​org/​10.​1080/​01490​419.​2 021.​1925789.
+Environmental Studies.” Environmental Modelling & Software 89: 19–
+                                                                                    Montesano, P. M., C. Neigh, G. Sun, L. Duncanson, J. Van Den
+30. https://​doi.​org/​10.​1016/j.​envso​ft.​2 016.​11.​027.
+                                                                                    Hoek, and K. J. Ranson. 2017. “The Use of Sun Elevation Angle for
+Lecours, V., M. F. J. Dolan, A. Micallef, and V. L. Lucieer. 2016. “A               Stereogrammetric Boreal Forest Height in Open Canopies.” Remote
+Review of Marine Geomorphometry, the Quantitative Study of the                      Sensing of Environment 196: 76–88. https://​doi.​org/​10.​1016/j.​rse.​2 017.​
+Seafloor.” Hydrology and Earth System Sciences 20: 3207–3244. https://​             04.​024.
+doi.​org/​10.​5194/​hess-­​2 0-­​3207-­​2 016.
+                                                                                    Moore, I. D., R. B. Grayson, and A. R. Ladson. 1991. “Digital Terrain
+Leempoel, K., C. Parisod, C. Geiser, L. Daprà, P. Vittoz, and S. Joost.             Modelling: A Review of Hydrological, Geomorphological, and Biological
+2015. “Very High-­Resolution Digital Elevation Models: Are Multi-­Scale             Applications.” Hydrological Processes 5: 3–30. https://​doi.​org/​10.​1002/​
+Derived Variables Ecologically Relevant?” Methods in Ecology and                    hyp.​33600​50103​.
+Evolution 6: 1373–1383. https://​doi.​org/​10.​1111/​2 041-­​210X.​12427​.
+                                                                                    Morais, J., S. B. Tebbett, R. A. Morais, and D. R. Bellwood. 2023.
+Lepczyk, C. A., L. M. Wedding, G. P. Asner, et al. 2021. “Advancing                 “Natural Recovery of Corals After Severe Disturbance.” Ecology Letters
+Landscape and Seascape Ecology From a 2D to a 3D Science.” Bioscience               27: e14332. https://​doi.​org/​10.​1111/​ele.​14332​.
+71: 1–13. https://​doi.​org/​10.​1093/​biosci/​biab001.
+                                                                                    Moudrý, V., P. Keil, A. F. Cord, et al. 2023. “Scale Mismatches Between
+Li, J., D. E. Knapp, M. Lyons, et al. 2021. “Automated Global Shallow               Predictor and Response Variables in Species Distribution Modelling: A
+Water Bathymetry Mapping Using Google Earth Engine.” Remote                         Review of Practices for Appropriate Grain Selection.” Progress in Physical
+Sensing 13, no. 8: 1469. https://​doi.​org/​10.​3390/​rs130​81469​.                 Geography 47: 467–482. https://​doi.​org/​10.​1177/​03091​33323​1156362.
+Li, J., D. E. Knapp, S. R. Schill, et al. 2019. “Adaptive Bathymetry                Naugle, M. S., H. Denis, V. J. L. Mocellin, et al. 2024. “Heat Tolerance
+Estimation for Shallow Coastal Waters Using Planet Dove Satellites.”                Varies Considerably Within a Reef-­Building Coral Species on the Great
+Remote Sensing of Environment 232: 111302. https://​doi.​org/​10.​1016/j.​rse.​     Barrier Reef.” Communications Earth & Environment 5, no. 1: 525.
+2019.​111302.                                                                       https://​doi.​org/​10.​1038/​s 4324​7-­​024-­​01649​- ­​4.
+Li, J., S. R. Schill, D. E. Knapp, and G. P. Asner. 2019. “Object-­Based            Ortiz, J. C., R. J. Pears, R. Beeden, et al. 2021. “Important Ecosystem
+Mapping of Coral Reef Habitats Using Planet Dove Satellites.” Remote                Function, Low Redundancy and High Vulnerability: The Trifecta
+Sensing 11: 1445. https://​doi.​org/​10.​3390/​rs111​21445​.                        Argument for Protecting the Great Barrier Reef's Tabular Acropora.”
+                                                                                    Conservation Letters 14: 1–18. https://​doi.​org/​10.​1111/​conl.​12817​.
+Lukoschek, V., C. Riginos, and M. J. H. Van Oppen. 2016. “Congruent
+Patterns of Connectivity Can Inform Management for Broadcast                        Otto, S. P. 2018. “Adaptation, Speciation and Extinction in the
+Spawning Corals on the Great Barrier Reef.” Molecular Ecology 25:                   Anthropocene.” Proceedings of the Royal Society B: Biological Sciences
+3065–3080. https://​doi.​org/​10.​1111/​mec.​13649​.                                285: 20182047. https://​doi.​org/​10.​1098/​rspb.​2 018.​2 047.
+Lundblad, E. R., D. J. Wright, J. Miller, et al. 2006. “A Benthic Terrain           Phillips, S. J., R. P. Anderson, M. Dudík, R. E. Schapire, and M. E. Blair.
+Classification Scheme for American Samoa.” Marine Geodesy 29: 89–                   2017. “Opening the Black Box: An Open-­Source Release of Maxent.”
+111. https://​doi.​org/​10.​1080/​01490​41060​0738021.                              Ecography 40: 887–893. https://​doi.​org/​10.​1111/​ecog.​03049​.
+Lyons, M. B., N. J. Murray, E. V. Kennedy, et al. 2024. “New Global                 Phillips, S. J., R. P. Anderson, and R. E. Schapire. 2006. “Maximum Entropy
+Area Estimates for Coral Reefs From High-­Resolution Mapping.” Cell                 Modeling of Species Geographic Distributions.” Ecological Modelling 190,
+Reports Sustainability 1: 100015. https://​doi.​org/​10.​1016/j.​crsus.​2 024.​     no. 3-­4: 231–259. https://​doi.​org/​10.​1016/j.​ecolm​odel.​2005.​03.​026.
+100015.
+                                                                                    Phillips, S. J., and M. Dudík. 2008. “Modeling of Species Distributions
+Lyons, M. B., C. M. Roelfsema, E. V. Kennedy, et al. 2020. “Mapping                 With Maxent: New Extensions and a Comprehensive Evaluation.”
+the World's Coral Reefs Using a Global Multiscale Earth Observation                 Ecography 31: 161–175. https://​doi.​org/​10.​1111/j.​2007.​0906-­​7590.​05203.​x.
+Framework.” Remote Sensing in Ecology and Conservation 6: 557–568.
+                                                                                    Phillips, S. J., M. Dudík, J. Elith, et al. 2009. “Sample Selection Bias and
+https://​doi.​org/​10.​1002/​rse2.​157.
+                                                                                    Presence-­Only Distribution Models: Implications for Background and
+Madin, J. S., T. P. Hughes, and S. R. Connolly. 2012. “Calcification, Storm         Pseudo-­Absence Data.” Ecological Applications 19: 181–197. https://​doi.​
+Damage and Population Resilience of Tabular Corals Under Climate                    org/​10.​1890/​07-­​2153.​1.
+Change.” PLoS One 7: 1–10. https://​doi.​org/​10.​1371/​journ​al.​pone.​0 046637.
+                                                                                    Pittman, S., K. Yates, P. Bouchet, et al. 2021. “Seascape Ecology:
+Marlowe, C., K. Hyder, M. D. J. Sayer, et al. 2021. “Divers as Citizen              Identifying Research Priorities for an Emerging Ocean Sustainability
+Scientists: Response Time, Accuracy and Precision of Water                          Science.” Marine Ecology Progress Series 663: 1–29. https://​doi.​org/​10.​
+Temperature Measurement Using Dive Computers.” Frontiers in Marine                  3354/​meps1​3661.
+Science 8. https://​doi.​org/​10.​3389/​f mars.​2 021.​617691.
+                                                                                    Pradervand, J.-­N., A. Dubuis, L. Pellissier, A. Guisan, and C. Randin. 2014.
+McArthur, M. A., B. P. Brooke, R. Przeslawski, et al. 2010. “On the                 “Very High Resolution Environmental Predictors in Species Distribution
+Use of Abiotic Surrogates to Describe Marine Benthic Biodiversity.”                 Models: Moving Beyond Topography?” Progress in Physical Geography:
+Estuarine, Coastal and Shelf Science 88: 21–32. https://​doi.​org/​10.​1016/j.​     Earth and Environment 38: 79–96. https://​doi.​org/​10.​1177/​03091​33313​
+ecss.​2 010.​03.​0 03.                                                              512667.
+
+
+20 of 21                                                                                                                                  Ecology and Evolution, 2025
+                                                                                                                                                                             20457758, 2025, 4, Downloaded from https://onlinelibrary.wiley.com/doi/10.1002/ece3.71292 by National Health And Medical Research Council, Wiley Online Library on [30/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+Pratchett, M. S., K. D. Anderson, M. O. Hoogenboom, et al. 2015. “Spatial,             Sous, D., S. Meulé, S. Dealbera, et al. 2024. “Quantifying the
+Temporal and Taxonomic Variation in Coral Growth-­Implications for the                 Topographical Structure of Rocky and Coral Seabeds.” PLoS One 19:
+Structure and Function of Coral Reef Ecosystems.” Oceanography and                     1–28. https://​doi.​org/​10.​1371/​journ​al.​pone.​0303422.
+Marine Biology: An Annual Review 53: 215–295. https://​doi.​org/​10.​1201/​
+                                                                                       Tokeshi, M., and S. Arakaki. 2012. “Habitat Complexity in Aquatic
+b18733.
+                                                                                       Systems: Fractals and Beyond.” Hydrobiologia 685: 27–47. https://​doi.​
+Price, D. M., A. Lim, A. Callaway, et al. 2021. “Fine-­Scale Heterogeneity             org/​10.​1007/​s1075​0 -­​011-­​0832-­​z.
+of a Cold-­Water Coral Reef and Its Influence on the Distribution of
+                                                                                       Tong, R., A. Purser, V. Unnithan, and J. Guinan. 2012. “Multivariate
+Associated Taxa.” Frontiers in Marine Science 8: 1–20. https://​doi.​org/​
+                                                                                       Statistical Analysis of Distribution of Deep-­Water Gorgonian Corals in
+10.​3389/​f mars.​2 021.​556313.
+                                                                                       Relation to Seabed Topography on the Norwegian Margin.” PLoS One 7:
+Purkis, S. J., A. C. R. Gleason, C. R. Purkis, et al. 2019. “High-­Resolution          1–13. https://​doi.​org/​10.​1371/​journ​al.​pone.​0 043534.
+Habitat and Bathymetry Maps for 65,000 Sq. Km of Earth's Remotest
+                                                                                       Tong, R., A. Purser, V. Unnithan, and J. Yu. 2016. “Predicting Potential
+Coral Reefs.” Coral Reefs 38: 467–488. https://​doi.​org/​10.​1007/​s0033​8-­​019-­​
+                                                                                       Distribution for Cold-­Water Coral Based on GIS and MaxEnt.” https://​
+01802​-­​y.
+                                                                                       doi.​org/​10.​1109/​GEOIN​FORMA​T ICS.​2 015.​7378689.Int.        Conf.
+Pygas, D. R., R. Ferrari, and W. F. Figueira. 2020. “Review and Meta-­                 Geoinformatics 2016-January.
+Analysis of the Importance of Remotely Sensed Habitat Structural
+                                                                                       Vega Thurber, R., L. D. Mydlarz, M. Brandt, et al. 2020. “Deciphering
+Complexity in Marine Ecology.” Estuarine, Coastal and Shelf Science
+                                                                                       Coral Disease Dynamics: Integrating Host, Microbiome, and the
+235: 106468. https://​doi.​org/​10.​1016/j.​ecss.​2 019.​106468.
+                                                                                       Changing Environment.” Frontiers in Ecology and Evolution 8: 1–18.
+Quigley, K. M., M. Hein, and D. J. Suggett. 2022. “Translating the 10                  https://​doi.​org/​10.​3389/​fevo.​2 020.​575927.
+Golden Rules of Reforestation for Coral Reef Restoration.” Conservation
+                                                                                       Veron, J. E. N. 2000. Corals of the World. Australian Institute of Marine
+Biology 36: 1–8. https://​doi.​org/​10.​1111/​cobi.​13890​.
+                                                                                       Science.
+R Core Team. 2021. R: A Language and Environment for Statistical
+                                                                                       Wallace, C. C., B. J. Done, and P. R. Muir. 2012. “Revision and Catalogue
+Computing.
+                                                                                       of Worldwide Staghorn Corals Acropora and Isopora (Scleractinia:
+Radford, B., M. Puotinen, D. Sahin, N. Boutros, M. Wyatt, and J.                       Acroporidae) in the Museum of Tropical Queensland.” Memoirs of the
+Gilmour. 2024. “A Remote Sensing Model for Coral Recruitment                           Queensland Museu Nature 57: 1–255. https://​doi.​org/​10.​17082/​j:​2204-­​
+Habitat.” Remote Sensing of Environment 311: 114231. https://​doi.​org/​               1478-­​56-­​2 .​2 013-­​42.
+10.​1016/j.​rse.​2 024.​114231.
+                                                                                       Whalan, S., M. A. Abdul Wahab, S. Sprungala, A. J. Poole, and R. De
+Riginos, C., E. D. Crandall, L. Liggins, P. Bongaerts, and E. A. Treml.                Nys. 2015. “Larval Settlement: The Role of Surface Topography for
+2016. “Navigating the Currents of Seascape Genomics: How Spatial                       Sessile Coral Reef Invertebrates.” PLoS One 10: 1–17. https://​doi.​org/​10.​
+Analyses Can Augment Population Genomic Studies.” Current Zoology                      1371/​journ​al.​pone.​0117675.
+62: 581–601. https://​doi.​org/​10.​1093/​cz/​zow067.
+                                                                                       Wilson, J., and J. Gallant. 2000. Terrain Analysis: Principles and
+Roelfsema, C. M., E. M. Kovacs, J. C. Ortiz, et al. 2020. “Habitat Maps to             Applications, edited by J. P. Wilson and J. C. Gallant, 1–27. John Wiley &
+Enhance Monitoring and Management of the Great Barrier Reef.” Coral                    Sons.
+Reefs 39: 1039–1054. https://​doi.​org/​10.​1007/​s 0033​8-­​020-­​01929​-­​3.
+                                                                                       Wilson, M. F. J., B. O'Connell, C. Brown, J. C. Guinan, and A. J. Grehan.
+Rose, N. H., R. A. Bay, M. K. Morikawa, L. Thomas, E. A. Sheets, and S.                2007. “Multiscale Terrain Analysis of Multibeam Bathymetry Data for
+R. Palumbi. 2021. “Genomic Analysis of Distinct Bleaching Tolerances                   Habitat Mapping on the Continental Slope.” Marine Geodesy 30, no. 1-­2:
+Among Cryptic Coral Species.” Proceedings of the Royal Society B:                      3–35. https://​doi.​org/​10.​1080/​01490​41070​1295962.
+Biological Sciences 288: 20210678. https://​doi.​org/​10.​1098/​rspb.​2021.​0678.
+                                                                                       Winship, A. J., J. T. Thorson, M. E. Clarke, et al. 2020. “Good Practices
+Rowden, A. A., O. F. Anderson, S. E. Georgian, et al. 2017. “High-­                    for Species Distribution Modeling of Deep-­Sea Corals and Sponges
+Resolution Habitat Suitability Models for the Conservation and                         for Resource Management: Data Collection, Analysis, Validation, and
+Management of Vulnerable Marine Ecosystems on the Louisville                           Communication.” Frontiers in Marine Science 7: 1–15. https://​doi.​org/​
+Seamount Chain, South Pacific Ocean.” Frontiers in Marine Science 4:                   10.​3389/​f mars.​2 020.​0 0303​.
+335. https://​doi.​org/​10.​3389/​f mars.​2 017.​0 0335​.
+                                                                                       Wood, J. 1996. The Geomorphological Characterisation of Digital
+Sappington, J. M., K. M. Longshore, and D. B. Thompson. 2007.                          Elevation Models.
+“Quantifying Landscape Ruggedness for Animal Habitat Analysis:
+                                                                                       Woodcock, C. E., and A. H. Strahler. 1987. “The Factor of Scale in
+A Case Study Using Bighorn Sheep in the Mojave Desert.” Journal of
+                                                                                       Remote Sensing.” Remote Sensing of Environment 21: 311–332. https://​
+Wildlife Management 71: 1419–1426. https://​doi.​org/​10.​2193/​2 005-­​723.
+                                                                                       doi.​org/​10.​1016/​0 034-­​4257(87)​9 0015​- ­​0.
+Selmoni, O., G. Lecellier, V. Berteaux-­Lecellier, and S. Joost. 2023. “The
+                                                                                       Yuen, B., C. E. Stuart, S. J. Pittman, S. J. Green, L. M. Henderson, and L.
+Reef Environment Centralized InFormation System (RECIFS): An
+                                                                                       M. Wedding. 2023. “Habitat Suitability Models of Elkhorn Coral Provide
+Integrated Geo-­Environmental Database for Coral Reef Research and
+                                                                                       Ecological Insight to Support Coral Reef Restoration.” Restoration
+Conservation.” Global Ecology and Biogeography 32: 622–632. https://​doi.​
+                                                                                       Ecology 31: 1–15. https://​doi.​org/​10.​1111/​rec.​13953​.
+org/​10.​1111/​geb.​13657​.
+                                                                                       Zuo, X.-­L ., K.-­F. Yu, B.-­N. Qin, X.-­P. Duan, Z.-­F. Yao, and F.-­Z . Su. 2023.
+Selmoni, O., E. Rochat, G. Lecellier, V. Berteaux-­   L ecellier, and S.
+                                                                                       “Deriving Fine-­Scale Patterns of Sea Surface Temperature in Coral Reef
+Joost. 2020. “Seascape Genomics as a New Tool to Empower Coral
+                                                                                       Habitats Using the Landsat 8 Thermal Infrared Sensor.” Frontiers in
+Reef Conservation Strategies: An Example on North-­Western Pacific
+                                                                                       Marine Science 10: 1293414. https://​doi.​org/​10.​3389/​fmars.​2023.​1293414.
+Acropora digitifera.” Evolutionary Applications 13: 1923–1938. https://​
+doi.​org/​10.​1111/​eva.​12944​.
+                                                                                       Supporting Information
+Smith, A. B., S. J. Murphy, D. Henderson, and K. D. Erickson. 2023.
+“Including Imprecisely Georeferenced Specimens Improves Accuracy                       Additional supporting information can be found online in the
+of Species Distribution Models and Estimates of Niche Breadth.” Global                 Supporting Information section.
+Ecology and Biogeography 32: 342–355. https://​doi.​org/​10.​1111/​geb.​13628​.
+Smith, M. W. 2014. “Roughness in the Earth Sciences.” Earth-­Science
+Reviews 136: 202–225. https://​doi.​org/​10.​1016/j.​earsc​irev.​2 014.​05.​016.
+
+
+                                                                                                                                                               21 of 21
+
