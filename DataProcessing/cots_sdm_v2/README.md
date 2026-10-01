@@ -1,5 +1,11 @@
 # COTS fine-scale SDM v2
 
+> **Start here: [`final/`](final/README.md).** The final pipeline delivers the
+> three report layers (legacy clean + year, legacy RG + year, Hmsc joint) and
+> the report figures from frozen, checksummed inputs. Everything else in this
+> directory is the exploratory record that produced those inputs and is kept
+> for provenance only.
+
 This directory is an isolated refactor of the COTS modelling workflow. It does
 not source, overwrite, or modify the legacy model scripts or their outputs.
 

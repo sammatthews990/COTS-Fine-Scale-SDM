@@ -1,0 +1,6 @@
+"test_year","history_sigma","history_tau","combined_sigma","combined_tau","combined_kappa","context_sigma","context_tau","context_kappa"
+2022,1000,1,1000,1,0.5,1000,1,0.5
+2023,250,1,250,1,0.5,250,1,0.5
+2024,250,1,250,3,0.5,500,1,4
+2025,1000,1,1000,1,2,1000,1,2
+2026,250,1,1000,1,0.5,1000,1,0.5

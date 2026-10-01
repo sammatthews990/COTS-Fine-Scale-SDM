@@ -1,0 +1,33 @@
+"subset","method","label","site_years","reef_years","within_reef_year_auc","auc_low","auc_high","top20_lift"
+"all","habitat","Habitat (HMSC, refit < T)",4170,315,0.569292951663806,0.529155985747839,0.606589016288319,1.30813953488372
+"all","habitat_context","Habitat + reef context",4170,315,0.582249044903383,0.544681449967629,0.62046326272288,1.29756871035941
+"all","effort","Effort only (prior dives at site)",4170,315,0.636122030895299,0.602349785176278,0.664235586809092,1.39799154334038
+"all","history","History kernel (nested tuning)",4170,315,0.667847848956315,0.626188419950512,0.702663304067475,1.47463002114165
+"all","history_fixed","History kernel (fixed)",4170,315,0.653645977520625,0.60054153321175,0.700365156823465,1.51427061310782
+"all","combined","Habitat + history (nested tuning)",4170,315,0.676042301090748,0.633252273938894,0.712787909209832,1.553911205074
+"all","combined_fixed","Habitat + history (fixed, deployed)",4170,315,0.681080781795028,0.640205152004775,0.717679142519035,1.57241014799154
+"all","combined_context","Habitat + context + history (nested)",4170,315,0.676429876529539,0.633808801992396,0.71355525902177,1.5169133192389
+"with nearby history","habitat","Habitat (HMSC, refit < T)",3212,255,0.58376125623279,NA,NA,1.32823365785814
+"with nearby history","habitat_context","Habitat + reef context",3212,255,0.599836272977599,NA,NA,1.34214186369958
+"with nearby history","effort","Effort only (prior dives at site)",3212,255,0.655726724715338,NA,NA,1.46383866481224
+"with nearby history","history","History kernel (nested tuning)",3212,255,0.715896405447645,NA,NA,1.58205841446453
+"with nearby history","history_fixed","History kernel (fixed)",3212,255,0.704844831435588,NA,NA,1.59248956884562
+"with nearby history","combined","Habitat + history (nested tuning)",3212,255,0.725161866488055,NA,NA,1.62378303198887
+"with nearby history","combined_fixed","Habitat + history (fixed, deployed)",3212,255,0.715710352013098,NA,NA,1.60987482614743
+"with nearby history","combined_context","Habitat + context + history (nested)",3212,255,0.730445784029173,NA,NA,1.6307371349096
+"little or no nearby history","habitat","Habitat (HMSC, refit < T)",958,128,0.554226804123711,NA,NA,1.37886597938144
+"little or no nearby history","habitat_context","Habitat + reef context",958,128,0.52,NA,NA,1.22422680412371
+"little or no nearby history","effort","Effort only (prior dives at site)",958,128,0.490721649484536,NA,NA,1.22422680412371
+"little or no nearby history","history","History kernel (nested tuning)",958,128,0.502061855670103,NA,NA,1.27577319587629
+"little or no nearby history","history_fixed","History kernel (fixed)",958,128,0.464948453608247,NA,NA,1.10824742268041
+"little or no nearby history","combined","Habitat + history (nested tuning)",958,128,0.492371134020619,NA,NA,1.26288659793814
+"little or no nearby history","combined_fixed","Habitat + history (fixed, deployed)",958,128,0.54020618556701,NA,NA,1.32731958762887
+"little or no nearby history","combined_context","Habitat + context + history (nested)",958,128,0.45979381443299,NA,NA,1.15979381443299
+"new sites","habitat","Habitat (HMSC, refit < T)",1664,233,0.523764258555133,NA,NA,1.37593984962406
+"new sites","habitat_context","Habitat + reef context",1664,233,0.513545627376426,NA,NA,1.30075187969925
+"new sites","effort","Effort only (prior dives at site)",1664,233,0.512832699619772,NA,NA,1.2781954887218
+"new sites","history","History kernel (nested tuning)",1664,233,0.514615019011407,NA,NA,1.30827067669173
+"new sites","history_fixed","History kernel (fixed)",1664,233,0.475522813688213,NA,NA,1.30827067669173
+"new sites","combined","Habitat + history (nested tuning)",1664,233,0.508317490494297,NA,NA,1.36842105263158
+"new sites","combined_fixed","Habitat + history (fixed, deployed)",1664,233,0.553231939163498,NA,NA,1.5187969924812
+"new sites","combined_context","Habitat + context + history (nested)",1664,233,0.498098859315589,NA,NA,1.31578947368421

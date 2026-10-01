@@ -1,9 +1,9 @@
 args <- commandArgs(trailingOnly = FALSE)
 script_file <- sub("^--file=", "", grep("^--file=", args, value = TRUE))
 v5_dir <- normalizePath(file.path(dirname(script_file), ".."), winslash = "/")
-repo_root <- normalizePath(file.path(v5_dir, "..", "..", "..", ".."), winslash = "/")
-v4_dir <- file.path(repo_root, "DataProcessing", "cots_sdm_v2", "iterations", "hmsc_corrected_v4")
-v3_dir <- file.path(repo_root, "DataProcessing", "cots_sdm_v2", "iterations", "hmsc_geomorphic_v3")
+repo_root <- (function(p) { while (!dir.exists(file.path(p, ".git"))) { if (dirname(p) == p) stop("Repository root not found"); p <- dirname(p) }; p })(v5_dir)
+v4_dir <- normalizePath(file.path(v5_dir, "..", "hmsc_corrected_v4"), winslash = "/")
+v3_dir <- normalizePath(file.path(v5_dir, "..", "hmsc_geomorphic_v3"), winslash = "/")
 source(file.path(v4_dir, "R", "bootstrap.R"))
 ctx <- initialise_v4(file.path(v4_dir, "scripts", "01a_prepare_corrected_cells_120m.R"))
 cfg <- ctx$config

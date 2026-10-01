@@ -1,0 +1,16 @@
+"input","path","exists","bytes","checksum_ok"
+"predictor_stack_clean","C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/predictors_clean_12layer.tif",TRUE,4272577276,TRUE
+"predictor_stack_rg","C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/predictors_terra_30m_full_extended.tif",TRUE,5274296571,TRUE
+"geomorphic","C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/GBR10_GBRMP_Geomorphic/GBR10 GBRMP Geomorphic.tif",TRUE,41728619,TRUE
+"reef_features","C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/data/Great_Barrier_Reef_Features.gpkg",TRUE,18284544,TRUE
+"legacy_clean_model","C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/fitted_model_clean_20260820_1041.rds",TRUE,5592078,TRUE
+"legacy_clean_raster","C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/COTS_prob_0.02_cpue_year2026_clean_20260820_1041.tif",TRUE,264891406,TRUE
+"legacy_clean_metrics","C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/model_performance_metrics_clean_20260820_1041.rds",TRUE,782,TRUE
+"legacy_rg_model","C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/fitted_model_withRG_20260820_1217.rds",TRUE,8797975,TRUE
+"legacy_rg_metrics","C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/outputs/model_performance_metrics_withRG_20260820_1217.rds",TRUE,785,TRUE
+"hmsc_enhanced_joint","C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/cots_sdm_v2/iterations/hmsc_corrected_v4/artifacts/enhanced_joint_fit_data_120m.rds",TRUE,37333983,TRUE
+"hmsc_clean_joint","C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/cots_sdm_v2/iterations/hmsc_corrected_v4/artifacts/clean_joint_fit_data_120m.rds",TRUE,8043905,TRUE
+"hmsc_clean_native_joint","C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/cots_sdm_v2/iterations/hmsc_corrected_v4/artifacts/clean_native_joint_fit_data_120m.rds",TRUE,4651823,TRUE
+"hmsc_reference_cells","C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/cots_sdm_v2/iterations/hmsc_corrected_v4/artifacts/corrected_cell_units_120m.rds",TRUE,4379861,TRUE
+"manta_tows","C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/cots_sdm_v2/iterations/hmsc_corrected_v4/artifacts/manta_footprints_120m.rds",TRUE,41798348,TRUE
+"footprint_links","C:/Users/smatthew/Documents/GitKraken/COTS Fine Scale SDM/DataProcessing/cots_sdm_v2/iterations/hmsc_geomorphic_v3/artifacts/footprint_links_120m.rds",TRUE,23048680,TRUE

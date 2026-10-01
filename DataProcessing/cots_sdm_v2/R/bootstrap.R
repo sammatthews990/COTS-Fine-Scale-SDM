@@ -5,11 +5,8 @@ initialise_v2 <- function(script_file) {
     winslash = "/",
     mustWork = TRUE
   )
-  repo_root <- normalizePath(
-    file.path(v2_dir, "..", ".."),
-    winslash = "/",
-    mustWork = TRUE
-  )
+  # Walk up to the repository root so this tree also runs from archive/.
+  repo_root <- (function(p) { while (!dir.exists(file.path(p, ".git"))) { if (dirname(p) == p) stop("Repository root not found"); p <- dirname(p) }; p })(v2_dir)
 
   source(file.path(v2_dir, "config", "default_config.R"), local = FALSE)
   cfg <- default_config(repo_root, v2_dir)

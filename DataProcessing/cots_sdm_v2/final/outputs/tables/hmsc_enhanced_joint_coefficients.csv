@@ -1,0 +1,289 @@
+"covariate","response","mean","q05","q95","support","standardised","covariate_label","credible"
+"geomorphic_classDeep","cull_high_density",0.485729915908127,0.134832548168459,0.8541867042194,0.9895,FALSE,"Geomorphic: Deep",TRUE
+"geomorphic_classDeep","cull_direct",0.0418008627590758,-0.322748809532679,0.413327701024787,0.57075,FALSE,"Geomorphic: Deep",FALSE
+"geomorphic_classDeep","salad_high_density",0.640705786051823,-0.239818689066115,1.56970175041047,0.8805,FALSE,"Geomorphic: Deep",FALSE
+"geomorphic_classDeep","salad_direct",0.504846906262641,-0.245069860010529,1.23180060821423,0.86825,FALSE,"Geomorphic: Deep",FALSE
+"geomorphic_classDeep","salad_scar",0.633794836446106,-0.106364029008545,1.35413175425286,0.923,FALSE,"Geomorphic: Deep",FALSE
+"geomorphic_classDeep","rhis_adult",-0.185074612112949,-0.568394196987704,0.183774858639613,0.20875,FALSE,"Geomorphic: Deep",FALSE
+"geomorphic_classDeep","rhis_juvenile",-0.222036654034148,-0.679694381803133,0.214836883302097,0.2055,FALSE,"Geomorphic: Deep",FALSE
+"geomorphic_classDeep","rhis_branching_scar",-0.179394403436748,-0.570990509343886,0.199334727184227,0.223,FALSE,"Geomorphic: Deep",FALSE
+"geomorphic_classDeep","rhis_table_scar",0.092724164409549,-0.294146611005934,0.483320032094506,0.64825,FALSE,"Geomorphic: Deep",FALSE
+"geomorphic_classDeep","salad_log_density",0.592126589742207,0.0433246105153708,1.15276344625424,0.96075,FALSE,"Geomorphic: Deep",TRUE
+"geomorphic_classDeep","rhis_branching_live_asin",-0.129329404671361,-0.315037144138076,0.0506906552864845,0.1195,FALSE,"Geomorphic: Deep",FALSE
+"geomorphic_classDeep","rhis_table_live_asin",0.605156683509415,0.422534519319709,0.782675408368116,1,FALSE,"Geomorphic: Deep",TRUE
+"geomorphic_classDeep Lagoon","cull_high_density",-0.339332915968562,-0.487214717756579,-0.193596239762465,0.00025,FALSE,"Geomorphic: Deep Lagoon",TRUE
+"geomorphic_classDeep Lagoon","cull_direct",-0.24876086056228,-0.406962068446193,-0.0915830108097709,0.005,FALSE,"Geomorphic: Deep Lagoon",TRUE
+"geomorphic_classDeep Lagoon","salad_high_density",0.228615003880072,-0.119524219976559,0.56266411557561,0.865,FALSE,"Geomorphic: Deep Lagoon",FALSE
+"geomorphic_classDeep Lagoon","salad_direct",0.0277593115935045,-0.24522243849979,0.299125180118713,0.56325,FALSE,"Geomorphic: Deep Lagoon",FALSE
+"geomorphic_classDeep Lagoon","salad_scar",0.00428808868532258,-0.259057234357175,0.271773407963005,0.51025,FALSE,"Geomorphic: Deep Lagoon",FALSE
+"geomorphic_classDeep Lagoon","rhis_adult",-0.291776134563123,-0.471271394280549,-0.113553349781144,0.00375,FALSE,"Geomorphic: Deep Lagoon",TRUE
+"geomorphic_classDeep Lagoon","rhis_juvenile",-0.372340246967284,-0.610668845078913,-0.133333493885768,0.00425,FALSE,"Geomorphic: Deep Lagoon",TRUE
+"geomorphic_classDeep Lagoon","rhis_branching_scar",-0.438171229494361,-0.615175036748625,-0.263210949255305,0,FALSE,"Geomorphic: Deep Lagoon",TRUE
+"geomorphic_classDeep Lagoon","rhis_table_scar",-0.386919272278718,-0.609212659867994,-0.174623506452489,0.0015,FALSE,"Geomorphic: Deep Lagoon",TRUE
+"geomorphic_classDeep Lagoon","salad_log_density",0.0352840885782227,-0.131215888570161,0.199013495365069,0.6355,FALSE,"Geomorphic: Deep Lagoon",FALSE
+"geomorphic_classDeep Lagoon","rhis_branching_live_asin",-0.308545245032023,-0.39453944976367,-0.220990626143936,0,FALSE,"Geomorphic: Deep Lagoon",TRUE
+"geomorphic_classDeep Lagoon","rhis_table_live_asin",-0.422173541708451,-0.506554629044777,-0.334766266249662,0,FALSE,"Geomorphic: Deep Lagoon",TRUE
+"geomorphic_classInner Reef Flat","cull_high_density",-0.287858954954089,-0.473614734647492,-0.100381573582159,0.0065,FALSE,"Geomorphic: Inner Reef Flat",TRUE
+"geomorphic_classInner Reef Flat","cull_direct",-0.306425775215158,-0.502625874253976,-0.112831887433496,0.00575,FALSE,"Geomorphic: Inner Reef Flat",TRUE
+"geomorphic_classInner Reef Flat","salad_high_density",-0.643752708265717,-1.03626315896965,-0.249911333588585,0.0035,FALSE,"Geomorphic: Inner Reef Flat",TRUE
+"geomorphic_classInner Reef Flat","salad_direct",-0.15729292856462,-0.497000658499192,0.185203875502319,0.22425,FALSE,"Geomorphic: Inner Reef Flat",FALSE
+"geomorphic_classInner Reef Flat","salad_scar",-0.300980419212112,-0.644039568742291,0.0392967676642328,0.076,FALSE,"Geomorphic: Inner Reef Flat",FALSE
+"geomorphic_classInner Reef Flat","rhis_adult",-0.362046711987104,-0.551549313182703,-0.176366057576844,5e-04,FALSE,"Geomorphic: Inner Reef Flat",TRUE
+"geomorphic_classInner Reef Flat","rhis_juvenile",-0.406190701211536,-0.656309359720176,-0.159618000715533,0.00425,FALSE,"Geomorphic: Inner Reef Flat",TRUE
+"geomorphic_classInner Reef Flat","rhis_branching_scar",-0.504425699601682,-0.698535380886335,-0.30773063995986,0,FALSE,"Geomorphic: Inner Reef Flat",TRUE
+"geomorphic_classInner Reef Flat","rhis_table_scar",-0.477385893264267,-0.715114816429298,-0.245697003456967,5e-04,FALSE,"Geomorphic: Inner Reef Flat",TRUE
+"geomorphic_classInner Reef Flat","salad_log_density",-0.115552113383225,-0.335349533585008,0.0993657589170524,0.19125,FALSE,"Geomorphic: Inner Reef Flat",FALSE
+"geomorphic_classInner Reef Flat","rhis_branching_live_asin",-0.214967755229687,-0.300993881288219,-0.128345821643285,0,FALSE,"Geomorphic: Inner Reef Flat",TRUE
+"geomorphic_classInner Reef Flat","rhis_table_live_asin",-0.207046023905845,-0.292606793103695,-0.119457553018078,0,FALSE,"Geomorphic: Inner Reef Flat",TRUE
+"geomorphic_classOuter Reef Flat","cull_high_density",-0.144416566247542,-0.293545606182192,0.00393837626679297,0.05675,FALSE,"Geomorphic: Outer Reef Flat",FALSE
+"geomorphic_classOuter Reef Flat","cull_direct",-0.0473843115248547,-0.202827267359707,0.10943823400108,0.309,FALSE,"Geomorphic: Outer Reef Flat",FALSE
+"geomorphic_classOuter Reef Flat","salad_high_density",-0.217601691284591,-0.575955553987259,0.120621509405912,0.15375,FALSE,"Geomorphic: Outer Reef Flat",FALSE
+"geomorphic_classOuter Reef Flat","salad_direct",-0.142828694619282,-0.433505207679901,0.14140240729743,0.20625,FALSE,"Geomorphic: Outer Reef Flat",FALSE
+"geomorphic_classOuter Reef Flat","salad_scar",-0.0697058678933194,-0.35101401498059,0.207803400912699,0.34775,FALSE,"Geomorphic: Outer Reef Flat",FALSE
+"geomorphic_classOuter Reef Flat","rhis_adult",-0.205747791006807,-0.363945513190632,-0.0508879471854402,0.0145,FALSE,"Geomorphic: Outer Reef Flat",TRUE
+"geomorphic_classOuter Reef Flat","rhis_juvenile",-0.307710037749526,-0.509041637366615,-0.1047836820332,0.005,FALSE,"Geomorphic: Outer Reef Flat",TRUE
+"geomorphic_classOuter Reef Flat","rhis_branching_scar",-0.416184068284496,-0.578463162326883,-0.25033225740815,0,FALSE,"Geomorphic: Outer Reef Flat",TRUE
+"geomorphic_classOuter Reef Flat","rhis_table_scar",-0.1204763782553,-0.293598756449517,0.0526401457182278,0.129,FALSE,"Geomorphic: Outer Reef Flat",FALSE
+"geomorphic_classOuter Reef Flat","salad_log_density",-0.0114296168964591,-0.194325492809124,0.175588762271235,0.45325,FALSE,"Geomorphic: Outer Reef Flat",FALSE
+"geomorphic_classOuter Reef Flat","rhis_branching_live_asin",-0.333444026114364,-0.405665972231867,-0.261672230678437,0,FALSE,"Geomorphic: Outer Reef Flat",TRUE
+"geomorphic_classOuter Reef Flat","rhis_table_live_asin",0.22913226319795,0.15887263943851,0.302372252115735,1,FALSE,"Geomorphic: Outer Reef Flat",TRUE
+"geomorphic_classPatch Reef","cull_high_density",0.551833309912755,-0.138034025520841,1.27625397270297,0.9055,FALSE,"Geomorphic: Patch Reef",FALSE
+"geomorphic_classPatch Reef","cull_direct",0.445385903285178,-0.228912093723003,1.17452933258276,0.85425,FALSE,"Geomorphic: Patch Reef",FALSE
+"geomorphic_classPatch Reef","salad_high_density",0.455700974891124,-0.304457258582906,1.27790130228575,0.834,FALSE,"Geomorphic: Patch Reef",FALSE
+"geomorphic_classPatch Reef","salad_direct",0.353772287698984,-0.163038610345267,0.898469299610979,0.86075,FALSE,"Geomorphic: Patch Reef",FALSE
+"geomorphic_classPatch Reef","salad_scar",0.393454361995388,-0.140459091283073,0.926795988379339,0.89525,FALSE,"Geomorphic: Patch Reef",FALSE
+"geomorphic_classPatch Reef","rhis_adult",0.216469001498081,-0.344442057526295,0.771612677212811,0.7415,FALSE,"Geomorphic: Patch Reef",FALSE
+"geomorphic_classPatch Reef","rhis_juvenile",0.262310271538331,-0.323953395524851,0.847248465271901,0.772,FALSE,"Geomorphic: Patch Reef",FALSE
+"geomorphic_classPatch Reef","rhis_branching_scar",0.28725588796712,-0.279820894486488,0.85303531303481,0.80925,FALSE,"Geomorphic: Patch Reef",FALSE
+"geomorphic_classPatch Reef","rhis_table_scar",0.321096349620951,-0.252794040010168,0.87889685729609,0.83,FALSE,"Geomorphic: Patch Reef",FALSE
+"geomorphic_classPatch Reef","salad_log_density",0.188284024200539,-0.172027411752376,0.55102424931,0.8035,FALSE,"Geomorphic: Patch Reef",FALSE
+"geomorphic_classPatch Reef","rhis_branching_live_asin",-0.598619309438431,-0.993501822900267,-0.217908787905968,0.00475,FALSE,"Geomorphic: Patch Reef",TRUE
+"geomorphic_classPatch Reef","rhis_table_live_asin",-0.292913308408763,-0.664701300412589,0.0804129006029107,0.09775,FALSE,"Geomorphic: Patch Reef",FALSE
+"geomorphic_classPlateau","cull_high_density",-0.152938635370095,-0.452851407361717,0.148460344938539,0.19825,FALSE,"Geomorphic: Plateau",FALSE
+"geomorphic_classPlateau","cull_direct",0.342355651533323,-0.0065577366761179,0.695418333008301,0.9475,FALSE,"Geomorphic: Plateau",FALSE
+"geomorphic_classPlateau","salad_high_density",0.286052712284597,-0.610410825564237,1.21382228897036,0.70225,FALSE,"Geomorphic: Plateau",FALSE
+"geomorphic_classPlateau","salad_direct",0.12241609575273,-0.679881445188982,0.929968697616713,0.60175,FALSE,"Geomorphic: Plateau",FALSE
+"geomorphic_classPlateau","salad_scar",0.14128688684017,-0.647433384966074,0.931699800555435,0.6115,FALSE,"Geomorphic: Plateau",FALSE
+"geomorphic_classPlateau","rhis_adult",-0.0260744324221704,-0.32451681997573,0.271401068530103,0.444,FALSE,"Geomorphic: Plateau",FALSE
+"geomorphic_classPlateau","rhis_juvenile",0.234067607217542,-0.0922450096317089,0.569207946297665,0.881,FALSE,"Geomorphic: Plateau",FALSE
+"geomorphic_classPlateau","rhis_branching_scar",0.179974981276538,-0.120090392997865,0.485418316302034,0.83575,FALSE,"Geomorphic: Plateau",FALSE
+"geomorphic_classPlateau","rhis_table_scar",0.0207998510514223,-0.296251556812855,0.337736668755329,0.54225,FALSE,"Geomorphic: Plateau",FALSE
+"geomorphic_classPlateau","salad_log_density",0.196610818692474,-0.499941735944296,0.896510504199819,0.6805,FALSE,"Geomorphic: Plateau",FALSE
+"geomorphic_classPlateau","rhis_branching_live_asin",-0.0121826904854429,-0.189258482596631,0.167081488147064,0.4455,FALSE,"Geomorphic: Plateau",FALSE
+"geomorphic_classPlateau","rhis_table_live_asin",0.361969300776448,0.183700043581532,0.537548887260751,1,FALSE,"Geomorphic: Plateau",TRUE
+"geomorphic_classReef Crest","cull_high_density",-0.197233020971149,-0.374066415335238,-0.0135011910070217,0.03725,FALSE,"Geomorphic: Reef Crest",TRUE
+"geomorphic_classReef Crest","cull_direct",-0.32872900472343,-0.515530554063648,-0.144019883947044,0.00125,FALSE,"Geomorphic: Reef Crest",TRUE
+"geomorphic_classReef Crest","salad_high_density",0.285141556462577,-0.170618770341107,0.764252554322019,0.842,FALSE,"Geomorphic: Reef Crest",FALSE
+"geomorphic_classReef Crest","salad_direct",-0.0170119867486475,-0.401519391690916,0.357775779569138,0.47525,FALSE,"Geomorphic: Reef Crest",FALSE
+"geomorphic_classReef Crest","salad_scar",-0.0798406964583624,-0.452838201329739,0.281988044844694,0.37275,FALSE,"Geomorphic: Reef Crest",FALSE
+"geomorphic_classReef Crest","rhis_adult",-0.252473821922699,-0.440134421305375,-0.0663989548250149,0.011,FALSE,"Geomorphic: Reef Crest",TRUE
+"geomorphic_classReef Crest","rhis_juvenile",-0.25848775282484,-0.495157543928888,-0.0217974177317014,0.03325,FALSE,"Geomorphic: Reef Crest",TRUE
+"geomorphic_classReef Crest","rhis_branching_scar",-0.492335611052471,-0.689265159012381,-0.301664018924385,0,FALSE,"Geomorphic: Reef Crest",TRUE
+"geomorphic_classReef Crest","rhis_table_scar",-0.0720498793018874,-0.28324154523841,0.134722658959887,0.285,FALSE,"Geomorphic: Reef Crest",FALSE
+"geomorphic_classReef Crest","salad_log_density",0.0277877846828477,-0.230252119747217,0.280129158138316,0.5735,FALSE,"Geomorphic: Reef Crest",FALSE
+"geomorphic_classReef Crest","rhis_branching_live_asin",-0.573629174670417,-0.652872787503231,-0.493864645442647,0,FALSE,"Geomorphic: Reef Crest",TRUE
+"geomorphic_classReef Crest","rhis_table_live_asin",0.179836470926421,0.103605455711282,0.256226770041335,1,FALSE,"Geomorphic: Reef Crest",TRUE
+"geomorphic_classReef Slope","cull_high_density",0.025254763372487,-0.0896297793078068,0.139972154528809,0.63625,FALSE,"Geomorphic: Reef Slope",FALSE
+"geomorphic_classReef Slope","cull_direct",0.101014484489736,-0.0252806901337662,0.227929951806764,0.90475,FALSE,"Geomorphic: Reef Slope",FALSE
+"geomorphic_classReef Slope","salad_high_density",0.492182377177298,0.126489003623195,0.866922310557051,0.98675,FALSE,"Geomorphic: Reef Slope",TRUE
+"geomorphic_classReef Slope","salad_direct",0.435129143434804,0.143517464697319,0.741309307233863,0.9935,FALSE,"Geomorphic: Reef Slope",TRUE
+"geomorphic_classReef Slope","salad_scar",0.566860565422271,0.271239857692509,0.865124228674392,0.99925,FALSE,"Geomorphic: Reef Slope",TRUE
+"geomorphic_classReef Slope","rhis_adult",-0.0363339838173134,-0.158563396484355,0.0851531029874492,0.31925,FALSE,"Geomorphic: Reef Slope",FALSE
+"geomorphic_classReef Slope","rhis_juvenile",-0.0756276862147575,-0.228574380176872,0.0750620059978794,0.204,FALSE,"Geomorphic: Reef Slope",FALSE
+"geomorphic_classReef Slope","rhis_branching_scar",-0.11994129216131,-0.24308916271552,0.00552168279322904,0.05925,FALSE,"Geomorphic: Reef Slope",FALSE
+"geomorphic_classReef Slope","rhis_table_scar",0.0965933231286316,-0.0325378333857258,0.230847033422396,0.884,FALSE,"Geomorphic: Reef Slope",FALSE
+"geomorphic_classReef Slope","salad_log_density",0.377605988896393,0.190577596184411,0.568061551070749,0.9995,FALSE,"Geomorphic: Reef Slope",TRUE
+"geomorphic_classReef Slope","rhis_branching_live_asin",-0.112883856535611,-0.167822762606997,-0.0576077427095674,0,FALSE,"Geomorphic: Reef Slope",TRUE
+"geomorphic_classReef Slope","rhis_table_live_asin",0.234630542313999,0.178915581961458,0.290460792897034,1,FALSE,"Geomorphic: Reef Slope",TRUE
+"geomorphic_classShallow Lagoon","cull_high_density",-0.167693741345758,-0.540917210371472,0.197839539122083,0.2225,FALSE,"Geomorphic: Shallow Lagoon",FALSE
+"geomorphic_classShallow Lagoon","cull_direct",-0.436528924083096,-0.798935229366273,-0.062303576011328,0.02625,FALSE,"Geomorphic: Shallow Lagoon",TRUE
+"geomorphic_classShallow Lagoon","salad_high_density",-0.386948922442698,-2.28231795812018,1.54423445708117,0.3635,FALSE,"Geomorphic: Shallow Lagoon",FALSE
+"geomorphic_classShallow Lagoon","salad_direct",-0.507812500643713,-2.37919925220571,1.39912020579936,0.321,FALSE,"Geomorphic: Shallow Lagoon",FALSE
+"geomorphic_classShallow Lagoon","salad_scar",-0.528627583077856,-2.3744635910976,1.38837226135212,0.31475,FALSE,"Geomorphic: Shallow Lagoon",FALSE
+"geomorphic_classShallow Lagoon","rhis_adult",-0.563390992627822,-0.984974377658442,-0.127317004516475,0.0165,FALSE,"Geomorphic: Shallow Lagoon",TRUE
+"geomorphic_classShallow Lagoon","rhis_juvenile",-0.750047563250256,-1.36323162916,-0.189245084320651,0.0135,FALSE,"Geomorphic: Shallow Lagoon",TRUE
+"geomorphic_classShallow Lagoon","rhis_branching_scar",-0.521673946228704,-0.955008609577359,-0.0894161583729386,0.01975,FALSE,"Geomorphic: Shallow Lagoon",TRUE
+"geomorphic_classShallow Lagoon","rhis_table_scar",-0.853284475568256,-1.42289132622755,-0.327587465183285,0.00425,FALSE,"Geomorphic: Shallow Lagoon",TRUE
+"geomorphic_classShallow Lagoon","salad_log_density",-0.542080931145054,-2.37710184328598,1.32597465768225,0.3085,FALSE,"Geomorphic: Shallow Lagoon",FALSE
+"geomorphic_classShallow Lagoon","rhis_branching_live_asin",0.222974205445452,5.91472301077253e-05,0.445303691962265,0.95,FALSE,"Geomorphic: Shallow Lagoon",TRUE
+"geomorphic_classShallow Lagoon","rhis_table_live_asin",-0.451299510353204,-0.667573598996587,-0.225740938706515,0.00025,FALSE,"Geomorphic: Shallow Lagoon",TRUE
+"geomorphic_classSheltered Reef Slope","cull_high_density",-0.161810827971934,-0.279959333908974,-0.0430516976055908,0.01325,FALSE,"Geomorphic: Sheltered Reef Slope",TRUE
+"geomorphic_classSheltered Reef Slope","cull_direct",-0.0673607898219623,-0.194157721768054,0.0582513421725287,0.19675,FALSE,"Geomorphic: Sheltered Reef Slope",FALSE
+"geomorphic_classSheltered Reef Slope","salad_high_density",0.0137047141340385,-0.297731645511839,0.322996852909588,0.536,FALSE,"Geomorphic: Sheltered Reef Slope",FALSE
+"geomorphic_classSheltered Reef Slope","salad_direct",0.180889396953968,-0.0703510727359386,0.441525188700662,0.88075,FALSE,"Geomorphic: Sheltered Reef Slope",FALSE
+"geomorphic_classSheltered Reef Slope","salad_scar",0.0938334054555144,-0.149235357653344,0.338960806210682,0.7315,FALSE,"Geomorphic: Sheltered Reef Slope",FALSE
+"geomorphic_classSheltered Reef Slope","rhis_adult",0.0166329191302016,-0.114238558919512,0.145488792947671,0.58,FALSE,"Geomorphic: Sheltered Reef Slope",FALSE
+"geomorphic_classSheltered Reef Slope","rhis_juvenile",-0.10035795208712,-0.270667577152477,0.0646961255099353,0.15925,FALSE,"Geomorphic: Sheltered Reef Slope",FALSE
+"geomorphic_classSheltered Reef Slope","rhis_branching_scar",-0.128213836945997,-0.259165289633374,0.00262944323211191,0.05325,FALSE,"Geomorphic: Sheltered Reef Slope",FALSE
+"geomorphic_classSheltered Reef Slope","rhis_table_scar",-0.0314306060434052,-0.177190709242282,0.112698990084411,0.357,FALSE,"Geomorphic: Sheltered Reef Slope",FALSE
+"geomorphic_classSheltered Reef Slope","salad_log_density",0.229787313278082,0.0784256896391002,0.385918977189857,0.9935,FALSE,"Geomorphic: Sheltered Reef Slope",TRUE
+"geomorphic_classSheltered Reef Slope","rhis_branching_live_asin",-0.0478093070812985,-0.105842051363377,0.0119660556074644,0.09375,FALSE,"Geomorphic: Sheltered Reef Slope",FALSE
+"geomorphic_classSheltered Reef Slope","rhis_table_live_asin",-0.0776501853161579,-0.135003053405007,-0.0201548858124549,0.01175,FALSE,"Geomorphic: Sheltered Reef Slope",TRUE
+"AhyaD","cull_high_density",0.127964280185011,-0.0350104067098668,0.290275564329789,0.903,TRUE,"Acropora hyacinthus suitability",FALSE
+"AhyaD","cull_direct",0.165472205191991,-0.00600848344346973,0.339129549003392,0.94325,TRUE,"Acropora hyacinthus suitability",FALSE
+"AhyaD","salad_high_density",-0.03967050659668,-0.413592114634781,0.338780570205387,0.42075,TRUE,"Acropora hyacinthus suitability",FALSE
+"AhyaD","salad_direct",-0.0661727854226638,-0.341061022085731,0.208722762168494,0.34475,TRUE,"Acropora hyacinthus suitability",FALSE
+"AhyaD","salad_scar",0.0297506296087493,-0.224860712748777,0.288061861055883,0.5755,TRUE,"Acropora hyacinthus suitability",FALSE
+"AhyaD","rhis_adult",0.142362120584211,-0.0273048383608545,0.307204474167566,0.9205,TRUE,"Acropora hyacinthus suitability",FALSE
+"AhyaD","rhis_juvenile",0.153286833668992,-0.0430525948759773,0.349320275330279,0.898,TRUE,"Acropora hyacinthus suitability",FALSE
+"AhyaD","rhis_branching_scar",0.0525868027633273,-0.101608314625536,0.214806521724899,0.69725,TRUE,"Acropora hyacinthus suitability",FALSE
+"AhyaD","rhis_table_scar",0.0937764477190525,-0.0829656964969663,0.267415917038785,0.8125,TRUE,"Acropora hyacinthus suitability",FALSE
+"AhyaD","salad_log_density",-0.0172080640949534,-0.18052573875374,0.148601951246999,0.4215,TRUE,"Acropora hyacinthus suitability",FALSE
+"AhyaD","rhis_branching_live_asin",-0.320461077376229,-0.398232107401539,-0.243342163846195,0,TRUE,"Acropora hyacinthus suitability",TRUE
+"AhyaD","rhis_table_live_asin",-0.00693921514458876,-0.0813393496052066,0.0712288849498296,0.4415,TRUE,"Acropora hyacinthus suitability",FALSE
+"Aspat","cull_high_density",-0.00929491973982684,-0.119922371785895,0.103666066290385,0.4465,TRUE,"A. spathulata suitability",FALSE
+"Aspat","cull_direct",-0.0390568003272322,-0.160373215122034,0.0797494096029937,0.2945,TRUE,"A. spathulata suitability",FALSE
+"Aspat","salad_high_density",1.0393352800871,0.745819992459682,1.35092205229215,1,TRUE,"A. spathulata suitability",TRUE
+"Aspat","salad_direct",0.682811711102348,0.453248821172114,0.904841849998944,1,TRUE,"A. spathulata suitability",TRUE
+"Aspat","salad_scar",0.650213918358591,0.436445898147345,0.871725575252453,1,TRUE,"A. spathulata suitability",TRUE
+"Aspat","rhis_adult",-0.0811390372382532,-0.19902829084456,0.0367036265673012,0.1345,TRUE,"A. spathulata suitability",FALSE
+"Aspat","rhis_juvenile",0.0577276471421554,-0.0957135432035046,0.213687858376757,0.7335,TRUE,"A. spathulata suitability",FALSE
+"Aspat","rhis_branching_scar",0.0316134067908557,-0.0936765614875852,0.15143929576776,0.6625,TRUE,"A. spathulata suitability",FALSE
+"Aspat","rhis_table_scar",0.0955421148037353,-0.0338503408135333,0.233041211588477,0.8815,TRUE,"A. spathulata suitability",FALSE
+"Aspat","salad_log_density",0.420639381716586,0.295640336710906,0.544503679513045,1,TRUE,"A. spathulata suitability",TRUE
+"Aspat","rhis_branching_live_asin",0.119097682306988,0.06501681974591,0.170644435265586,1,TRUE,"A. spathulata suitability",TRUE
+"Aspat","rhis_table_live_asin",0.0462009045463348,-0.00582062886040086,0.0970882643478253,0.92675,TRUE,"A. spathulata suitability",FALSE
+"Aten","cull_high_density",-0.039638723710045,-0.211478930084352,0.133687611268278,0.35475,TRUE,"A. tenuis suitability",FALSE
+"Aten","cull_direct",-0.0827473750958688,-0.262015191254421,0.102733184175703,0.2325,TRUE,"A. tenuis suitability",FALSE
+"Aten","salad_high_density",-0.640841779892289,-1.03637500792033,-0.24535442206557,0.00375,TRUE,"A. tenuis suitability",TRUE
+"Aten","salad_direct",-0.628549477647735,-0.918406770228447,-0.345597356460423,0,TRUE,"A. tenuis suitability",TRUE
+"Aten","salad_scar",-0.657808834322141,-0.93419137132603,-0.382831690010786,0,TRUE,"A. tenuis suitability",TRUE
+"Aten","rhis_adult",-0.0663363067512825,-0.244235126301538,0.114409482991352,0.269,TRUE,"A. tenuis suitability",FALSE
+"Aten","rhis_juvenile",-0.112289632315947,-0.318262960366857,0.103796868349218,0.19325,TRUE,"A. tenuis suitability",FALSE
+"Aten","rhis_branching_scar",-0.0637657765150026,-0.245234416441553,0.114915043567608,0.28025,TRUE,"A. tenuis suitability",FALSE
+"Aten","rhis_table_scar",-0.175786370149199,-0.366331146170544,0.0196860554116764,0.071,TRUE,"A. tenuis suitability",FALSE
+"Aten","salad_log_density",-0.461246929452826,-0.639138523306682,-0.284788708286417,0,TRUE,"A. tenuis suitability",TRUE
+"Aten","rhis_branching_live_asin",0.137423097131283,0.0550957786575988,0.219233949020262,0.99775,TRUE,"A. tenuis suitability",TRUE
+"Aten","rhis_table_live_asin",0.016789026828216,-0.0652265873833037,0.0970121229150922,0.6415,TRUE,"A. tenuis suitability",FALSE
+"turbid","cull_high_density",0.00969605904491196,-0.0355112867229712,0.0539266040959087,0.64125,TRUE,"Turbidity",FALSE
+"turbid","cull_direct",0.0593630635435087,0.0094929680859541,0.109199392987645,0.974,TRUE,"Turbidity",TRUE
+"turbid","salad_high_density",0.268613174002271,0.153681198375417,0.387217964830949,1,TRUE,"Turbidity",TRUE
+"turbid","salad_direct",0.13191491872781,0.0253747520899459,0.237504611388513,0.97925,TRUE,"Turbidity",TRUE
+"turbid","salad_scar",0.0791491384256049,-0.01718379774032,0.181960768940179,0.90575,TRUE,"Turbidity",FALSE
+"turbid","rhis_adult",0.0765405193874142,0.0192158588864222,0.131891334903386,0.98575,TRUE,"Turbidity",TRUE
+"turbid","rhis_juvenile",-0.0731879038484473,-0.150547202090338,0.00236012897390636,0.05525,TRUE,"Turbidity",FALSE
+"turbid","rhis_branching_scar",0.0611832529687086,0.00234611893836496,0.11983642750256,0.95575,TRUE,"Turbidity",TRUE
+"turbid","rhis_table_scar",0.105684292140526,0.0397815733162723,0.170840487783553,0.9965,TRUE,"Turbidity",TRUE
+"turbid","salad_log_density",0.127506664174248,0.0761382998111628,0.177510045252618,0.99975,TRUE,"Turbidity",TRUE
+"turbid","rhis_branching_live_asin",0.00992639694947917,-0.0128460961718163,0.0322758559880961,0.76175,TRUE,"Turbidity",FALSE
+"turbid","rhis_table_live_asin",0.102531604405807,0.0797201236623119,0.124621691892227,1,TRUE,"Turbidity",TRUE
+"waves_Hs","cull_high_density",-0.124350162019841,-0.178307467868797,-0.0715264242946338,0,TRUE,"Wave height (Hs)",TRUE
+"waves_Hs","cull_direct",-0.101681127104571,-0.157770848389959,-0.0461542773833693,5e-04,TRUE,"Wave height (Hs)",TRUE
+"waves_Hs","salad_high_density",-0.05683766847243,-0.231593797914794,0.127267664761032,0.29375,TRUE,"Wave height (Hs)",FALSE
+"waves_Hs","salad_direct",-0.0805454605553332,-0.255383804062576,0.0868775744234001,0.2255,TRUE,"Wave height (Hs)",FALSE
+"waves_Hs","salad_scar",-0.14704835096956,-0.31637426056649,0.0190277046484765,0.072,TRUE,"Wave height (Hs)",FALSE
+"waves_Hs","rhis_adult",-0.00261634692207916,-0.0614296787926409,0.058463811199537,0.47475,TRUE,"Wave height (Hs)",FALSE
+"waves_Hs","rhis_juvenile",0.122647199670986,0.0445777648606471,0.201609595886744,0.9965,TRUE,"Wave height (Hs)",TRUE
+"waves_Hs","rhis_branching_scar",-0.0529134533020402,-0.116870386046993,0.00920699907967223,0.08125,TRUE,"Wave height (Hs)",FALSE
+"waves_Hs","rhis_table_scar",0.134016293205398,0.0669080128022955,0.202069017750213,0.99975,TRUE,"Wave height (Hs)",TRUE
+"waves_Hs","salad_log_density",-0.100813068705911,-0.194250606848752,-0.00753427790235326,0.036,TRUE,"Wave height (Hs)",TRUE
+"waves_Hs","rhis_branching_live_asin",-0.232636363370909,-0.258478572732524,-0.206182772267216,0,TRUE,"Wave height (Hs)",TRUE
+"waves_Hs","rhis_table_live_asin",0.128479629667092,0.10237857528536,0.153847868389136,1,TRUE,"Wave height (Hs)",TRUE
+"waves_Tp","cull_high_density",0.0515862473979623,0.0108983679632513,0.0913517494363615,0.9835,TRUE,"Wave period (Tp)",TRUE
+"waves_Tp","cull_direct",0.0386241757234318,-0.00330273882984623,0.0814384387542076,0.9325,TRUE,"Wave period (Tp)",FALSE
+"waves_Tp","salad_high_density",-0.234828808987378,-0.369544250481955,-0.103253147285863,0.00175,TRUE,"Wave period (Tp)",TRUE
+"waves_Tp","salad_direct",-0.347435838427371,-0.467201566754395,-0.229127155405979,0,TRUE,"Wave period (Tp)",TRUE
+"waves_Tp","salad_scar",-0.242522318256818,-0.356130426122399,-0.128103097308695,5e-04,TRUE,"Wave period (Tp)",TRUE
+"waves_Tp","rhis_adult",0.0185993834859394,-0.0308181892821889,0.0672894422887666,0.73325,TRUE,"Wave period (Tp)",FALSE
+"waves_Tp","rhis_juvenile",-0.107941430638895,-0.175138785929131,-0.0418065060665466,0.00225,TRUE,"Wave period (Tp)",TRUE
+"waves_Tp","rhis_branching_scar",-0.105866126939629,-0.157140016648303,-0.0542616780525045,0.001,TRUE,"Wave period (Tp)",TRUE
+"waves_Tp","rhis_table_scar",-0.133893513550894,-0.192993731618935,-0.0760329771302576,0,TRUE,"Wave period (Tp)",TRUE
+"waves_Tp","salad_log_density",-0.148872488084503,-0.210117123556557,-0.0884280094155623,0,TRUE,"Wave period (Tp)",TRUE
+"waves_Tp","rhis_branching_live_asin",-0.00209967483169763,-0.023357913126622,0.0184108136268504,0.4285,TRUE,"Wave period (Tp)",FALSE
+"waves_Tp","rhis_table_live_asin",-0.10284648478333,-0.1227002683753,-0.0825062125964457,0,TRUE,"Wave period (Tp)",TRUE
+"dem_pc1","cull_high_density",0.0171360036772571,-0.0424154269569972,0.0787591580514332,0.6715,TRUE,"Depth (multiscale)",FALSE
+"dem_pc1","cull_direct",0.0192921680854697,-0.0488363657969154,0.0868865704899978,0.68425,TRUE,"Depth (multiscale)",FALSE
+"dem_pc1","salad_high_density",-0.0269875240122144,-0.203385326153678,0.136940608296681,0.4075,TRUE,"Depth (multiscale)",FALSE
+"dem_pc1","salad_direct",0.154297716930585,0.0328659088942209,0.275734410759277,0.98175,TRUE,"Depth (multiscale)",TRUE
+"dem_pc1","salad_scar",0.160310522448777,0.0472934883928864,0.279984163940265,0.9885,TRUE,"Depth (multiscale)",TRUE
+"dem_pc1","rhis_adult",-0.0631552268368866,-0.139976851728818,0.0143819897848222,0.09075,TRUE,"Depth (multiscale)",FALSE
+"dem_pc1","rhis_juvenile",-0.0504152788262235,-0.149880410927863,0.0478578749170081,0.19675,TRUE,"Depth (multiscale)",FALSE
+"dem_pc1","rhis_branching_scar",-0.084330579177592,-0.160792166497691,-0.00467587329939601,0.0395,TRUE,"Depth (multiscale)",TRUE
+"dem_pc1","rhis_table_scar",0.0865785620161433,0.00532654427371784,0.169924389491491,0.95875,TRUE,"Depth (multiscale)",TRUE
+"dem_pc1","salad_log_density",0.159202428972816,0.0957001781069441,0.221864073401143,1,TRUE,"Depth (multiscale)",TRUE
+"dem_pc1","rhis_branching_live_asin",-0.0284033752166143,-0.0597395493697196,0.00219978930336396,0.06625,TRUE,"Depth (multiscale)",FALSE
+"dem_pc1","rhis_table_live_asin",0.105060309603941,0.0735361475102756,0.13616963773161,1,TRUE,"Depth (multiscale)",TRUE
+"slope_pc1","cull_high_density",0.0225305584873002,-0.121489222696542,0.163793629974512,0.606,TRUE,"Slope (multiscale)",FALSE
+"slope_pc1","cull_direct",-0.0862651796430734,-0.236360257725654,0.0656261077062364,0.1685,TRUE,"Slope (multiscale)",FALSE
+"slope_pc1","salad_high_density",-0.530916290147086,-0.878451338642054,-0.19502682990089,0.004,TRUE,"Slope (multiscale)",TRUE
+"slope_pc1","salad_direct",-0.182996376128187,-0.4192751419787,0.0542476325441233,0.0995,TRUE,"Slope (multiscale)",FALSE
+"slope_pc1","salad_scar",-0.186210644649487,-0.411993902913756,0.0389562782704906,0.0875,TRUE,"Slope (multiscale)",FALSE
+"slope_pc1","rhis_adult",-0.425754747294073,-0.576445270098678,-0.274756380409611,0,TRUE,"Slope (multiscale)",TRUE
+"slope_pc1","rhis_juvenile",-0.433081389076988,-0.607887251188517,-0.257053117982297,0,TRUE,"Slope (multiscale)",TRUE
+"slope_pc1","rhis_branching_scar",-0.567190600356219,-0.713702943097603,-0.412976182989949,0,TRUE,"Slope (multiscale)",TRUE
+"slope_pc1","rhis_table_scar",-0.227798466091907,-0.388490722958103,-0.0650102557575092,0.011,TRUE,"Slope (multiscale)",TRUE
+"slope_pc1","salad_log_density",-0.134321811927596,-0.265844853677951,-0.00390979032467731,0.04625,TRUE,"Slope (multiscale)",TRUE
+"slope_pc1","rhis_branching_live_asin",-0.334616919960438,-0.403384690623644,-0.270108604444699,0,TRUE,"Slope (multiscale)",TRUE
+"slope_pc1","rhis_table_live_asin",-0.195495336667009,-0.261728707673424,-0.128374893287524,0,TRUE,"Slope (multiscale)",TRUE
+"eastness_pc1","cull_high_density",0.0677204687867801,0.0229062125259368,0.111287002092064,0.99475,TRUE,"Eastness (multiscale)",TRUE
+"eastness_pc1","cull_direct",0.0896538688789258,0.0404225050158376,0.138909477132276,0.99825,TRUE,"Eastness (multiscale)",TRUE
+"eastness_pc1","salad_high_density",0.151342866172789,0.0262198664504204,0.274735528474785,0.978,TRUE,"Eastness (multiscale)",TRUE
+"eastness_pc1","salad_direct",0.236525975829879,0.130617238336907,0.34555365470621,1,TRUE,"Eastness (multiscale)",TRUE
+"eastness_pc1","salad_scar",0.154503577227988,0.054149871365096,0.25498641650494,0.9925,TRUE,"Eastness (multiscale)",TRUE
+"eastness_pc1","rhis_adult",0.0983304317378958,0.0454071224580804,0.151961647267623,0.9985,TRUE,"Eastness (multiscale)",TRUE
+"eastness_pc1","rhis_juvenile",-0.0183408172173197,-0.089033211717742,0.052767519403655,0.334,TRUE,"Eastness (multiscale)",FALSE
+"eastness_pc1","rhis_branching_scar",0.0690253308677687,0.0144216999743619,0.122235446514873,0.9815,TRUE,"Eastness (multiscale)",TRUE
+"eastness_pc1","rhis_table_scar",0.0495362585504562,-0.01090905193415,0.109553124061972,0.911,TRUE,"Eastness (multiscale)",FALSE
+"eastness_pc1","salad_log_density",0.110252110591491,0.0568204787700057,0.165930505996442,0.9995,TRUE,"Eastness (multiscale)",TRUE
+"eastness_pc1","rhis_branching_live_asin",0.0112239379726154,-0.0118865380069349,0.0341771344137516,0.79175,TRUE,"Eastness (multiscale)",FALSE
+"eastness_pc1","rhis_table_live_asin",-0.0367221380267181,-0.0595079981652363,-0.014080655806887,0.0035,TRUE,"Eastness (multiscale)",TRUE
+"northness_pc1","cull_high_density",0.0371109639537442,-0.00389061083588735,0.0797731174442441,0.9275,TRUE,"Northness (multiscale)",FALSE
+"northness_pc1","cull_direct",-0.00264829740813827,-0.0469552093559038,0.0428072143761228,0.453,TRUE,"Northness (multiscale)",FALSE
+"northness_pc1","salad_high_density",-0.0410375368462058,-0.166600850711117,0.0840179012154573,0.29075,TRUE,"Northness (multiscale)",FALSE
+"northness_pc1","salad_direct",-0.198805753770273,-0.309763270953654,-0.0899982083674745,0.002,TRUE,"Northness (multiscale)",TRUE
+"northness_pc1","salad_scar",-0.16634345159359,-0.276303075130294,-0.0606087770172406,0.0055,TRUE,"Northness (multiscale)",TRUE
+"northness_pc1","rhis_adult",-0.019161074706802,-0.0659627359772467,0.0271425963055289,0.25525,TRUE,"Northness (multiscale)",FALSE
+"northness_pc1","rhis_juvenile",0.0506245141238382,-0.00793602385473489,0.110070674978805,0.92325,TRUE,"Northness (multiscale)",FALSE
+"northness_pc1","rhis_branching_scar",0.00140834244772245,-0.0445231260128708,0.0483485970708535,0.525,TRUE,"Northness (multiscale)",FALSE
+"northness_pc1","rhis_table_scar",0.0337551299905821,-0.0182817967151052,0.0868197945336024,0.85875,TRUE,"Northness (multiscale)",FALSE
+"northness_pc1","salad_log_density",-0.081578790274176,-0.139290914914393,-0.023815893645183,0.012,TRUE,"Northness (multiscale)",TRUE
+"northness_pc1","rhis_branching_live_asin",-0.0173407747800101,-0.0369205625170373,0.00206623732232251,0.07525,TRUE,"Northness (multiscale)",FALSE
+"northness_pc1","rhis_table_live_asin",0.0968618169494474,0.0771471936541894,0.11633761594224,1,TRUE,"Northness (multiscale)",TRUE
+"hcu_pc1","cull_high_density",0.0491602979377168,0.0111779099443538,0.0853512122715401,0.983,TRUE,"Plan curvature (multiscale)",TRUE
+"hcu_pc1","cull_direct",0.0121368465483263,-0.0312746296088801,0.0538476750472916,0.688,TRUE,"Plan curvature (multiscale)",FALSE
+"hcu_pc1","salad_high_density",0.0487158543030403,-0.105041839569404,0.198146374168795,0.69675,TRUE,"Plan curvature (multiscale)",FALSE
+"hcu_pc1","salad_direct",-0.0744472658022955,-0.199622436289295,0.051940278789984,0.1725,TRUE,"Plan curvature (multiscale)",FALSE
+"hcu_pc1","salad_scar",0.0603739634283878,-0.0620620845372554,0.182695574156882,0.78675,TRUE,"Plan curvature (multiscale)",FALSE
+"hcu_pc1","rhis_adult",-0.00698584511389815,-0.0544002733318959,0.0426152367041527,0.41075,TRUE,"Plan curvature (multiscale)",FALSE
+"hcu_pc1","rhis_juvenile",-0.0896387137008945,-0.150079240516834,-0.0290153700889699,0.0075,TRUE,"Plan curvature (multiscale)",TRUE
+"hcu_pc1","rhis_branching_scar",-0.0469239980978375,-0.0962534926473105,0.00262538544075563,0.059,TRUE,"Plan curvature (multiscale)",FALSE
+"hcu_pc1","rhis_table_scar",-0.0088584643671795,-0.06211037709349,0.0439167118897892,0.39075,TRUE,"Plan curvature (multiscale)",FALSE
+"hcu_pc1","salad_log_density",-0.00345618714822164,-0.0643595656514286,0.0561188132365139,0.4605,TRUE,"Plan curvature (multiscale)",FALSE
+"hcu_pc1","rhis_branching_live_asin",-0.0403844972986322,-0.0639025671116254,-0.0174704417941772,0.003,TRUE,"Plan curvature (multiscale)",TRUE
+"hcu_pc1","rhis_table_live_asin",0.0446874275743788,0.0218806992277988,0.0668722099934771,1,TRUE,"Plan curvature (multiscale)",TRUE
+"vcu_pc1","cull_high_density",-0.125840057464116,-0.221023527010471,-0.0261843229210847,0.017,TRUE,"Profile curvature (multiscale)",TRUE
+"vcu_pc1","cull_direct",-0.0554419090615637,-0.160978968057038,0.0491541214245984,0.1925,TRUE,"Profile curvature (multiscale)",FALSE
+"vcu_pc1","salad_high_density",0.549083820353477,0.290757377922948,0.818219360346739,1,TRUE,"Profile curvature (multiscale)",TRUE
+"vcu_pc1","salad_direct",0.14765022821129,-0.00827100583384298,0.305018267186197,0.9405,TRUE,"Profile curvature (multiscale)",FALSE
+"vcu_pc1","salad_scar",0.0707752109732836,-0.0783684341998487,0.222311016221609,0.77975,TRUE,"Profile curvature (multiscale)",FALSE
+"vcu_pc1","rhis_adult",0.132332320009734,0.0253591796717402,0.242499390977314,0.97825,TRUE,"Profile curvature (multiscale)",TRUE
+"vcu_pc1","rhis_juvenile",0.148888482100863,0.0112117821140765,0.284363382323448,0.9605,TRUE,"Profile curvature (multiscale)",TRUE
+"vcu_pc1","rhis_branching_scar",0.145676743959901,0.0344473895869742,0.256049181832094,0.98325,TRUE,"Profile curvature (multiscale)",TRUE
+"vcu_pc1","rhis_table_scar",-0.0722219492845359,-0.190751870920774,0.045858922638252,0.162,TRUE,"Profile curvature (multiscale)",FALSE
+"vcu_pc1","salad_log_density",0.0328916854557246,-0.0499888109865674,0.116666200591762,0.742,TRUE,"Profile curvature (multiscale)",FALSE
+"vcu_pc1","rhis_branching_live_asin",0.0473030105219925,0.00523907565362119,0.0902613138949982,0.966,TRUE,"Profile curvature (multiscale)",TRUE
+"vcu_pc1","rhis_table_live_asin",-0.117345400101708,-0.158650198059268,-0.0769830890425319,0,TRUE,"Profile curvature (multiscale)",TRUE
+"bpi_pc1","cull_high_density",0.0355015317572955,-0.0345678377809161,0.105833480963671,0.7965,TRUE,"Bathymetric position (multiscale)",FALSE
+"bpi_pc1","cull_direct",-0.0422423122256976,-0.119982470896127,0.0350274295756307,0.1825,TRUE,"Bathymetric position (multiscale)",FALSE
+"bpi_pc1","salad_high_density",-0.433559428670943,-0.669281923207832,-0.204931586664558,0.00125,TRUE,"Bathymetric position (multiscale)",TRUE
+"bpi_pc1","salad_direct",-0.481006236792513,-0.64533949823257,-0.322352698567927,0,TRUE,"Bathymetric position (multiscale)",TRUE
+"bpi_pc1","salad_scar",-0.290056265837627,-0.440051625593592,-0.140625521978978,0.00025,TRUE,"Bathymetric position (multiscale)",TRUE
+"bpi_pc1","rhis_adult",-0.105068948370292,-0.18797220102359,-0.0231056659371153,0.0175,TRUE,"Bathymetric position (multiscale)",TRUE
+"bpi_pc1","rhis_juvenile",-0.134031032726226,-0.23816784973961,-0.0278865051404216,0.018,TRUE,"Bathymetric position (multiscale)",TRUE
+"bpi_pc1","rhis_branching_scar",-0.133114708091516,-0.216503700768854,-0.04919772429621,0.005,TRUE,"Bathymetric position (multiscale)",TRUE
+"bpi_pc1","rhis_table_scar",-0.0625473955127917,-0.152658116229514,0.0281203690001211,0.131,TRUE,"Bathymetric position (multiscale)",FALSE
+"bpi_pc1","salad_log_density",-0.259130454706011,-0.345816550135578,-0.170465310133047,0,TRUE,"Bathymetric position (multiscale)",TRUE
+"bpi_pc1","rhis_branching_live_asin",-0.0806698139082358,-0.116271125637565,-0.0456172155362942,0,TRUE,"Bathymetric position (multiscale)",TRUE
+"bpi_pc1","rhis_table_live_asin",0.0365632934647174,0.0037242481714916,0.0703842376580976,0.96725,TRUE,"Bathymetric position (multiscale)",TRUE
+"sd_pc1","cull_high_density",-0.165984808487714,-0.324861640700504,-0.00363170674732274,0.04775,TRUE,"Local relief (multiscale)",TRUE
+"sd_pc1","cull_direct",-0.0415334583484062,-0.217251044606202,0.129842806838905,0.34975,TRUE,"Local relief (multiscale)",FALSE
+"sd_pc1","salad_high_density",0.651917989751898,0.291281549579539,1.04149373777224,0.99925,TRUE,"Local relief (multiscale)",TRUE
+"sd_pc1","salad_direct",0.393856143354815,0.177382064703573,0.613809022133318,0.9975,TRUE,"Local relief (multiscale)",TRUE
+"sd_pc1","salad_scar",0.322423471526711,0.106805859535198,0.535975533520738,0.99325,TRUE,"Local relief (multiscale)",TRUE
+"sd_pc1","rhis_adult",0.305922304794213,0.137179050432082,0.47484333871208,0.9985,TRUE,"Local relief (multiscale)",TRUE
+"sd_pc1","rhis_juvenile",0.243712619472484,0.0440239349001695,0.451091842936161,0.9765,TRUE,"Local relief (multiscale)",TRUE
+"sd_pc1","rhis_branching_scar",0.325603103948361,0.153766366081921,0.49174477149073,0.99925,TRUE,"Local relief (multiscale)",TRUE
+"sd_pc1","rhis_table_scar",0.19497783533605,0.0124907642740783,0.3715453281827,0.963,TRUE,"Local relief (multiscale)",TRUE
+"sd_pc1","salad_log_density",0.313478195691427,0.191344222785538,0.439072756876891,1,TRUE,"Local relief (multiscale)",TRUE
+"sd_pc1","rhis_branching_live_asin",0.25969075649689,0.189964026152976,0.331949441037058,1,TRUE,"Local relief (multiscale)",TRUE
+"sd_pc1","rhis_table_live_asin",0.210019434911963,0.137394361060452,0.282971568793705,1,TRUE,"Local relief (multiscale)",TRUE

@@ -10,7 +10,7 @@ initialise_v4 <- function(script_file) {
   source(file.path(v4_dir, "config", "default_config.R"))
   source(file.path(v4_dir, "R", "helpers.R"))
 
-  repo_root <- normalizePath(file.path(v2_dir, "..", ".."), winslash = "/")
+  repo_root <- (function(p) { while (!dir.exists(file.path(p, ".git"))) { if (dirname(p) == p) stop("Repository root not found"); p <- dirname(p) }; p })(v2_dir)
   cfg <- default_config_v4(repo_root, v4_dir)
   invisible(lapply(c(
     cfg$paths$artifacts_dir, cfg$paths$models_dir, cfg$paths$outputs_dir,

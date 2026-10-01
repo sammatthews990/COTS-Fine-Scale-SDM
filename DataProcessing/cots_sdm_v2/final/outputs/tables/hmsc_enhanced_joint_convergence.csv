@@ -1,0 +1,301 @@
+"component","parameter","effective_sample_size","psrf_point","psrf_upper"
+"enhanced_joint","B[(Intercept) (C1), cull_high_density (S1)]",4000,1.0003566554236,1.00236544267465
+"enhanced_joint","B[geomorphic_classDeep (C2), cull_high_density (S1)]",3241.67973583749,1.00178508228669,1.00722844612696
+"enhanced_joint","B[geomorphic_classDeep Lagoon (C3), cull_high_density (S1)]",3918.21679320396,0.999919077550935,1.00108175948019
+"enhanced_joint","B[geomorphic_classInner Reef Flat (C4), cull_high_density (S1)]",4000,1.00029176357562,1.00265443791532
+"enhanced_joint","B[geomorphic_classOuter Reef Flat (C5), cull_high_density (S1)]",4000,0.999781721538621,1.00055854968083
+"enhanced_joint","B[geomorphic_classPatch Reef (C6), cull_high_density (S1)]",4005.67891003001,1.00064675577405,1.00163644655277
+"enhanced_joint","B[geomorphic_classPlateau (C7), cull_high_density (S1)]",4159.12705937365,1.00084265101949,1.0040664316032
+"enhanced_joint","B[geomorphic_classReef Crest (C8), cull_high_density (S1)]",4027.91267412144,1.00256966864948,1.00786941270425
+"enhanced_joint","B[geomorphic_classReef Slope (C9), cull_high_density (S1)]",4048.62328006578,1.00068346790561,1.00255542179109
+"enhanced_joint","B[geomorphic_classShallow Lagoon (C10), cull_high_density (S1)]",4076.28325986456,1.00110616643095,1.00286510806091
+"enhanced_joint","B[geomorphic_classSheltered Reef Slope (C11), cull_high_density (S1)]",4108.56282386681,0.999777461349442,1.00007341374094
+"enhanced_joint","B[AhyaD (C12), cull_high_density (S1)]",4098.64087606826,1.00005537463016,1.00176049926876
+"enhanced_joint","B[Aspat (C13), cull_high_density (S1)]",3978.55216827978,0.999797655601482,1.00084759429477
+"enhanced_joint","B[Aten (C14), cull_high_density (S1)]",4000,1.00087350958771,1.00430625199801
+"enhanced_joint","B[turbid (C15), cull_high_density (S1)]",4247.29733298668,1.00070090933023,1.00363487409934
+"enhanced_joint","B[waves_Hs (C16), cull_high_density (S1)]",4106.70084185635,1.00043355511551,1.00167326262984
+"enhanced_joint","B[waves_Tp (C17), cull_high_density (S1)]",4000,1.00067533271812,1.00270784634599
+"enhanced_joint","B[dem_pc1 (C18), cull_high_density (S1)]",4010.50135135345,1.00001182818177,1.00135435982927
+"enhanced_joint","B[slope_pc1 (C19), cull_high_density (S1)]",4232.8335221037,1.00321703543615,1.01107752931939
+"enhanced_joint","B[eastness_pc1 (C20), cull_high_density (S1)]",4755.40850173911,0.999806869440269,1.00006288147868
+"enhanced_joint","B[northness_pc1 (C21), cull_high_density (S1)]",4015.91280155863,1.00011930362516,1.00103081706579
+"enhanced_joint","B[hcu_pc1 (C22), cull_high_density (S1)]",4000,0.999934730550687,1.00071066485849
+"enhanced_joint","B[vcu_pc1 (C23), cull_high_density (S1)]",3909.44868850064,1.00056695257024,1.00268708012093
+"enhanced_joint","B[bpi_pc1 (C24), cull_high_density (S1)]",4119.64235520143,0.999878173380431,1.00103790960504
+"enhanced_joint","B[sd_pc1 (C25), cull_high_density (S1)]",4266.44121807169,1.00029326190534,1.00262661690506
+"enhanced_joint","B[(Intercept) (C1), cull_direct (S2)]",4009.51604544149,1.00171705944078,1.00591803187264
+"enhanced_joint","B[geomorphic_classDeep (C2), cull_direct (S2)]",4001.65058332016,1.00009055300678,1.00059888094956
+"enhanced_joint","B[geomorphic_classDeep Lagoon (C3), cull_direct (S2)]",4114.82055218093,1.00037777707955,1.00161169498631
+"enhanced_joint","B[geomorphic_classInner Reef Flat (C4), cull_direct (S2)]",3911.9883419342,1.00274652690212,1.00924058522753
+"enhanced_joint","B[geomorphic_classOuter Reef Flat (C5), cull_direct (S2)]",3885.88897598097,1.00071728452363,1.00135156704578
+"enhanced_joint","B[geomorphic_classPatch Reef (C6), cull_direct (S2)]",4073.29740525067,1.00051207234092,1.00236674479434
+"enhanced_joint","B[geomorphic_classPlateau (C7), cull_direct (S2)]",4484.37409391862,1.001124364722,1.00370266703897
+"enhanced_joint","B[geomorphic_classReef Crest (C8), cull_direct (S2)]",4279.32707533493,1.00070578388987,1.00343742227744
+"enhanced_joint","B[geomorphic_classReef Slope (C9), cull_direct (S2)]",3838.9053956344,1.00117283328454,1.00334275494399
+"enhanced_joint","B[geomorphic_classShallow Lagoon (C10), cull_direct (S2)]",3743.93266613686,1.00193533093653,1.00611575785866
+"enhanced_joint","B[geomorphic_classSheltered Reef Slope (C11), cull_direct (S2)]",3897.88105400394,1.00022733803537,1.00202752326221
+"enhanced_joint","B[AhyaD (C12), cull_direct (S2)]",4100.40460833422,1.00346537426953,1.0121763907743
+"enhanced_joint","B[Aspat (C13), cull_direct (S2)]",4096.99816393839,1.00083310560422,1.00305617839793
+"enhanced_joint","B[Aten (C14), cull_direct (S2)]",3865.04777297029,1.00156000492298,1.00584136591029
+"enhanced_joint","B[turbid (C15), cull_direct (S2)]",3903.50321529538,1.00270822062525,1.01012598131577
+"enhanced_joint","B[waves_Hs (C16), cull_direct (S2)]",4344.64017306503,1.00048092123719,1.00298160144763
+"enhanced_joint","B[waves_Tp (C17), cull_direct (S2)]",4000,1.00072485970927,1.00375068143314
+"enhanced_joint","B[dem_pc1 (C18), cull_direct (S2)]",4000,0.999807890696199,1.00062755525749
+"enhanced_joint","B[slope_pc1 (C19), cull_direct (S2)]",4017.43196026839,1.00097983583199,1.00361367168549
+"enhanced_joint","B[eastness_pc1 (C20), cull_direct (S2)]",4000,1.00320597070809,1.01076464541089
+"enhanced_joint","B[northness_pc1 (C21), cull_direct (S2)]",4446.13081364079,0.99982507515843,1.00092756082703
+"enhanced_joint","B[hcu_pc1 (C22), cull_direct (S2)]",4142.58338563571,1.00049052352748,1.00226571346123
+"enhanced_joint","B[vcu_pc1 (C23), cull_direct (S2)]",3628.68441582153,0.999647104771889,1.00055067513193
+"enhanced_joint","B[bpi_pc1 (C24), cull_direct (S2)]",3743.84915846027,1.00003797672759,1.00089962340157
+"enhanced_joint","B[sd_pc1 (C25), cull_direct (S2)]",4000,1.00109437178555,1.00424376262695
+"enhanced_joint","B[(Intercept) (C1), salad_high_density (S3)]",4012.36869865298,1.00216589951452,1.00390003213648
+"enhanced_joint","B[geomorphic_classDeep (C2), salad_high_density (S3)]",4232.7987986452,0.999819431755817,1.00073796085342
+"enhanced_joint","B[geomorphic_classDeep Lagoon (C3), salad_high_density (S3)]",3910.67428968499,1.00082349762677,1.00399821444069
+"enhanced_joint","B[geomorphic_classInner Reef Flat (C4), salad_high_density (S3)]",4099.50859868478,0.999846568597303,1.00046472895466
+"enhanced_joint","B[geomorphic_classOuter Reef Flat (C5), salad_high_density (S3)]",3873.57152453295,1.00146236764602,1.00322267488981
+"enhanced_joint","B[geomorphic_classPatch Reef (C6), salad_high_density (S3)]",3668.08926565255,1.00053474815573,1.00200777714923
+"enhanced_joint","B[geomorphic_classPlateau (C7), salad_high_density (S3)]",2999.90135486061,1.0001189711868,1.00051486227676
+"enhanced_joint","B[geomorphic_classReef Crest (C8), salad_high_density (S3)]",4000,1.00002570025115,1.00164312479142
+"enhanced_joint","B[geomorphic_classReef Slope (C9), salad_high_density (S3)]",4000,0.999950703233708,1.0003336352659
+"enhanced_joint","B[geomorphic_classShallow Lagoon (C10), salad_high_density (S3)]",759.312851920548,1.00190032932101,1.00763765867998
+"enhanced_joint","B[geomorphic_classSheltered Reef Slope (C11), salad_high_density (S3)]",3933.85400674943,0.9998981165182,1.00015268186974
+"enhanced_joint","B[AhyaD (C12), salad_high_density (S3)]",4000,0.999387981153999,0.999586937870077
+"enhanced_joint","B[Aspat (C13), salad_high_density (S3)]",3535.56267454718,1.00225966978084,1.00684227477986
+"enhanced_joint","B[Aten (C14), salad_high_density (S3)]",3490.20775958988,1.00051389730632,1.0025024651553
+"enhanced_joint","B[turbid (C15), salad_high_density (S3)]",4403.86103790765,0.999364016609555,0.999431644527627
+"enhanced_joint","B[waves_Hs (C16), salad_high_density (S3)]",3855.99745253239,1.00085021946148,1.00431844333096
+"enhanced_joint","B[waves_Tp (C17), salad_high_density (S3)]",3492.81127391806,1.00038844522345,1.00254177386976
+"enhanced_joint","B[dem_pc1 (C18), salad_high_density (S3)]",1376.5345458809,1.0034579095244,1.01175925748684
+"enhanced_joint","B[slope_pc1 (C19), salad_high_density (S3)]",3507.37932347082,0.999881069996158,1.00139325387361
+"enhanced_joint","B[eastness_pc1 (C20), salad_high_density (S3)]",3774.72549787527,1.00048045657281,1.0016910048061
+"enhanced_joint","B[northness_pc1 (C21), salad_high_density (S3)]",4000,1.00005232267464,1.00159164427069
+"enhanced_joint","B[hcu_pc1 (C22), salad_high_density (S3)]",4041.93892622192,1.00168666443082,1.00659130603278
+"enhanced_joint","B[vcu_pc1 (C23), salad_high_density (S3)]",1519.21477779098,1.00311021291459,1.01018798285665
+"enhanced_joint","B[bpi_pc1 (C24), salad_high_density (S3)]",3293.18391125472,1.00002256080425,1.00157669968956
+"enhanced_joint","B[sd_pc1 (C25), salad_high_density (S3)]",1650.9331239317,1.00156028630858,1.00643131193532
+"enhanced_joint","B[(Intercept) (C1), salad_direct (S4)]",4313.15400971244,1.00015773109816,1.0003326440794
+"enhanced_joint","B[geomorphic_classDeep (C2), salad_direct (S4)]",3878.96327122409,1.00297368090292,1.00831880473439
+"enhanced_joint","B[geomorphic_classDeep Lagoon (C3), salad_direct (S4)]",3940.18927009851,0.999838939547822,1.00116553078088
+"enhanced_joint","B[geomorphic_classInner Reef Flat (C4), salad_direct (S4)]",3945.28479564419,1.00276455345976,1.00874975456669
+"enhanced_joint","B[geomorphic_classOuter Reef Flat (C5), salad_direct (S4)]",4000,1.0014821982917,1.00545116645358
+"enhanced_joint","B[geomorphic_classPatch Reef (C6), salad_direct (S4)]",3864.75667138511,1.00138872321228,1.00437938712318
+"enhanced_joint","B[geomorphic_classPlateau (C7), salad_direct (S4)]",3066.56359023481,1.00081430419867,1.00224379395612
+"enhanced_joint","B[geomorphic_classReef Crest (C8), salad_direct (S4)]",4048.37407184515,1.00242861216248,1.00588735787341
+"enhanced_joint","B[geomorphic_classReef Slope (C9), salad_direct (S4)]",4000,1.00219062664571,1.00453763524187
+"enhanced_joint","B[geomorphic_classShallow Lagoon (C10), salad_direct (S4)]",738.014957976525,1.00233754291571,1.00828103298144
+"enhanced_joint","B[geomorphic_classSheltered Reef Slope (C11), salad_direct (S4)]",3641.08940432041,1.0003766601475,1.00266841588392
+"enhanced_joint","B[AhyaD (C12), salad_direct (S4)]",4112.71934422583,0.999579332956561,1.00003797637629
+"enhanced_joint","B[Aspat (C13), salad_direct (S4)]",4436.2974167565,0.999878229190211,1.00047654764641
+"enhanced_joint","B[Aten (C14), salad_direct (S4)]",4098.47857239359,1.00072152010441,1.00258055417885
+"enhanced_joint","B[turbid (C15), salad_direct (S4)]",4109.2170007949,1.00068149400199,1.00266900670565
+"enhanced_joint","B[waves_Hs (C16), salad_direct (S4)]",3908.69946994965,0.999704957288737,1.00073993381235
+"enhanced_joint","B[waves_Tp (C17), salad_direct (S4)]",4000,1.00038904309544,1.00122737431468
+"enhanced_joint","B[dem_pc1 (C18), salad_direct (S4)]",3941.82342432207,0.999698014138345,1.00065915333077
+"enhanced_joint","B[slope_pc1 (C19), salad_direct (S4)]",4580.96367120348,1.00079606110836,1.00296399189374
+"enhanced_joint","B[eastness_pc1 (C20), salad_direct (S4)]",4000,0.999684560197906,1.00038492779425
+"enhanced_joint","B[northness_pc1 (C21), salad_direct (S4)]",4000,1.00178395294188,1.00618991629473
+"enhanced_joint","B[hcu_pc1 (C22), salad_direct (S4)]",4134.66627399586,1.00049941382161,1.00278526253903
+"enhanced_joint","B[vcu_pc1 (C23), salad_direct (S4)]",4000,0.999670230629182,1.00065380793794
+"enhanced_joint","B[bpi_pc1 (C24), salad_direct (S4)]",3710.23535441057,1.00092170199648,1.00400495975056
+"enhanced_joint","B[sd_pc1 (C25), salad_direct (S4)]",4000,1.00123033168993,1.00389887462969
+"enhanced_joint","B[(Intercept) (C1), salad_scar (S5)]",4032.88660166703,0.999548366873051,0.999981315163875
+"enhanced_joint","B[geomorphic_classDeep (C2), salad_scar (S5)]",3891.98021150173,1.00130059735378,1.0035066047392
+"enhanced_joint","B[geomorphic_classDeep Lagoon (C3), salad_scar (S5)]",3913.60031757897,0.999774417409479,1.00084534893592
+"enhanced_joint","B[geomorphic_classInner Reef Flat (C4), salad_scar (S5)]",3994.46244004441,0.999581113917201,1.00045352237371
+"enhanced_joint","B[geomorphic_classOuter Reef Flat (C5), salad_scar (S5)]",4000,0.999552989570281,1.00024278367936
+"enhanced_joint","B[geomorphic_classPatch Reef (C6), salad_scar (S5)]",4000,1.00141897392062,1.00433740282105
+"enhanced_joint","B[geomorphic_classPlateau (C7), salad_scar (S5)]",3012.33898457947,1.00105533977393,1.00332196753335
+"enhanced_joint","B[geomorphic_classReef Crest (C8), salad_scar (S5)]",4488.14989775822,1.00026163208448,1.00085641444619
+"enhanced_joint","B[geomorphic_classReef Slope (C9), salad_scar (S5)]",4000,0.999513562575222,1.0000365894108
+"enhanced_joint","B[geomorphic_classShallow Lagoon (C10), salad_scar (S5)]",704.844537334611,1.00128704491599,1.00530317255344
+"enhanced_joint","B[geomorphic_classSheltered Reef Slope (C11), salad_scar (S5)]",3684.61992106934,1.00030014220111,1.0025543374309
+"enhanced_joint","B[AhyaD (C12), salad_scar (S5)]",3890.83448557319,1.00140211411533,1.00408427289241
+"enhanced_joint","B[Aspat (C13), salad_scar (S5)]",4000,0.999533622973129,0.999787484137838
+"enhanced_joint","B[Aten (C14), salad_scar (S5)]",3890.56004277182,1.00068489923228,1.00315122161528
+"enhanced_joint","B[turbid (C15), salad_scar (S5)]",4000,0.999870559440494,1.00121404040166
+"enhanced_joint","B[waves_Hs (C16), salad_scar (S5)]",4220.81807055693,0.999718517639061,1.00075549983782
+"enhanced_joint","B[waves_Tp (C17), salad_scar (S5)]",3880.09334487321,1.00067192879437,1.00235729965631
+"enhanced_joint","B[dem_pc1 (C18), salad_scar (S5)]",3450.28192161817,1.00106521893497,1.00176050071628
+"enhanced_joint","B[slope_pc1 (C19), salad_scar (S5)]",3814.66378938792,1.00251554846728,1.00506149133741
+"enhanced_joint","B[eastness_pc1 (C20), salad_scar (S5)]",3897.27254254793,1.00079630978494,1.00238655344958
+"enhanced_joint","B[northness_pc1 (C21), salad_scar (S5)]",3887.39064275708,1.00033686161975,1.00240696678989
+"enhanced_joint","B[hcu_pc1 (C22), salad_scar (S5)]",4327.45288970918,0.999853052126316,1.00064344995387
+"enhanced_joint","B[vcu_pc1 (C23), salad_scar (S5)]",4013.45072008161,0.999702112707094,1.00064942469029
+"enhanced_joint","B[bpi_pc1 (C24), salad_scar (S5)]",4000,1.00057810553498,1.00339767619372
+"enhanced_joint","B[sd_pc1 (C25), salad_scar (S5)]",4083.46329661578,1.00281426519393,1.00935427979921
+"enhanced_joint","B[(Intercept) (C1), rhis_adult (S6)]",3996.37841576138,1.00133592551195,1.00281503316719
+"enhanced_joint","B[geomorphic_classDeep (C2), rhis_adult (S6)]",4000,1.00040982226995,1.00136209168845
+"enhanced_joint","B[geomorphic_classDeep Lagoon (C3), rhis_adult (S6)]",3981.93799821555,1.00053437831139,1.00154801021474
+"enhanced_joint","B[geomorphic_classInner Reef Flat (C4), rhis_adult (S6)]",4161.57891031248,1.00072377488456,1.00176463446537
+"enhanced_joint","B[geomorphic_classOuter Reef Flat (C5), rhis_adult (S6)]",4000,1.00091251076366,1.00427864861373
+"enhanced_joint","B[geomorphic_classPatch Reef (C6), rhis_adult (S6)]",3176.31617606493,1.00135035412037,1.00434278786994
+"enhanced_joint","B[geomorphic_classPlateau (C7), rhis_adult (S6)]",4000,1.00007402520468,1.00052554539932
+"enhanced_joint","B[geomorphic_classReef Crest (C8), rhis_adult (S6)]",4279.32163507238,1.0013034513574,1.00461328523502
+"enhanced_joint","B[geomorphic_classReef Slope (C9), rhis_adult (S6)]",3630.04590641318,0.999883644814374,1.00029701436084
+"enhanced_joint","B[geomorphic_classShallow Lagoon (C10), rhis_adult (S6)]",4030.7081687511,1.00001229183935,1.001750842614
+"enhanced_joint","B[geomorphic_classSheltered Reef Slope (C11), rhis_adult (S6)]",4000,0.99958830516904,1.00009424775876
+"enhanced_joint","B[AhyaD (C12), rhis_adult (S6)]",4033.22104721547,1.00045051404197,1.00218228925145
+"enhanced_joint","B[Aspat (C13), rhis_adult (S6)]",4502.20739971003,1.00097107441932,1.0031183718132
+"enhanced_joint","B[Aten (C14), rhis_adult (S6)]",3629.40309343664,1.00059737244319,1.00322732378729
+"enhanced_joint","B[turbid (C15), rhis_adult (S6)]",3647.93875820128,0.999817056112385,1.00041099018143
+"enhanced_joint","B[waves_Hs (C16), rhis_adult (S6)]",4238.61063158154,1.00130169233745,1.00393948135494
+"enhanced_joint","B[waves_Tp (C17), rhis_adult (S6)]",4000,0.999906947738962,1.00088680588231
+"enhanced_joint","B[dem_pc1 (C18), rhis_adult (S6)]",4216.69494075486,1.0000773919931,1.00129991459621
+"enhanced_joint","B[slope_pc1 (C19), rhis_adult (S6)]",4000,1.00098065999709,1.00310664509628
+"enhanced_joint","B[eastness_pc1 (C20), rhis_adult (S6)]",3967.34929370093,1.0014260083618,1.00530477098766
+"enhanced_joint","B[northness_pc1 (C21), rhis_adult (S6)]",4017.0979168891,0.999717603123616,1.00054683719474
+"enhanced_joint","B[hcu_pc1 (C22), rhis_adult (S6)]",4535.05822500863,0.999743704934597,1.00008496174744
+"enhanced_joint","B[vcu_pc1 (C23), rhis_adult (S6)]",3942.83155902084,0.999761547975311,1.00068999632112
+"enhanced_joint","B[bpi_pc1 (C24), rhis_adult (S6)]",4000,0.999217411837257,0.999307106454122
+"enhanced_joint","B[sd_pc1 (C25), rhis_adult (S6)]",4000,1.00028289918061,1.00221462738863
+"enhanced_joint","B[(Intercept) (C1), rhis_juvenile (S7)]",4172.8672245167,0.9999355314613,1.00123099242569
+"enhanced_joint","B[geomorphic_classDeep (C2), rhis_juvenile (S7)]",4247.15965781128,1.00304287656627,1.00933028826767
+"enhanced_joint","B[geomorphic_classDeep Lagoon (C3), rhis_juvenile (S7)]",4287.55645386562,1.00081495720551,1.00278026811397
+"enhanced_joint","B[geomorphic_classInner Reef Flat (C4), rhis_juvenile (S7)]",4508.11901487105,1.00056733334994,1.00274128892775
+"enhanced_joint","B[geomorphic_classOuter Reef Flat (C5), rhis_juvenile (S7)]",3990.90487240715,0.999889319874635,1.00115252759161
+"enhanced_joint","B[geomorphic_classPatch Reef (C6), rhis_juvenile (S7)]",3894.89266282519,1.00131271716563,1.00535137692174
+"enhanced_joint","B[geomorphic_classPlateau (C7), rhis_juvenile (S7)]",4313.28892541404,1.00054379848645,1.00148896345874
+"enhanced_joint","B[geomorphic_classReef Crest (C8), rhis_juvenile (S7)]",4202.37672915173,1.0013281543441,1.00319173775815
+"enhanced_joint","B[geomorphic_classReef Slope (C9), rhis_juvenile (S7)]",3913.15001069511,1.00048856970685,1.00255830784535
+"enhanced_joint","B[geomorphic_classShallow Lagoon (C10), rhis_juvenile (S7)]",4222.8146534858,0.9998025766742,1.00068840692817
+"enhanced_joint","B[geomorphic_classSheltered Reef Slope (C11), rhis_juvenile (S7)]",4000,1.00026747056706,1.00208899426438
+"enhanced_joint","B[AhyaD (C12), rhis_juvenile (S7)]",4130.49527933149,0.999377747699479,0.999463147271207
+"enhanced_joint","B[Aspat (C13), rhis_juvenile (S7)]",4246.4356720565,1.00129435845972,1.00472641966913
+"enhanced_joint","B[Aten (C14), rhis_juvenile (S7)]",4493.64031913141,1.00196519596305,1.00741264209405
+"enhanced_joint","B[turbid (C15), rhis_juvenile (S7)]",4885.29521439896,1.00006821100202,1.00091714110927
+"enhanced_joint","B[waves_Hs (C16), rhis_juvenile (S7)]",4133.38791468095,1.00072870689601,1.00314545414928
+"enhanced_joint","B[waves_Tp (C17), rhis_juvenile (S7)]",3935.3132599034,1.00020733547717,1.00208501060126
+"enhanced_joint","B[dem_pc1 (C18), rhis_juvenile (S7)]",3948.71253459252,0.999919057439047,1.00059675131599
+"enhanced_joint","B[slope_pc1 (C19), rhis_juvenile (S7)]",4000,0.999578095078613,0.999941840859689
+"enhanced_joint","B[eastness_pc1 (C20), rhis_juvenile (S7)]",4327.60715682384,1.00130047746299,1.00492781213324
+"enhanced_joint","B[northness_pc1 (C21), rhis_juvenile (S7)]",4177.26318895134,1.00003754718176,1.00151428079132
+"enhanced_joint","B[hcu_pc1 (C22), rhis_juvenile (S7)]",4184.35629596304,1.00003989124807,1.00114181411057
+"enhanced_joint","B[vcu_pc1 (C23), rhis_juvenile (S7)]",3894.45274810886,0.999754016453061,1.00014016585391
+"enhanced_joint","B[bpi_pc1 (C24), rhis_juvenile (S7)]",4260.5128114463,1.00023870428927,1.00207000646215
+"enhanced_joint","B[sd_pc1 (C25), rhis_juvenile (S7)]",4193.32821939042,1.00047844281316,1.00298753250904
+"enhanced_joint","B[(Intercept) (C1), rhis_branching_scar (S8)]",4121.06752031429,1.00014461385605,1.00138902080302
+"enhanced_joint","B[geomorphic_classDeep (C2), rhis_branching_scar (S8)]",4000,1.00090971569505,1.00187113041425
+"enhanced_joint","B[geomorphic_classDeep Lagoon (C3), rhis_branching_scar (S8)]",4155.27410338747,1.00043896244507,1.00140867742677
+"enhanced_joint","B[geomorphic_classInner Reef Flat (C4), rhis_branching_scar (S8)]",4267.05480437907,0.999984103699746,1.00102093025376
+"enhanced_joint","B[geomorphic_classOuter Reef Flat (C5), rhis_branching_scar (S8)]",3870.38575915878,1.00008088614009,1.00120475531039
+"enhanced_joint","B[geomorphic_classPatch Reef (C6), rhis_branching_scar (S8)]",3484.39045938165,1.00102883301761,1.00393028219052
+"enhanced_joint","B[geomorphic_classPlateau (C7), rhis_branching_scar (S8)]",4123.18797366282,1.0000370804089,1.00097370214944
+"enhanced_joint","B[geomorphic_classReef Crest (C8), rhis_branching_scar (S8)]",4717.87884877625,1.0006080921544,1.00151464215083
+"enhanced_joint","B[geomorphic_classReef Slope (C9), rhis_branching_scar (S8)]",4392.71013415269,0.999869514752466,1.00092277332607
+"enhanced_joint","B[geomorphic_classShallow Lagoon (C10), rhis_branching_scar (S8)]",3937.17408928506,1.00173922142872,1.00599672811333
+"enhanced_joint","B[geomorphic_classSheltered Reef Slope (C11), rhis_branching_scar (S8)]",4011.71495607041,1.0000707086156,1.00155754113461
+"enhanced_joint","B[AhyaD (C12), rhis_branching_scar (S8)]",4000,0.99982697549914,1.000674562792
+"enhanced_joint","B[Aspat (C13), rhis_branching_scar (S8)]",3845.86271797709,1.00032923239224,1.00231437663866
+"enhanced_joint","B[Aten (C14), rhis_branching_scar (S8)]",4447.04215981235,0.999969349065571,1.00121508593184
+"enhanced_joint","B[turbid (C15), rhis_branching_scar (S8)]",4000,1.00055702004831,1.00289997783023
+"enhanced_joint","B[waves_Hs (C16), rhis_branching_scar (S8)]",4819.92038334075,1.00164574339124,1.00681486483169
+"enhanced_joint","B[waves_Tp (C17), rhis_branching_scar (S8)]",4140.62742827419,1.00127798712548,1.00479990186438
+"enhanced_joint","B[dem_pc1 (C18), rhis_branching_scar (S8)]",3909.78969663874,1.00073290768985,1.00265533982331
+"enhanced_joint","B[slope_pc1 (C19), rhis_branching_scar (S8)]",3905.65681099479,0.999875420083461,1.00106068280852
+"enhanced_joint","B[eastness_pc1 (C20), rhis_branching_scar (S8)]",4446.02690880364,1.00033107978772,1.00072699846987
+"enhanced_joint","B[northness_pc1 (C21), rhis_branching_scar (S8)]",4000,1.00134169902332,1.00550389495428
+"enhanced_joint","B[hcu_pc1 (C22), rhis_branching_scar (S8)]",4000,0.999771621151996,1.00035926669284
+"enhanced_joint","B[vcu_pc1 (C23), rhis_branching_scar (S8)]",4153.61437117788,0.999991717033265,1.00078990652713
+"enhanced_joint","B[bpi_pc1 (C24), rhis_branching_scar (S8)]",4000,0.999978549386058,1.00095594674287
+"enhanced_joint","B[sd_pc1 (C25), rhis_branching_scar (S8)]",4367.89650837262,1.00018542223147,1.001444621396
+"enhanced_joint","B[(Intercept) (C1), rhis_table_scar (S9)]",4024.45576834334,1.00059659916611,1.00341231841945
+"enhanced_joint","B[geomorphic_classDeep (C2), rhis_table_scar (S9)]",3810.85439368084,1.00054751146333,1.00255155303386
+"enhanced_joint","B[geomorphic_classDeep Lagoon (C3), rhis_table_scar (S9)]",3907.71729307998,0.99956457529886,0.999644745459014
+"enhanced_joint","B[geomorphic_classInner Reef Flat (C4), rhis_table_scar (S9)]",3872.55379424671,1.00041507761565,1.00191234000207
+"enhanced_joint","B[geomorphic_classOuter Reef Flat (C5), rhis_table_scar (S9)]",4030.92648407414,0.999570688644161,0.999976300279852
+"enhanced_joint","B[geomorphic_classPatch Reef (C6), rhis_table_scar (S9)]",3855.09196598655,1.00051945409119,1.00288879370369
+"enhanced_joint","B[geomorphic_classPlateau (C7), rhis_table_scar (S9)]",4086.41416558348,1.0014207123622,1.00413313921091
+"enhanced_joint","B[geomorphic_classReef Crest (C8), rhis_table_scar (S9)]",4439.46426941184,0.999665727351916,1.00019993251019
+"enhanced_joint","B[geomorphic_classReef Slope (C9), rhis_table_scar (S9)]",4000,0.999704112441868,1.00087060269426
+"enhanced_joint","B[geomorphic_classShallow Lagoon (C10), rhis_table_scar (S9)]",3905.13294495242,1.00027655946956,1.00122349953407
+"enhanced_joint","B[geomorphic_classSheltered Reef Slope (C11), rhis_table_scar (S9)]",4000,1.0020055699391,1.00738933503682
+"enhanced_joint","B[AhyaD (C12), rhis_table_scar (S9)]",4121.90086302688,0.999700859013131,1.00051082454965
+"enhanced_joint","B[Aspat (C13), rhis_table_scar (S9)]",3993.04128604387,1.00167969116215,1.00649630570101
+"enhanced_joint","B[Aten (C14), rhis_table_scar (S9)]",4339.43526846234,1.00140389889201,1.00579463283931
+"enhanced_joint","B[turbid (C15), rhis_table_scar (S9)]",4000,0.999632355925198,1.00050060115886
+"enhanced_joint","B[waves_Hs (C16), rhis_table_scar (S9)]",4392.63627885578,1.00104700095193,1.00385275126904
+"enhanced_joint","B[waves_Tp (C17), rhis_table_scar (S9)]",4000,1.00055271255084,1.00251892257042
+"enhanced_joint","B[dem_pc1 (C18), rhis_table_scar (S9)]",4101.15324838902,0.999992835087556,1.00148383849312
+"enhanced_joint","B[slope_pc1 (C19), rhis_table_scar (S9)]",4000,1.00167645271543,1.00619638718978
+"enhanced_joint","B[eastness_pc1 (C20), rhis_table_scar (S9)]",4000,1.0008538078672,1.00355167689019
+"enhanced_joint","B[northness_pc1 (C21), rhis_table_scar (S9)]",4368.31566384768,1.00038536690776,1.00228395073037
+"enhanced_joint","B[hcu_pc1 (C22), rhis_table_scar (S9)]",3949.29031533058,1.00073355654302,1.00303855615179
+"enhanced_joint","B[vcu_pc1 (C23), rhis_table_scar (S9)]",4106.31013001441,1.00060211985415,1.00317919512096
+"enhanced_joint","B[bpi_pc1 (C24), rhis_table_scar (S9)]",3985.89571855186,1.00013369715789,1.00199612694258
+"enhanced_joint","B[sd_pc1 (C25), rhis_table_scar (S9)]",3879.83553091602,1.00302338532074,1.00987700128571
+"enhanced_joint","B[(Intercept) (C1), salad_log_density (S10)]",4000,1.00152983564365,1.00218328381831
+"enhanced_joint","B[geomorphic_classDeep (C2), salad_log_density (S10)]",3816.7695948945,1.00158773631525,1.00532939147211
+"enhanced_joint","B[geomorphic_classDeep Lagoon (C3), salad_log_density (S10)]",4345.12824468138,1.00199431466008,1.0072946338959
+"enhanced_joint","B[geomorphic_classInner Reef Flat (C4), salad_log_density (S10)]",4232.14488731959,1.00017964180465,1.00207921243809
+"enhanced_joint","B[geomorphic_classOuter Reef Flat (C5), salad_log_density (S10)]",4101.03865718047,1.00012331182517,1.00173651037257
+"enhanced_joint","B[geomorphic_classPatch Reef (C6), salad_log_density (S10)]",4000,1.00082582534077,1.0028827453651
+"enhanced_joint","B[geomorphic_classPlateau (C7), salad_log_density (S10)]",3040.28728530649,1.00016207315447,1.00169597515857
+"enhanced_joint","B[geomorphic_classReef Crest (C8), salad_log_density (S10)]",4199.79566923256,1.00036190398097,1.00248955326584
+"enhanced_joint","B[geomorphic_classReef Slope (C9), salad_log_density (S10)]",4746.32037868469,0.999434272881427,0.999738140074965
+"enhanced_joint","B[geomorphic_classShallow Lagoon (C10), salad_log_density (S10)]",717.439719276107,1.00116172322509,1.00494738534648
+"enhanced_joint","B[geomorphic_classSheltered Reef Slope (C11), salad_log_density (S10)]",3841.83684011448,1.00094925338931,1.00378570175485
+"enhanced_joint","B[AhyaD (C12), salad_log_density (S10)]",4000,1.00103678809915,1.00430992332718
+"enhanced_joint","B[Aspat (C13), salad_log_density (S10)]",3943.35164422136,1.00045380623056,1.00246267668436
+"enhanced_joint","B[Aten (C14), salad_log_density (S10)]",4000,1.00073311420567,1.00345538027598
+"enhanced_joint","B[turbid (C15), salad_log_density (S10)]",4352.4169618937,1.00139832881181,1.00547166871046
+"enhanced_joint","B[waves_Hs (C16), salad_log_density (S10)]",4000,0.999825990556334,1.00067347201491
+"enhanced_joint","B[waves_Tp (C17), salad_log_density (S10)]",4000,0.999837585661844,1.00004827648458
+"enhanced_joint","B[dem_pc1 (C18), salad_log_density (S10)]",4097.50563839727,1.00000888401976,1.00168069272267
+"enhanced_joint","B[slope_pc1 (C19), salad_log_density (S10)]",4103.08786555234,1.00030152624617,1.00196463221806
+"enhanced_joint","B[eastness_pc1 (C20), salad_log_density (S10)]",3874.40218109282,1.00118940616397,1.0047163623945
+"enhanced_joint","B[northness_pc1 (C21), salad_log_density (S10)]",4034.86875152897,0.999466354161869,1.00002218982487
+"enhanced_joint","B[hcu_pc1 (C22), salad_log_density (S10)]",4118.75598636513,0.99956476821636,1.00013475174805
+"enhanced_joint","B[vcu_pc1 (C23), salad_log_density (S10)]",3997.71234458788,0.999973386810003,1.00123085229396
+"enhanced_joint","B[bpi_pc1 (C24), salad_log_density (S10)]",3812.14543962861,0.999341505950565,0.999721643479607
+"enhanced_joint","B[sd_pc1 (C25), salad_log_density (S10)]",4199.54181054921,1.00098308707947,1.00382595559649
+"enhanced_joint","B[(Intercept) (C1), rhis_branching_live_asin (S11)]",4000,1.00186295252376,1.00753925888313
+"enhanced_joint","B[geomorphic_classDeep (C2), rhis_branching_live_asin (S11)]",4275.56294729445,1.00056815598975,1.00226514761954
+"enhanced_joint","B[geomorphic_classDeep Lagoon (C3), rhis_branching_live_asin (S11)]",4075.21490792758,1.00015871527834,1.00215477920363
+"enhanced_joint","B[geomorphic_classInner Reef Flat (C4), rhis_branching_live_asin (S11)]",4426.1670726975,1.00005349393321,1.00160463133483
+"enhanced_joint","B[geomorphic_classOuter Reef Flat (C5), rhis_branching_live_asin (S11)]",4170.19263405344,0.999659574970988,1.00049271461121
+"enhanced_joint","B[geomorphic_classPatch Reef (C6), rhis_branching_live_asin (S11)]",3665.47481344858,0.999949470855015,1.00097245484048
+"enhanced_joint","B[geomorphic_classPlateau (C7), rhis_branching_live_asin (S11)]",4000,0.999844439636838,1.00101429477655
+"enhanced_joint","B[geomorphic_classReef Crest (C8), rhis_branching_live_asin (S11)]",3904.95644362864,1.00104215574317,1.00317300544562
+"enhanced_joint","B[geomorphic_classReef Slope (C9), rhis_branching_live_asin (S11)]",4551.44642700028,1.00034265562293,1.00179460413257
+"enhanced_joint","B[geomorphic_classShallow Lagoon (C10), rhis_branching_live_asin (S11)]",4423.13778979642,1.0015289653494,1.0047609885785
+"enhanced_joint","B[geomorphic_classSheltered Reef Slope (C11), rhis_branching_live_asin (S11)]",4366.50165492733,1.00094093727895,1.00324088733204
+"enhanced_joint","B[AhyaD (C12), rhis_branching_live_asin (S11)]",4005.60912628258,1.00033696602565,1.00080921088221
+"enhanced_joint","B[Aspat (C13), rhis_branching_live_asin (S11)]",3919.41089264295,1.00030850508107,1.00144193719254
+"enhanced_joint","B[Aten (C14), rhis_branching_live_asin (S11)]",3768.3289915892,1.0014037904687,1.00389302427398
+"enhanced_joint","B[turbid (C15), rhis_branching_live_asin (S11)]",4000,1.00159240459249,1.00440390927895
+"enhanced_joint","B[waves_Hs (C16), rhis_branching_live_asin (S11)]",3885.42235832316,1.00036623054127,1.00233850355927
+"enhanced_joint","B[waves_Tp (C17), rhis_branching_live_asin (S11)]",4561.34797301463,0.999978457219476,1.00073977895974
+"enhanced_joint","B[dem_pc1 (C18), rhis_branching_live_asin (S11)]",4000,1.00037356926055,1.00141671174514
+"enhanced_joint","B[slope_pc1 (C19), rhis_branching_live_asin (S11)]",3973.60542625086,1.00161767149464,1.00651372828034
+"enhanced_joint","B[eastness_pc1 (C20), rhis_branching_live_asin (S11)]",4136.80151537153,1.00118441287228,1.00345549110505
+"enhanced_joint","B[northness_pc1 (C21), rhis_branching_live_asin (S11)]",4101.05041448687,1.00027325447379,1.00093276792024
+"enhanced_joint","B[hcu_pc1 (C22), rhis_branching_live_asin (S11)]",3933.4520595178,1.00056904947279,1.00217891312255
+"enhanced_joint","B[vcu_pc1 (C23), rhis_branching_live_asin (S11)]",3767.60788671008,0.999467190422976,1.00002311060627
+"enhanced_joint","B[bpi_pc1 (C24), rhis_branching_live_asin (S11)]",4002.69667934228,0.999802356678793,1.00051534399069
+"enhanced_joint","B[sd_pc1 (C25), rhis_branching_live_asin (S11)]",4102.9120226194,1.00301476663987,1.01059013886533
+"enhanced_joint","B[(Intercept) (C1), rhis_table_live_asin (S12)]",4000,1.00145132537721,1.00513287708843
+"enhanced_joint","B[geomorphic_classDeep (C2), rhis_table_live_asin (S12)]",4000,1.00007513096403,1.00148876644579
+"enhanced_joint","B[geomorphic_classDeep Lagoon (C3), rhis_table_live_asin (S12)]",4000,1.0007979815718,1.00369559029919
+"enhanced_joint","B[geomorphic_classInner Reef Flat (C4), rhis_table_live_asin (S12)]",4201.62283025445,1.00183656044669,1.00477377132503
+"enhanced_joint","B[geomorphic_classOuter Reef Flat (C5), rhis_table_live_asin (S12)]",4484.23234197148,1.00142910811241,1.00614522659312
+"enhanced_joint","B[geomorphic_classPatch Reef (C6), rhis_table_live_asin (S12)]",3910.633968052,1.00038611756807,1.00154919537636
+"enhanced_joint","B[geomorphic_classPlateau (C7), rhis_table_live_asin (S12)]",3817.62933652237,1.00015702237255,1.00174798789704
+"enhanced_joint","B[geomorphic_classReef Crest (C8), rhis_table_live_asin (S12)]",4457.36157574126,1.00006717758024,1.00167203570806
+"enhanced_joint","B[geomorphic_classReef Slope (C9), rhis_table_live_asin (S12)]",4000,1.0015890367028,1.00594845151578
+"enhanced_joint","B[geomorphic_classShallow Lagoon (C10), rhis_table_live_asin (S12)]",3871.64259290213,1.0016030040971,1.00666780916607
+"enhanced_joint","B[geomorphic_classSheltered Reef Slope (C11), rhis_table_live_asin (S12)]",4000,1.0006912627051,1.00337326389046
+"enhanced_joint","B[AhyaD (C12), rhis_table_live_asin (S12)]",3795.95480072556,0.999651180127392,1.00028025881087
+"enhanced_joint","B[Aspat (C13), rhis_table_live_asin (S12)]",4000,1.00148547391507,1.00576471094472
+"enhanced_joint","B[Aten (C14), rhis_table_live_asin (S12)]",4000,1.00087417786319,1.00356619582454
+"enhanced_joint","B[turbid (C15), rhis_table_live_asin (S12)]",3905.05585323875,1.00014406046502,1.00150468671287
+"enhanced_joint","B[waves_Hs (C16), rhis_table_live_asin (S12)]",4545.42151545433,1.00004953674661,1.00129807558394
+"enhanced_joint","B[waves_Tp (C17), rhis_table_live_asin (S12)]",4082.04780744246,1.00185560242737,1.00685978741821
+"enhanced_joint","B[dem_pc1 (C18), rhis_table_live_asin (S12)]",4414.85625367209,1.0009004625358,1.00394908090256
+"enhanced_joint","B[slope_pc1 (C19), rhis_table_live_asin (S12)]",4205.93919971188,1.00065008747582,1.00354312067187
+"enhanced_joint","B[eastness_pc1 (C20), rhis_table_live_asin (S12)]",4156.95583551371,0.999597042669659,1.00045594189738
+"enhanced_joint","B[northness_pc1 (C21), rhis_table_live_asin (S12)]",4368.25449287847,1.00123606374905,1.00540981526712
+"enhanced_joint","B[hcu_pc1 (C22), rhis_table_live_asin (S12)]",4000,1.00063543522861,1.00281755989332
+"enhanced_joint","B[vcu_pc1 (C23), rhis_table_live_asin (S12)]",4140.13119710724,1.00183110967947,1.00513044640028
+"enhanced_joint","B[bpi_pc1 (C24), rhis_table_live_asin (S12)]",4141.31157976074,0.999641840296447,1.00042313028606
+"enhanced_joint","B[sd_pc1 (C25), rhis_table_live_asin (S12)]",4126.14537451055,1.00010522157252,1.00183244970217

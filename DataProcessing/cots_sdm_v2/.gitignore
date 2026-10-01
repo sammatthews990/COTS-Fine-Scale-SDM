@@ -7,3 +7,8 @@ outputs/*
 logs/*
 !logs/.gitkeep
 
+
+# Compiled TMB/Rcpp objects are rebuilt from src/*.cpp
+*.o
+*.dll
+*.so

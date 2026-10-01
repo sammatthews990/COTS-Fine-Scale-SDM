@@ -5,7 +5,7 @@ initialise_density_v6 <- function(script_file) {
   v2_dir <- normalizePath(file.path(iterations_dir, ".."), winslash = "/")
   v3_dir <- file.path(iterations_dir, "hmsc_geomorphic_v3")
   v4_dir <- file.path(iterations_dir, "hmsc_corrected_v4")
-  repo_root <- normalizePath(file.path(v2_dir, "..", ".."), winslash = "/")
+  repo_root <- (function(p) { while (!dir.exists(file.path(p, ".git"))) { if (dirname(p) == p) stop("Repository root not found"); p <- dirname(p) }; p })(v2_dir)
 
   source(file.path(v2_dir, "R", "bootstrap.R"))
   source(file.path(v3_dir, "R", "terrain_basis.R"))

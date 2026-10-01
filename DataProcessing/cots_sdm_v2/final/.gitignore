@@ -1,0 +1,9 @@
+# Large or regenerable products; figures and tables are tracked for the report.
+models/
+cache/
+logs/
+outputs/layers/*.tif
+
+# The repo root ignores *.csv; keep the report tables and layer manifest.
+!outputs/tables/*.csv
+!outputs/layers/layer_manifest.csv

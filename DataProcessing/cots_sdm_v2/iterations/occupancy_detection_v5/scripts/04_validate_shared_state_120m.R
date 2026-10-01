@@ -6,8 +6,8 @@ if (length(runtime_args) != 1L || !runtime_args[[1]] %in% c("held_cell", "leave_
 }
 validation <- runtime_args[[1]]
 v5_dir <- normalizePath(file.path(dirname(script_file), ".."), winslash = "/")
-repo_root <- normalizePath(file.path(v5_dir, "..", "..", "..", ".."), winslash = "/")
-v4_dir <- file.path(repo_root, "DataProcessing", "cots_sdm_v2", "iterations", "hmsc_corrected_v4")
+repo_root <- (function(p) { while (!dir.exists(file.path(p, ".git"))) { if (dirname(p) == p) stop("Repository root not found"); p <- dirname(p) }; p })(v5_dir)
+v4_dir <- normalizePath(file.path(v5_dir, "..", "hmsc_corrected_v4"), winslash = "/")
 source(file.path(v4_dir, "R", "bootstrap.R"))
 artifact <- readRDS(file.path(v5_dir, "artifacts", "shared_state_data_120m.rds"))
 sites <- artifact$sites

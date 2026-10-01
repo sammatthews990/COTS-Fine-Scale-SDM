@@ -1,0 +1,2 @@
+"forecast_year","sigma_m","tau_years","kappa","history_site_years","cells","fraction_with_history","fraction_w_gt_1","fraction_history_dominant"
+2027,500,Inf,2,7818,3930409,0.0855346097568981,0.0417152515170813,0.0284240138876132

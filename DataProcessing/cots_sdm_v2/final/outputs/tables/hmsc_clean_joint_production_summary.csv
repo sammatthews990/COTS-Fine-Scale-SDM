@@ -1,0 +1,2 @@
+"component","rows","target_rows","target_positives","covariates","samples","thin","transient","chains","elapsed_minutes","min_ess","max_psrf_upper","convergence_pass","apparent_auc","manual_prediction_max_error","model_sha256"
+"clean_joint",15512,4360,2110,12,1000,30,5000,4,42.1653945366542,1645.16293151605,1.01988109898067,TRUE,0.576096682464455,0,"af984c4dff3fa9933689a9a6076cd87b8ffb69daf06d9f51762b15a81a188ca5"
