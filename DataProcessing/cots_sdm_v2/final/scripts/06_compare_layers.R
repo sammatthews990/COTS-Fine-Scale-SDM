@@ -16,20 +16,7 @@ layer_ids <- names(layer_labels)
 template <- terra::rast(file.path(cfg$dirs$cache, "base_support_120m.tif"))[[1]]
 
 # --- 1. Common 120 m layers -------------------------------------------------
-to_support_120 <- function(path, out) {
-  if (!file.exists(out)) {
-    r <- terra::rast(path)
-    alignment <- quadrature_alignment(r)
-    cropped <- terra::crop(r, alignment$crop_ext, snap = "near")
-    aggregated <- terra::aggregate(cropped, fact = 4, fun = "mean", na.rm = TRUE)
-    aggregated <- terra::shift(aggregated, dx = alignment$dx, dy = alignment$dy)
-    terra::writeRaster(aggregated, out, overwrite = TRUE, datatype = "FLT4S",
-                       gdal = layer_gdal_options)
-  }
-  x <- terra::rast(out)
-  if (!terra::compareGeom(x, template, stopOnError = FALSE)) stop(out, " is not on the 120 m support grid.")
-  x
-}
+to_support_120 <- function(path, out) aggregate_to_support_120(path, out, template)
 hmsc <- terra::rast(file.path(cfg$dirs$layers, "cots_hmsc_joint_120m.tif"))
 hmsc <- terra::crop(terra::extend(hmsc, template), template)
 support_layers <- c(

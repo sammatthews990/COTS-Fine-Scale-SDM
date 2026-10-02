@@ -125,12 +125,24 @@ final_config <- function(final_dir) {
     # history is sparse, so it is the deployed setting.
     history = list(sigma_m = 500, tau_years = Inf, kappa = 2),
 
+    # Operational efficiency scenarios (12). Cost rate as used in the earlier
+    # validation report (SDM_Validation_Report.qmd); hours are reported too.
+    operations = list(
+      diver_hour_cost_aud = 950,
+      keep_fractions = c(1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3),
+      headline_keep = 0.6,
+      random_reps = 200L,
+      bootstrap_reps = 200L
+    ),
+
     figures = list(
-      expert_reefs = c(
-        eyrie = "Eyrie Reef (14-118)",
-        batt = "Batt Reef (16-029)",
-        broadhurst = "(Big) Broadhurst Reef (No 1) (18-100a)",
-        bait = "Bait Reef (19-137)"
+      # Four-reef comparison panels (fig02, fig02b, fig10): GBR reef-feature
+      # LABEL_IDs, north to south.
+      four_reefs = c(
+        eyrie = "14-118",
+        batt = "16-029",
+        broadhurst = "18-100a",
+        lady_musgrave = "23-082a"
       )
     )
   )

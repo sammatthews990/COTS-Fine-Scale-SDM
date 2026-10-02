@@ -48,3 +48,19 @@ within_reef_percentile <- function(x, reef_ids) {
   })
   terra::setValues(x, out)
 }
+
+# Block-mean a 30 m layer onto the 0-anchored 120 m support grid (the same
+# 16-point quadrature used for the Hmsc predictors). Cached at `out`.
+aggregate_to_support_120 <- function(path, out, template) {
+  if (!file.exists(out)) {
+    r <- terra::rast(path)
+    alignment <- quadrature_alignment(r)
+    cropped <- terra::crop(r, alignment$crop_ext, snap = "near")
+    aggregated <- terra::aggregate(cropped, fact = 4, fun = "mean", na.rm = TRUE)
+    aggregated <- terra::shift(aggregated, dx = alignment$dx, dy = alignment$dy)
+    terra::writeRaster(aggregated, out, overwrite = TRUE, datatype = "FLT4S", gdal = layer_gdal_options)
+  }
+  x <- terra::rast(out)
+  if (!terra::compareGeom(x, template, stopOnError = FALSE)) stop(out, " is not on the 120 m support grid.")
+  x
+}

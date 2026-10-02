@@ -1,0 +1,4 @@
+"subset","layer_cv_point","layer_cv_assured","random_point","systematic_point","systematic_assured"
+"aggregations (>= 2 strong tows), 2022-2026",0.2,0.1,0.3,0.4,0.3
+"aggregations (>= 2 strong tows), all years",0.2,0.2,0.3,0.4,0.4
+"isolated strong tows, all years",0,0,0,0,0

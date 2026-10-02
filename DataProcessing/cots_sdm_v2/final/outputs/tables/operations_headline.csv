@@ -1,0 +1,23 @@
+"period","keep_fraction","metric","primary_layer","random"
+"2022-2026",0.6,"Manta: share of tows kept",0.606680271101854,0.606680271101854
+"2022-2026",0.6,"Manta: tow km saved",7423.184486,7423.184486
+"2022-2026",0.6,"Manta: strong-evidence tows kept",0.675523349436393,0.60866549361149
+"2022-2026",0.6,"Manta: outbreak reef-years still detected",0.885922330097087,0.870222849842762
+"2022-2026",0.6,"Cull: share of diver-hours kept",0.670887879602769,0.628957408694245
+"2022-2026",0.6,"Cull: share of COTS at kept sites",0.698759281488012,0.624696618829603
+"2022-2026",0.6,"Cull: share of ghost dives avoided",0.408656548622822,0.365340078695897
+"2022-2026",0.6,"Cull: diver-hours saved",18439.45,20788.7248333333
+"2022-2026",0.6,"Cull: catch-rate ratio, kept sites / all",1.04154405338452,0.993090998344977
+"2022-2026",0.6,"Cull: net COTS gain if saved hours redeployed",0.0415440533845177,-0.0069090016550235
+"all years",0.6,"Manta: share of tows kept",0.606343685843653,0.606343685843653
+"all years",0.6,"Manta: tow km saved",16488.7501448644,16488.7501448644
+"all years",0.6,"Manta: strong-evidence tows kept",0.647084286686043,0.607597234639097
+"all years",0.6,"Manta: outbreak reef-years still detected",0.909090909090909,0.9012129490849
+"all years",0.6,"Cull: share of diver-hours kept",0.663501254669123,0.636460671873877
+"all years",0.6,"Cull: share of COTS at kept sites",0.66280725305764,0.646348717586389
+"all years",0.6,"Cull: share of ghost dives avoided",0.388647019423979,0.353027461486939
+"all years",0.6,"Cull: diver-hours saved",45810.3166666667,49491.5715833333
+"all years",0.6,"Cull: catch-rate ratio, kept sites / all",0.998954031199489,1.01544873699114
+"all years",0.6,"Cull: net COTS gain if saved hours redeployed",-0.00104596880051081,0.0154487369911364
+"2022-2026",0.6,"Cull (history + habitat, forward): share of COTS at kept sites",0.725437916272746,0.627353912831026
+"2022-2026",0.6,"Cull (history + habitat, forward): share of ghost dives avoided",0.465430016863406,0.363996627318718
