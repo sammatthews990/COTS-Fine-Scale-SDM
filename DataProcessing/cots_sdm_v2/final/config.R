@@ -92,6 +92,12 @@ final_config <- function(final_dir) {
         path = file.path(v4_artifacts, "manta_footprints_120m.rds"),
         sha256 = "34079b26740473ec3a901547980b06e858d8da8417cd478e002e09d4e4e14154"
       ),
+      # Designated cull sites (one polygon per site, one KML layer per reef),
+      # including sites that have never been dived.
+      cull_sites_kmz = list(
+        path = file.path(repo_root, "data", "Eotr_CotsCullSites_2025_11_19_1_58_PM_1.kmz"),
+        sha256 = "9ff89578a76a2220009c5250b8965a1eac4640be197f01c7d05d051790d8c3b2"
+      ),
       footprint_links = list(
         path = file.path(exploration_dir, "iterations", "hmsc_geomorphic_v3", "artifacts", "footprint_links_120m.rds"),
         sha256 = "8aad8b68a79b5b8d8ab67357037e04ae7cb008e68a3cea0c10be5b7d9a8c61dd"
@@ -135,6 +141,24 @@ final_config <- function(final_dir) {
       bootstrap_reps = 200L
     ),
 
+    # Cull-site ranking for the next season (20). Chosen from the forward test
+    # (19): cull-trained habitat rank + previous-season evidence; the manta
+    # ensemble and "both ranks" variants performed the same, and training on
+    # all earlier seasons matched the last 5 and beat the last 3.
+    site_ranking = list(
+      target_season = 2027L,
+      habitat = "cull",               # cull | ensemble | both
+      forward_window = "all",         # column in 19's results that matches
+      training_years = c(2019L, 2026L),
+      # Calendar 2026 holds only Jan-May, so "last season" for 2027 is the
+      # most recent 12 months of dives and tows.
+      evidence_end = as.Date("2026-05-31"),
+      evidence_days = 365L,
+      kernel_sigma_m = 300,
+      # Priority classes by share of the reef's designated sites, from the top.
+      priority_breaks = c(A = 0.2, B = 0.5, C = 0.8)
+    ),
+
     figures = list(
       # Four-reef comparison panels (fig02, fig02b, fig10): GBR reef-feature
       # LABEL_IDs, north to south.
@@ -143,6 +167,12 @@ final_config <- function(final_dir) {
         batt = "16-029",
         broadhurst = "18-100a",
         lady_musgrave = "23-082a"
+      ),
+      # Optional display windows (MGA55 m). Lady Musgrave's reef polygon
+      # includes a large western platform; the window shows the ring reef
+      # around the island. Percentiles are still ranked over the whole polygon.
+      four_reef_windows = list(
+        lady_musgrave = c(xmin = 1048300, ymin = 7343800, xmax = 1054100, ymax = 7348700)
       )
     )
   )

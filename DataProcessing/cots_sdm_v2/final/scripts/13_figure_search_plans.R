@@ -202,7 +202,7 @@ fig <- wrap_plots(
       sep = "\n"
     ),
     caption = paste(
-      "Illustrative: these reefs are in the layer's training data; held-out savings estimates are in fig11. Route legs are straight lines, not navigation paths.",
+      "Illustrative: these reefs are in the layer's training data; held-out estimates are in fig13-15. Route legs are straight lines, not navigation paths.",
       paste("Imagery:", maptiles::get_credit("Esri.WorldImagery")),
       sep = "\n"
     ),

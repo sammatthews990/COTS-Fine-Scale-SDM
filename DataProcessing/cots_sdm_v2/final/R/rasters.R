@@ -64,3 +64,62 @@ aggregate_to_support_120 <- function(path, out, template) {
   if (!terra::compareGeom(x, template, stopOnError = FALSE)) stop(out, " is not on the 120 m support grid.")
   x
 }
+
+# Percentile of every cell within its GBR reef polygon (reef_ids: rasterised
+# reef index on the same grid), written block by block so the 30 m domain
+# never has to sit in memory. Returns the per-cell table invisibly.
+write_reef_percentile <- function(x, reef_ids, path, name = "within_reef_percentile") {
+  blocks <- terra::blocks(x, n = 8)
+  nc <- terra::ncol(x)
+  terra::readStart(x); terra::readStart(reef_ids)
+  pieces <- vector("list", blocks$n)
+  for (b in seq_len(blocks$n)) {
+    id <- terra::readValues(reef_ids, blocks$row[b], blocks$nrows[b])
+    keep <- which(!is.na(id) & id > 0 & id < 65535)
+    if (!length(keep)) next
+    v <- terra::readValues(x, blocks$row[b], blocks$nrows[b])[keep]
+    ok <- is.finite(v)
+    pieces[[b]] <- data.frame(cell = (blocks$row[b] - 1) * nc + keep[ok], reef = id[keep][ok], v = v[ok])
+  }
+  terra::readStop(x); terra::readStop(reef_ids)
+  cells <- dplyr::bind_rows(pieces) |>
+    dplyr::group_by(.data$reef) |>
+    dplyr::mutate(percentile = if (dplyr::n() > 1) (rank(.data$v, ties.method = "average") - 1) / (dplyr::n() - 1) else NA_real_) |>
+    dplyr::ungroup() |>
+    dplyr::arrange(.data$cell)
+  out <- terra::rast(x)
+  names(out) <- name
+  w <- terra::writeStart(out, path, overwrite = TRUE, datatype = "FLT4S", gdal = layer_gdal_options)
+  for (i in seq_len(w$n)) {
+    first <- (w$row[i] - 1) * nc + 1
+    last <- (w$row[i] + w$nrows[i] - 1) * nc
+    vals <- rep(NA_real_, last - first + 1)
+    sel <- which(cells$cell >= first & cells$cell <= last)
+    vals[cells$cell[sel] - first + 1] <- cells$percentile[sel]
+    terra::writeValues(out, vals, w$row[i], w$nrows[i])
+  }
+  terra::writeStop(out)
+  invisible(cells)
+}
+
+# Write values for a sparse set of cells (global cell numbers of `template`)
+# to a full-grid raster, block by block; every other cell is NA.
+write_cells <- function(template, cell, value, path, name) {
+  ord <- order(cell)
+  cell <- cell[ord]
+  value <- value[ord]
+  out <- terra::rast(template, nlyrs = 1)
+  names(out) <- name
+  nc <- terra::ncol(template)
+  w <- terra::writeStart(out, path, overwrite = TRUE, datatype = "FLT4S", gdal = layer_gdal_options)
+  for (i in seq_len(w$n)) {
+    first <- (w$row[i] - 1) * nc + 1
+    last <- (w$row[i] + w$nrows[i] - 1) * nc
+    vals <- rep(NA_real_, last - first + 1)
+    sel <- which(cell >= first & cell <= last)
+    vals[cell[sel] - first + 1] <- value[sel]
+    terra::writeValues(out, vals, w$row[i], w$nrows[i])
+  }
+  terra::writeStop(out)
+  invisible(path)
+}

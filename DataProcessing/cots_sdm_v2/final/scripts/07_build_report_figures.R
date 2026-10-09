@@ -89,9 +89,22 @@ if (file.exists(combined_file)) {
   native$hmsc_history_combined <- terra::rast(combined_file)
   fig02_layers <- c(fig02_layers, hmsc_history_combined = "HMSC + history")
 }
+# The manta-trained within reef-year layer (script 18), next to the 30 m layers.
+manta_file <- file.path(layers_dir, "cots_manta_within_30m.tif")
+if (file.exists(manta_file)) {
+  native$manta_within <- terra::rast(manta_file)[["relative_log_odds"]]
+  fig02_layers <- c(fig02_layers[1:2], manta_within = "Manta model", fig02_layers[-(1:2)])
+}
 uncertainty <- terra::rast(file.path(layers_dir, "cots_hmsc_joint_uncertainty_120m.tif"))
 interval_width <- uncertainty[["posterior_q95"]] - uncertainty[["posterior_q05"]]
 reef_ids <- cfg$figures$four_reefs
+# Map frame: the reef polygon plus 300 m, unless config sets a display window
+# (cells are still ranked across the whole polygon).
+reef_frame <- function(slug, polygon) {
+  window <- cfg$figures$four_reef_windows[[slug]]
+  if (is.null(window)) return(sf::st_bbox(sf::st_buffer(polygon, 300)))
+  sf::st_bbox(window, crs = sf::st_crs(polygon))
+}
 
 percentile_in_polygon <- function(r, polygon) {
   v <- terra::vect(polygon)
@@ -104,7 +117,7 @@ percentile_in_polygon <- function(r, polygon) {
 width_max <- 0
 reef_panels <- lapply(names(reef_ids), function(slug) {
   polygon <- features[features$LABEL_ID == reef_ids[[slug]], ]
-  frame <- sf::st_bbox(sf::st_buffer(polygon, 300))
+  frame <- reef_frame(slug, polygon)
   cells <- lapply(names(fig02_layers), function(id) raster_df(percentile_in_polygon(native[[id]], polygon)))
   names(cells) <- names(fig02_layers)
   v <- terra::vect(polygon)
@@ -142,7 +155,7 @@ top_rank_scale <- scale_fill_viridis_c(
   breaks = c(0.7, 0.8, 0.9, 1), labels = c("\u2264 70th", "80th", "90th", "100th"),
   name = "Within-reef percentile (top 30% emphasised)"
 )
-column_titles <- c(unname(fig02_layers), "HMSC uncertainty")
+column_titles <- c(unname(fig02_layers), "Uncertainty")
 n_cols <- length(column_titles)
 fig02_panels <- unlist(lapply(seq_along(reef_panels), function(i) {
   p <- reef_panels[[i]]
@@ -161,11 +174,12 @@ fig02 <- wrap_plots(fig02_panels, ncol = n_cols, guides = "collect") +
   plot_annotation(
     title = "Four expert-review reefs: where each layer ranks cells highest",
     subtitle = paste(
-      "Each layer is ranked within the reef polygon at its delivered resolution (legacy 30 m, HMSC 120 m);",
+      "Each layer is ranked within the reef polygon at its delivered resolution (legacy and manta 30 m, HMSC 120 m);",
       "colour resolves only the top 30% of each reef.",
       sep = "\n"
     ),
     caption = paste(
+      "Manta model: trained on strong-evidence vs negative manta tows within reef-years (no survey year); tows follow reef perimeters.",
       "HMSC + history is the 2027 forecast: habitat updated by prior Cull records (equals habitat where no Cull history lies nearby).",
       "Uncertainty is the posterior 5th-95th percentile width of the HMSC habitat probability.",
       sep = "\n"
@@ -177,7 +191,7 @@ fig02 <- wrap_plots(fig02_panels, ncol = n_cols, guides = "collect") +
     legend.key.height = grid::unit(0.18, "cm"), legend.title.position = "top",
     legend.spacing.x = grid::unit(1.2, "cm")
   )
-save_figure(fig02, cfg, "fig02_four_reef_comparison.png", width = 7.5, height = 7.4)
+save_figure(fig02, cfg, "fig02_four_reef_comparison.png", width = 7.5, height = 6.7)
 
 # --- fig02b: same panels over satellite imagery -------------------------------
 # Esri World Imagery tiles, cached under cache/tiles. Cells below the top-rank
@@ -229,7 +243,8 @@ fig02b <- wrap_plots(fig02b_panels, ncol = n_cols, guides = "collect") +
       sep = "\n"
     ),
     caption = paste(
-      "HMSC + history is the 2027 forecast: habitat updated by prior Cull records. Uncertainty: posterior 5th-95th percentile width.",
+      "Manta model: trained on strong-evidence vs negative manta tows within reef-years. HMSC + history: habitat updated by prior Cull records.",
+      "Uncertainty: HMSC posterior 5th-95th percentile width.",
       paste("Imagery:", maptiles::get_credit(imagery_provider)),
       sep = "\n"
     ),
@@ -240,7 +255,7 @@ fig02b <- wrap_plots(fig02b_panels, ncol = n_cols, guides = "collect") +
     legend.key.height = grid::unit(0.18, "cm"), legend.title.position = "top",
     legend.spacing.x = grid::unit(1.2, "cm")
   )
-save_figure(fig02b, cfg, "fig02b_four_reef_comparison_imagery.png", width = 7.5, height = 7.4)
+save_figure(fig02b, cfg, "fig02b_four_reef_comparison_imagery.png", width = 7.5, height = 6.7)
 
 # --- fig03: independent Manta check -----------------------------------------
 manta <- read_table("manta_independent_check.csv") |>
@@ -585,7 +600,7 @@ if (file.exists(history_path) && file.exists(combined_path)) {
     weight_max <<- max(weight_max, w$value)
     list(
       name = polygon$GBR_NAME[1], label = reef_ids[[slug]], polygon = polygon,
-      frame = sf::st_bbox(sf::st_buffer(polygon, 300)),
+      frame = reef_frame(slug, polygon),
       habitat = raster_df(percentile_in_polygon(native$hmsc_joint, polygon)),
       history = raster_df(crop_mask(history[["history_rate"]])),
       combined = raster_df(percentile_in_polygon(combined, polygon)),
@@ -751,6 +766,235 @@ if (file.exists(file.path(tables_dir, "manta_aggregation_cv_summary.csv"))) {
       theme = theme_report()
     )
   save_figure(fig13, cfg, "fig13_manta_aggregation_cv.png", width = 7.5, height = 4.6)
+}
+
+# --- fig14: diving only the top-ranked designated cull sites: which dives are kept --
+if (file.exists(file.path(tables_dir, "cull_site_selection_cv.csv"))) {
+  sa <- read_table("cull_site_selection_cv.csv") |> dplyr::filter(.data$period == "2018-2026") |>
+    dplyr::rename(area_searched = "sites_searched")
+  outcome_labels <- c(problematic_dives_kept = "Problematic dives (≥ 0.02 CPUE)",
+                      low_dives_kept = "Low-density dives (COTS, < 0.02 CPUE)",
+                      ghost_dives_kept = "Ghost dives (0 COTS)")
+  outcome_cols <- stats::setNames(c("#e34948", "#eda100", ink$muted), outcome_labels)
+  kept <- dplyr::bind_rows(
+    sa |> dplyr::filter(.data$metric == "problematic_dives_kept"),
+    sa |> dplyr::filter(.data$metric == "low_dives_avoided") |>
+      dplyr::mutate(metric = "low_dives_kept", value = 1 - .data$value, low2 = 1 - .data$high, high = 1 - .data$low, low = .data$low2),
+    sa |> dplyr::filter(.data$metric == "ghost_dives_avoided") |>
+      dplyr::mutate(metric = "ghost_dives_kept", value = 1 - .data$value, low2 = 1 - .data$high, high = 1 - .data$low, low = .data$low2)
+  ) |>
+    dplyr::bind_rows(tibble::tibble(score = rep(c("leave-reef-out", "deployed"), each = 3),
+                                    metric = rep(names(outcome_labels), 2), area_searched = 0, value = 0, low = 0, high = 0)) |>
+    dplyr::mutate(outcome = factor(outcome_labels[.data$metric], levels = outcome_labels),
+                  score = factor(ifelse(.data$score == "leave-reef-out",
+                                        "Held out: reef scored without its own Cull data",
+                                        "Deployed layer (in-sample: trained on these dives)"),
+                                 levels = c("Held out: reef scored without its own Cull data",
+                                            "Deployed layer (in-sample: trained on these dives)")))
+  n <- sa[1, ]
+  fig14 <- ggplot(kept, aes(area_searched, value, colour = outcome, fill = outcome)) +
+    geom_abline(slope = 1, intercept = 0, colour = ink$axis, linetype = "22", linewidth = 0.4) +
+    geom_ribbon(aes(ymin = low, ymax = high), alpha = 0.15, colour = NA) +
+    geom_line(linewidth = 0.8) +
+    geom_point(size = 1.3) +
+    facet_wrap(~score) +
+    scale_colour_manual(values = outcome_cols, name = NULL) +
+    scale_fill_manual(values = outcome_cols, name = NULL) +
+    scale_x_continuous(labels = scales::label_percent(), breaks = seq(0, 1, 0.2)) +
+    scale_y_continuous(labels = scales::label_percent(), breaks = seq(0, 1, 0.2)) +
+    coord_equal() +
+    labs(
+      title = "Diving only the highest-ranked cull sites on each reef: which dives would still happen?",
+      subtitle = sprintf(paste(
+        "Share of dives at sites the layer ranks in the dived fraction, %s dives in %s reef-years (2018-2026).",
+        "The layer helps only where the red line separates from the amber and grey lines; the dashed line is the share of sites dived.", sep = "\n"),
+        format(n$dives, big.mark = ","), format(n$reef_years, big.mark = ",")),
+      x = "Share of the reef's designated cull sites dived (highest-ranked first, incl. never-dived sites)",
+      y = "Share of dives kept",
+      caption = paste(
+        "Sites: EoTR designated cull-site polygons, including never-dived sites. Site score: mean over the polygon, ranked among all",
+        "designated sites on the reef for that year. Lines lie above the diagonal because crews already dive higher-ranked sites. Bands: 95% bootstrap over reef-years.",
+        sep = "\n")
+    ) +
+    theme_report() +
+    theme(legend.position = "bottom", strip.text = element_text(size = 8))
+  save_figure(fig14, cfg, "fig14_cull_search_area.png", width = 7.5, height = 4.9)
+}
+
+# --- fig15: habitat + last season's evidence, compared at matched retention --------
+if (file.exists(file.path(tables_dir, "cull_site_evidence_matched.csv"))) {
+  mt <- read_table("cull_site_evidence_matched.csv") |>
+    dplyr::filter(.data$window == "last_season", .data$period == "2018-2026",
+                  .data$metric %in% c("sites_searched", "low_dives_avoided", "ghost_dives_avoided"))
+  n <- read_table("cull_site_evidence_cv.csv") |>
+    dplyr::filter(.data$window == "last_season", .data$period == "2018-2026") |>
+    dplyr::slice(1)
+  score_labels <- c(habitat = "Habitat layer only", evidence = "Last season's dives + manta only",
+                    combined = "Habitat + last season's evidence", rule = "Rule: last season's flags first, then habitat")
+  score_cols15 <- stats::setNames(c("#eb6834", "#1baf7a", "#2a78d6", "#4a3aa7"), score_labels)
+  score_shapes <- stats::setNames(c(16, 17, 15, 18), score_labels)
+  metric_labels <- c(sites_searched = "Designated sites searched\n(lower is better)",
+                     low_dives_avoided = "Low-density dives avoided\n(COTS, < 0.02 CPUE)",
+                     ghost_dives_avoided = "Ghost dives avoided\n(0 COTS)")
+  mt <- mt |>
+    dplyr::mutate(score = factor(score_labels[.data$score], levels = score_labels),
+                  metric = factor(metric_labels[.data$metric], levels = metric_labels))
+  dodge <- position_dodge(width = 0.03)
+  fig15 <- ggplot(mt, aes(retention, value, colour = score, shape = score, group = score)) +
+    geom_line(position = dodge, linewidth = 0.6) +
+    geom_errorbar(aes(ymin = low, ymax = high), position = dodge, width = 0, linewidth = 0.5) +
+    geom_point(position = dodge, size = 2) +
+    facet_wrap(~metric, scales = "free_y") +
+    scale_colour_manual(values = score_cols15, name = NULL) +
+    scale_shape_manual(values = score_shapes, name = NULL) +
+    scale_x_continuous(labels = scales::label_percent(), breaks = c(0.8, 0.85, 0.9, 0.95)) +
+    scale_y_continuous(labels = scales::label_percent(accuracy = 1)) +
+    guides(colour = guide_legend(nrow = 2), shape = guide_legend(nrow = 2)) +
+    labs(
+      title = "Adding last season's dives and manta tows shrinks the search area for the same problematic dives",
+      subtitle = sprintf(paste(
+        "Each ranking is set to keep the same share of problematic dives (≥ 0.02 CPUE); held out, %s dives in %s reef-years (2018-2026).",
+        "Evidence comes only from the previous season, never from the season being searched.", sep = "\n"),
+        format(n$dives, big.mark = ","), format(n$reef_years, big.mark = ",")),
+      x = "Problematic dives kept (fixed in advance)",
+      y = NULL,
+      caption = paste(
+        "Candidates: all EoTR designated cull sites on the reef, incl. never-dived sites. Habitat: RG + year layer refitted without the reef's Cull data.",
+        "Evidence: dives at the site and within ~300 m (problematic rate, effort), strong-evidence manta tows nearby; models fitted on other reefs only.",
+        "Bars: 95% bootstrap over reef-years.", sep = "\n")
+    ) +
+    theme_report() +
+    theme(legend.position = "bottom", strip.text = element_text(size = 8))
+  save_figure(fig15, cfg, "fig15_cull_search_area_evidence.png", width = 7.5, height = 4.6)
+}
+
+# --- fig16: cull-trained vs manta-trained habitat models, on both goals ------------
+if (file.exists(file.path(tables_dir, "manta_response_cull_matched.csv"))) {
+  model_labels <- c(cull = "Cull-trained (CPUE ≥ 0.02)", manta = "Manta-trained",
+                    within = "Manta-trained, within reef-year")
+  model_cols <- stats::setNames(c("#eb6834", "#1baf7a", "#2a78d6"), model_labels)
+  as_model <- function(x) factor(model_labels[x], levels = rev(model_labels))
+  tc <- read_table("manta_response_tow_check.csv") |>
+    dplyr::filter(.data$metric == "auc") |>
+    dplyr::mutate(model = as_model(.data$model))
+  ag_all <- read_table("manta_response_aggregations.csv") |> dplyr::filter(.data$keep == 0.6)
+  ag <- ag_all |>
+    dplyr::filter(.data$strategy %in% c("cull_cv", "manta_cv", "within_cv")) |>
+    dplyr::mutate(model = as_model(sub("_cv$", "", .data$strategy)), value = .data$found)
+  ref <- ag_all |> dplyr::filter(.data$strategy %in% c("random", "systematic"))
+  cm <- read_table("manta_response_cull_matched.csv") |>
+    dplyr::filter(.data$period == "2018-2026", .data$retention == 0.9, .data$metric == "low_dives_avoided") |>
+    dplyr::mutate(evidence = ifelse(grepl("_evidence$", .data$score), "+ last season", "Habitat only"),
+                  base = sub("_evidence$", "", .data$score)) |>
+    dplyr::filter(.data$base %in% names(model_labels)) |>
+    dplyr::mutate(model = as_model(.data$base))
+  dot_panel <- function(d, title, xlab, chance = NULL) {
+    ggplot(d, aes(value, model, colour = model)) +
+      { if (!is.null(chance)) geom_vline(xintercept = chance, linetype = "22", colour = ink$muted) } +
+      geom_linerange(aes(xmin = low, xmax = high), linewidth = 2.2, alpha = 0.35) +
+      geom_point(size = 3) +
+      scale_colour_manual(values = model_cols, guide = "none") +
+      labs(title = title, x = xlab, y = NULL) +
+      theme_report() +
+      theme(plot.title = element_text(size = 9, face = "bold"))
+  }
+  p1 <- dot_panel(tc, "Ranking held-out manta tows", "Within reef-year AUC,\nstrong evidence vs negative", chance = 0.5) +
+    geom_text(aes(label = sprintf("%.3f", value), x = high), hjust = -0.25, size = 2.8, colour = ink$primary) +
+    scale_x_continuous(limits = c(0.49, 0.67))
+  p2 <- dot_panel(ag, "Thinning manta tows to 60 %", "Aggregations found") +
+    geom_vline(data = ref, aes(xintercept = found), linetype = "22", colour = ink$muted) +
+    geom_text(data = ref, aes(x = found, y = ifelse(strategy == "random", 3.45, 0.55), label = strategy),
+              inherit.aes = FALSE, size = 2.6, colour = ink$secondary, hjust = 1.05) +
+    scale_x_continuous(labels = scales::label_percent(accuracy = 1), limits = c(0.85, 1), breaks = c(0.88, 0.92, 0.96, 1))
+  p3 <- ggplot(cm, aes(value, model, colour = model, shape = evidence)) +
+    geom_linerange(aes(xmin = low, xmax = high), linewidth = 2.2, alpha = 0.3,
+                   position = position_dodge(width = 0.5)) +
+    geom_point(size = 3, position = position_dodge(width = 0.5)) +
+    scale_colour_manual(values = model_cols, guide = "none") +
+    scale_shape_manual(values = c("Habitat only" = 16, "+ last season" = 1), name = NULL) +
+    scale_x_continuous(labels = scales::label_percent(accuracy = 1)) +
+    labs(title = "Choosing cull sites", x = "Low-density dives avoided\nat 90 % of problematic dives kept", y = NULL) +
+    theme_report() +
+    theme(plot.title = element_text(size = 9, face = "bold"), axis.text.y = element_blank(),
+          legend.position = "bottom", legend.direction = "horizontal", legend.text = element_text(size = 7))
+  fig16 <- (p1 + p2 + theme(axis.text.y = element_blank()) + p3) +
+    plot_annotation(
+      title = "Training on manta tows helps the manta goal, not the cull goal",
+      subtitle = paste(
+        "Same predictors and folds; every reef is scored by models that never saw its own tows or dives (5-fold leave-reef-out).",
+        "The within reef-year model fixes each reef-year's strong-tow rate as an offset, so it learns only where COTS sit within a reef.", sep = "\n"),
+      caption = paste(
+        "Tows: 198,852 (16,199 strong evidence) in 1,015 reef-years. Aggregations: 1,904 groups of >= 2 strong tows within 500 m.",
+        "Cull: 30,037 dives at designated sites, 2018-2026, compared at matched retention. Bars: 95% bootstrap intervals.", sep = "\n"),
+      theme = theme_report()
+    )
+  save_figure(fig16, cfg, "fig16_manta_response_model.png", width = 7.5, height = 3.7)
+}
+
+# --- fig17: 2027 cull-site priority and exploration areas (Batt, Eyrie) -----------
+ranking_dir <- file.path(cfg$dirs$outputs, "site_ranking")
+if (file.exists(file.path(ranking_dir, "cots_exploration_areas_2027.gpkg"))) {
+  priority <- utils::read.csv(file.path(ranking_dir, "cots_cull_site_priority_2027.csv"), stringsAsFactors = FALSE)
+  explore <- sf::st_read(file.path(ranking_dir, "cots_exploration_areas_2027.gpkg"), quiet = TRUE)
+  cull_sites <- sf::st_read(file.path(cfg$dirs$cache, "cull_sites_designated.gpkg"), quiet = TRUE)
+  cull_sites <- cull_sites[!duplicated(paste(cull_sites$reef_name, cull_sites$site_name)), ] |>
+    dplyr::left_join(priority[, c("reef_name", "site_name", "priority")], by = c("reef_name", "site_name"))
+  tow_geom <- readRDS(checked_input(cfg, "footprint_links"))$manta |>
+    dplyr::group_by(.data$visit_id) |>
+    dplyr::summarise(sx = dplyr::first(.data$start_x), sy = dplyr::first(.data$start_y),
+                     ex = dplyr::first(.data$end_x), ey = dplyr::first(.data$end_y), .groups = "drop")
+  recent <- readRDS(checked_input(cfg, "manta_tows")) |>
+    dplyr::select("visit_id", "survey_date") |>
+    dplyr::inner_join(tow_geom, by = "visit_id") |>
+    dplyr::filter(is.finite(.data$sx), .data$survey_date > cfg$site_ranking$evidence_end - 365 * 5,
+                  .data$survey_date <= cfg$site_ranking$evidence_end)
+  priority_cols <- c(A = "#e34948", B = "#eb6834", C = "#eda100", D = "#898781")
+  priority_labels <- c(A = "A: top 20%", B = "B: 20-50%", C = "C: 50-80%", D = "D: bottom 20%")
+  fig17_panel <- function(slug) {
+    i <- match(slug, names(reef_ids))
+    p <- reef_panels[[i]]
+    frame <- p$frame
+    label <- reef_ids[[slug]]
+    sites_r <- sf::st_transform(cull_sites[grepl(paste0("(", label, ")"), cull_sites$reef_name, fixed = TRUE), ], sf::st_crs(p$polygon))
+    explore_r <- sf::st_transform(explore[grepl(paste0("(", label, ")"), explore$reef_name, fixed = TRUE), ], sf::st_crs(p$polygon))
+    tows_r <- recent[recent$sx > frame[1] & recent$sx < frame[3] & recent$sy > frame[2] & recent$sy < frame[4], ]
+    centres <- suppressWarnings(sf::st_point_on_surface(explore_r))
+    ggplot() +
+      tidyterra::geom_spatraster_rgb(data = reef_imagery[[i]], maxcell = 2e6) +
+      geom_sf(data = p$polygon, fill = NA, colour = "white", linewidth = 0.25) +
+      geom_sf(data = sites_r, aes(fill = priority), colour = NA, alpha = 0.75) +
+      geom_segment(data = tows_r, aes(x = sx, y = sy, xend = ex, yend = ey, linetype = "Manta tows, last 5 seasons"),
+                   colour = "#9ec5f4", linewidth = 0.3, alpha = 0.8) +
+      geom_sf(data = sf::st_buffer(explore_r, 70), fill = NA, colour = "#4a3aa7", linewidth = 0.9) +
+      geom_sf(data = explore_r, aes(colour = "Exploration area"), fill = "#4a3aa7", alpha = 0.9, linewidth = 0.3) +
+      geom_sf_text(data = centres, aes(label = area_rank_on_reef), colour = "white", size = 2.3, fontface = "bold",
+                   nudge_y = 160, check_overlap = TRUE) +
+      scale_fill_manual(values = priority_cols, labels = priority_labels, name = "Cull-site priority 2027", na.translate = FALSE) +
+      scale_colour_manual(values = c("Exploration area" = "white"), name = NULL) +
+      scale_linetype_manual(values = c("Manta tows, last 5 seasons" = "solid"), name = NULL) +
+      coord_sf(xlim = frame[c(1, 3)], ylim = frame[c(2, 4)], expand = FALSE, datum = NA) +
+      labs(title = paste0(sub(" \\(.*", "", p$name), " (", label, ")")) +
+      theme_map(8) +
+      guides(fill = guide_legend(order = 1, override.aes = list(alpha = 0.9)),
+             colour = guide_legend(order = 2, override.aes = list(fill = "#4a3aa7")),
+             linetype = guide_legend(order = 3, override.aes = list(colour = "#3987e5", linewidth = 0.6)))
+  }
+  fig17 <- (fig17_panel("batt") | fig17_panel("eyrie")) +
+    plot_layout(widths = c(1.35, 1), guides = "collect") +
+    plot_annotation(
+      title = "Where to search in 2027: ranked cull sites and areas worth a first look",
+      subtitle = paste(
+        "Cull sites coloured by 2027 priority (habitat + last 12 months of dives and manta tows).",
+        "Purple: top-ranked habitat outside the cull sites and > 150 m from any manta tow in the last 5 seasons (numbered by rank).", sep = "\n"),
+      caption = paste(
+        "Exploration areas: reef 0.5-16 m deep in the reef's top 30 % of habitat (primary layer + manta model), > 100 m from cull sites;",
+        "nearby pockets joined, split to ~9 ha and smoothed; up to 10 per reef, >= 350 m apart.",
+        paste("Imagery:", maptiles::get_credit(imagery_provider)), sep = "\n"),
+      theme = theme_report()
+    ) &
+    theme(legend.position = "bottom", legend.box = "vertical", legend.text = element_text(size = 7),
+          legend.spacing.y = grid::unit(0.05, "cm"), legend.margin = margin(0, 0, 0, 0))
+  save_figure(fig17, cfg, "fig17_search_2027_exploration.png", width = 7.5, height = 5.4)
 }
 
 manifest <- tibble::tibble(file = list.files(cfg$dirs$figures, pattern = "^fig.*\\.png$"))

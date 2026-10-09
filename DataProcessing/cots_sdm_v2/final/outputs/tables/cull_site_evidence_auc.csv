@@ -1,0 +1,25 @@
+"window","subset","score","dives","reef_years","auc_problematic_vs_low","auc_problematic_vs_ghost"
+"last_season","all","habitat",30037,926,0.573494132361887,0.600030389988243
+"last_season","all","evidence",30037,926,0.577757881043348,0.587702516888862
+"last_season","all","combined",30037,926,0.587761685724245,0.597561826189195
+"last_season","all","rule",30037,926,0.592801179223253,0.649812678105259
+"last_season","reef visited last season(s)","habitat",26816,685,0.574837894145462,0.602871598736934
+"last_season","reef visited last season(s)","evidence",26816,685,0.578556380065076,0.590128911908459
+"last_season","reef visited last season(s)","combined",26816,685,0.589368899084716,0.600237606427879
+"last_season","reef visited last season(s)","rule",26816,685,0.594596081368946,0.654928770178309
+"last_season","reef not visited","habitat",3221,241,0.524610406199438,0.538138479001135
+"last_season","reef not visited","evidence",3221,241,0.548709869709614,0.534846765039728
+"last_season","reef not visited","combined",3221,241,0.52929404751767,0.539273552780931
+"last_season","reef not visited","rule",3221,241,0.527505748105254,0.538365493757094
+"last_3_seasons","all","habitat",30037,926,0.573494132361887,0.600030389988243
+"last_3_seasons","all","evidence",30037,926,0.579115719255558,0.602663358641717
+"last_3_seasons","all","combined",30037,926,0.588007736943907,0.612801657998047
+"last_3_seasons","all","rule",30037,926,0.579193179824711,0.635658914728682
+"last_3_seasons","reef visited last season(s)","habitat",28553,801,0.574125657335752,0.600443530665751
+"last_3_seasons","reef visited last season(s)","evidence",28553,801,0.579638092176269,0.604598473405841
+"last_3_seasons","reef visited last season(s)","combined",28553,801,0.588681195030657,0.613443828710275
+"last_3_seasons","reef visited last season(s)","rule",28553,801,0.579780467081544,0.636484185959577
+"last_3_seasons","reef not visited","habitat",1484,125,0.494080277216286,0.570473436935309
+"last_3_seasons","reef not visited","evidence",1484,125,0.513427663875253,0.464221178171305
+"last_3_seasons","reef not visited","combined",1484,125,0.503320820098181,0.56685941452837
+"last_3_seasons","reef not visited","rule",1484,125,0.505342188853595,0.576617275027105
