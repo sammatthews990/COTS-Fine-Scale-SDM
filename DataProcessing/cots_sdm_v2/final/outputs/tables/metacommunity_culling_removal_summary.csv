@@ -1,0 +1,61 @@
+"treatment","scope","period","requested","removed","unmet_share"
+"wc_b150_q20_eb_lin_obs015_s1_cull000_cv2_pnd","Eyrie Reef","1991-2011",0,0,NA
+"wc_b150_q20_eb_lin_obs015_s1_cull000_cv2_pnd","Eyrie Reef","2012-16",141,141,0
+"wc_b150_q20_eb_lin_obs015_s1_cull000_cv2_pnd","Eyrie Reef","2017-20",0,0,NA
+"wc_b150_q20_eb_lin_obs015_s1_cull000_cv2_pnd","Eyrie Reef","2021-24",3770,331.248085452911,0.912135786352013
+"wc_b150_q20_eb_lin_obs015_s1_cull000_cv2_pnd","Lizard Island Reef","1991-2011",0,0,NA
+"wc_b150_q20_eb_lin_obs015_s1_cull000_cv2_pnd","Lizard Island Reef","2012-16",631,517.937719676723,0.179179525076508
+"wc_b150_q20_eb_lin_obs015_s1_cull000_cv2_pnd","Lizard Island Reef","2017-20",41,33.2092331812273,0.190018702896896
+"wc_b150_q20_eb_lin_obs015_s1_cull000_cv2_pnd","Lizard Island Reef","2021-24",573,124.486733511409,0.782745665774155
+"wc_b150_q20_eb_lin_obs015_s1_cull000_cv2_pnd","MacGillivray Reef","1991-2011",68,3.07127955206279,0.954834124234371
+"wc_b150_q20_eb_lin_obs015_s1_cull000_cv2_pnd","MacGillivray Reef","2012-16",35,35,0
+"wc_b150_q20_eb_lin_obs015_s1_cull000_cv2_pnd","MacGillivray Reef","2017-20",1,1,0
+"wc_b150_q20_eb_lin_obs015_s1_cull000_cv2_pnd","MacGillivray Reef","2021-24",12,10.0960982882333,0.158658475980557
+"wc_b150_q20_eb_lin_obs015_s1_cull000_cv2_pnd","North Direction Reef","1991-2011",0,0,NA
+"wc_b150_q20_eb_lin_obs015_s1_cull000_cv2_pnd","North Direction Reef","2012-16",429,327.260041332891,0.237156080809111
+"wc_b150_q20_eb_lin_obs015_s1_cull000_cv2_pnd","North Direction Reef","2017-20",4,3.29204207122303,0.176989482194243
+"wc_b150_q20_eb_lin_obs015_s1_cull000_cv2_pnd","North Direction Reef","2021-24",29,10.2745790574189,0.64570417043383
+"wc_b150_q20_eb_lin_obs015_s1_cull000_cv2_pnd","domain","1991-2011",523,310.346815751623,0.40660264674642
+"wc_b150_q20_eb_lin_obs015_s1_cull000_cv2_pnd","domain","2012-16",106118,27709.3332077913,0.738881874820565
+"wc_b150_q20_eb_lin_obs015_s1_cull000_cv2_pnd","domain","2017-20",85,71.3237469261672,0.160897094986269
+"wc_b150_q20_eb_lin_obs015_s1_cull000_cv2_pnd","domain","2021-24",16714,3664.62411591686,0.780745236573121
+"wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd","Eyrie Reef","1991-2011",0,0,NA
+"wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd","Eyrie Reef","2012-16",141,141,0
+"wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd","Eyrie Reef","2017-20",0,0,NA
+"wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd","Eyrie Reef","2021-24",3770,447.505790759766,0.881298198737463
+"wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd","Lizard Island Reef","1991-2011",0,0,NA
+"wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd","Lizard Island Reef","2012-16",631,605.272654618365,0.0407723381642393
+"wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd","Lizard Island Reef","2017-20",41,35.8699402460202,0.125123408633652
+"wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd","Lizard Island Reef","2021-24",573,278.076490660559,0.514700714379478
+"wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd","MacGillivray Reef","1991-2011",68,24.4646519221467,0.640225707027255
+"wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd","MacGillivray Reef","2012-16",35,35,0
+"wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd","MacGillivray Reef","2017-20",1,1,0
+"wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd","MacGillivray Reef","2021-24",12,11.2154638983936,0.0653780084671961
+"wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd","North Direction Reef","1991-2011",0,0,NA
+"wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd","North Direction Reef","2012-16",429,429,0
+"wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd","North Direction Reef","2017-20",4,4,0
+"wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd","North Direction Reef","2021-24",29,14.4668598633328,0.501142763333353
+"wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd","domain","1991-2011",523,452.158797774292,0.135451629494661
+"wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd","domain","2012-16",106118,45447.6331723994,0.571725502059977
+"wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd","domain","2017-20",85,77.8876380413004,0.0836748465729366
+"wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd","domain","2021-24",16714,4961.9054513024,0.703128787166304
+"wc_b150_q20_eb_lin_obs015_s1_cull420_cv2_pnd","Eyrie Reef","1991-2011",0,0,NA
+"wc_b150_q20_eb_lin_obs015_s1_cull420_cv2_pnd","Eyrie Reef","2012-16",141,141,0
+"wc_b150_q20_eb_lin_obs015_s1_cull420_cv2_pnd","Eyrie Reef","2017-20",0,0,NA
+"wc_b150_q20_eb_lin_obs015_s1_cull420_cv2_pnd","Eyrie Reef","2021-24",3770,599.545737124411,0.840969300497504
+"wc_b150_q20_eb_lin_obs015_s1_cull420_cv2_pnd","Lizard Island Reef","1991-2011",0,0,NA
+"wc_b150_q20_eb_lin_obs015_s1_cull420_cv2_pnd","Lizard Island Reef","2012-16",631,628.745506312062,0.00357289015521056
+"wc_b150_q20_eb_lin_obs015_s1_cull420_cv2_pnd","Lizard Island Reef","2017-20",41,39.292180739982,0.0416541282931212
+"wc_b150_q20_eb_lin_obs015_s1_cull420_cv2_pnd","Lizard Island Reef","2021-24",573,430.316261341015,0.249011760312365
+"wc_b150_q20_eb_lin_obs015_s1_cull420_cv2_pnd","MacGillivray Reef","1991-2011",68,64.8512369396981,0.0463053391220872
+"wc_b150_q20_eb_lin_obs015_s1_cull420_cv2_pnd","MacGillivray Reef","2012-16",35,35,0
+"wc_b150_q20_eb_lin_obs015_s1_cull420_cv2_pnd","MacGillivray Reef","2017-20",1,1,0
+"wc_b150_q20_eb_lin_obs015_s1_cull420_cv2_pnd","MacGillivray Reef","2021-24",12,12,0
+"wc_b150_q20_eb_lin_obs015_s1_cull420_cv2_pnd","North Direction Reef","1991-2011",0,0,NA
+"wc_b150_q20_eb_lin_obs015_s1_cull420_cv2_pnd","North Direction Reef","2012-16",429,429,0
+"wc_b150_q20_eb_lin_obs015_s1_cull420_cv2_pnd","North Direction Reef","2017-20",4,4,0
+"wc_b150_q20_eb_lin_obs015_s1_cull420_cv2_pnd","North Direction Reef","2021-24",29,16.1758804836748,0.442211017804316
+"wc_b150_q20_eb_lin_obs015_s1_cull420_cv2_pnd","domain","1991-2011",523,495.827844703268,0.0519544078331391
+"wc_b150_q20_eb_lin_obs015_s1_cull420_cv2_pnd","domain","2012-16",106118,59831.6425169044,0.436178192984184
+"wc_b150_q20_eb_lin_obs015_s1_cull420_cv2_pnd","domain","2017-20",85,82.4891860160672,0.0295389880462678
+"wc_b150_q20_eb_lin_obs015_s1_cull420_cv2_pnd","domain","2021-24",16714,6013.14671894969,0.640232935326691

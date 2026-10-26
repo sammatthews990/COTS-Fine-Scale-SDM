@@ -73,6 +73,102 @@ probability with a conditional habitat probability mixes two estimands. Use
 fig07 (within-reef agreement) and the four-reef panels instead to show where the
 layers concur.
 
+## Higher-density management reassessment (23; 16 October 2026)
+
+The original analyses use CPUE >=0.02. Script 23 separately evaluates the
+**unchanged** saved rankings against **CPUE >0.04**, preserving <0.02 positive
+dives as low-density, zero dives as ghost, and 0.02–0.04 inclusive as intermediate.
+It uses existing held-out rankings from 15–17 and the forward evidence scores
+from 19; no model is refitted and no 2027 priorities change. Habitat fits in the
+forward comparison remain spatially held out, not restricted to prior years.
+
+- Forward evidence test, 2019–2026: at 95% >0.04 retention, candidate site-years
+  searched are 90.2% (95% CI 85.4–93.4) for habitat plus recent evidence, 94.0%
+  (89.7–95.5) for habitat alone, and 95.6% (95.3–95.9) for random selection.
+  The combined ranking avoids 8.9% (6.2–12.9) of low-density and 11.2%
+  (8.0–16.8) of ghost dives. At 99% high-density retention it searches 98.2%
+  (97.2–98.7) of candidate site-years. These are retrospective trade-offs,
+  not agreed tolerances or demonstrated field savings.
+- Stopping at the top 80% rank cutoff retains 89.7% (86.4–92.7) of >0.04 dives
+  in that forward test. Fixed classes are not validated stopping rules.
+- Effort is the actual selected count divided by all candidate site-years,
+  including never-dived sites. Random expected outcomes match the site count on
+  each reef. This differs slightly from nominal rank cutoffs on small reefs or
+  tied scores. Matched comparisons interpolate the first target crossing; 500
+  paired reef-year bootstrap resamples repeat that interpolation.
+- The full cleaned cull source spans 2002–2026, with 49,130 valid records across
+  361 reefs; records matched to the designated register cover 4,299 sites on
+  339 reefs (`cull_record_scope.csv`). Each evaluation uses its stated subset.
+
+Outputs are `cull_high_density_fixed.csv`, `_matched.csv`, `_differences.csv`,
+`_composition.csv`, `_priority_classes.csv`, `_input_manifest.csv`, and
+`cull_record_scope.csv`, all in `outputs/tables/`. New inputs are pinned under
+`assessment_*` in config.R; refreshing upstream caches requires explicitly
+reviewing those pins. Assertions verify recovered forward sample counts,
+all-site rank denominators, monotonic retention and complete retention at full
+effort. Figure 20 is built by 07; use `--high_density_only=1` after 23.
+
+The trial's proposed 10–15% search and low-density/empty-dive reductions still
+require a numerical tolerance for missed >0.04 dives, observations from new
+searches, and accounting for annual or pre-closure checks. No annual vessel-time
+saving or validated fifth-wave suppression benefit is inferred.
+
+## Coral cover and a full refit at CPUE > 0.04 (24; 19 October 2026)
+
+Script 24 asks two questions of the cull-site ranking: does tow coral cover
+help, and does refitting every part at >0.04 beat the deployed ≥0.02 model?
+The 2027 product does not use coral and is unchanged.
+
+**Method.**
+- Each tow's hard coral code, and its recently dead coral code (recorded
+  from Nov 2018), is set to its bin midpoint (README sheet of the manta
+  workbook, pinned as `manta_workbook`). Last season's values are smoothed onto
+  each site with the 300 m evidence kernel.
+- 52 % of candidate site-years had a tow nearby (mean nearby hard coral
+  17.6 %).
+- Refit at each threshold: the leave-reef-out habitat XGBoost, the
+  threshold-based evidence terms, and the evidence GLM.
+- Forward test as in 19 (2019–2026, 861 reef-years). Every ranking is scored
+  against both definitions; 200 paired reef-year bootstraps.
+- At 0.02 the evidence terms reproduce 16 exactly. The base model reproduces
+  19's `cull_all` (AUC 0.576 vs 0.577; 80.5 % vs 81.1 % of sites at 90 %
+  retention).
+
+**Coral.**
+- More coral nearby, more problematic dives, with or without strong manta
+  tows nearby.
+  - Without strong tows, >0.04 share rises from 27 % (<10 % coral) to 39 %
+    (≥30 %); with them, from 50 % to 66 % (`threshold_coral_bins.csv`).
+  - Coefficient per 10 % cover: +0.11 at 0.02 (p = 0.03) and +0.15 at 0.04
+    (p = 0.003), with reef-year-clustered SEs.
+- The coral × strong-manta interaction is negative and not significant, and
+  recently dead coral adds nothing. The effect is additive.
+- Forward test, 0.02-trained, at 90 % retention: coral cuts sites searched by
+  1.4 points (95 % CI 0.4–2.3) on the 0.02 target and by 1.5 (0.4–2.8) on the
+  0.04 target. Low-density and ghost dives avoided do not change (≤1 point,
+  CIs span 0).
+- No gain at 95 % retention. AUC gains are under 0.01 (CIs span 0).
+- Coral is habitat evidence, but it exists only where crews towed last
+  season. COTS also remove coral, so high coral nearby may mark reefs where
+  the outbreak has not yet peaked.
+
+**Threshold.**
+- Training at >0.04 is no better, even on the >0.04 target. At 90 %
+  retention of >0.04 dives:
+  - the 0.04-trained base model searches 3.0 points more sites (0.0–5.5)
+    than the 0.02-trained one;
+  - its habitat rank alone has a within reef-year AUC of 0.495, against
+    0.563 for the 0.02-trained rank.
+- Likely reason: >0.04 site-years are fewer (3,095 vs 4,591 of 10,028
+  training site-years). The ≥0.02 response carries the same spatial signal
+  with more positives.
+- The deployed (0.02-trained) ranking keeps 90 % of >0.04 dives at 80.4 % of
+  sites, against 80.5 % for 90 % of ≥0.02 dives.
+
+Outputs: `threshold_coral_forward.csv`, `_differences.csv`,
+`_coefficients.csv`, `_lr_tests.csv`, `_bins.csv`, `_checks.csv` in
+`outputs/tables/`; per-dive forward ranks in `cache/threshold_coral_forward.rds`.
+
 ## Key results (run of 2026-10-01)
 
 ### HMSC convergence
@@ -678,9 +774,47 @@ What this means:
   and areas per reef are set at the top of script 21. The script takes
   about 30 minutes.
 
+## Metacommunity calibration reporting snapshot (22; 15 October 2026)
+
+This reporting step summarises archived ADRIA/COTSMod calibration outputs; it
+does not refit or promote a model. Inputs from the sibling `ADRIA.jl` repository
+are pinned in `config.R` (`ADRIA_DIR` can override its location). Script 22 checks
+every new pin, writes reported numbers with `write_table()`, and keeps the plotted
+LTMP observation series in the ignored cache. The earlier two-run comparison in
+`report/external/metacommunity/` is preserved as superseded historical material.
+
+- **Replicated candidates:** W, C3a and C6, five ecological–connectivity seed pairs,
+  run `20261014T_48_candidates_1991_v2`. Each matches 7/7 observed historical peaks
+  in every seed under score v2. Mean ± seed SD losses: W 6.79 ± 0.79, C3a 6.72 ±
+  0.70, C6 7.13 ± 0.85 (`metacommunity_candidates.csv`). C3a has the larger Lizard
+  first wave and better coral fit, but higher troughs. C6 trades a worse coral fit
+  for lower troughs. These SDs are not confidence intervals.
+- **Observation dependence:** G2′ passes at A½ = 30 adults/ha are W 5/5, C3a 0/5,
+  C6 3/5; at A½ = 10 they are 0/5, 0/5 and 3/5. These conditional calibration gates
+  do not establish independent predictive performance.
+- **Historical culling:** run 42, primary allocation sigma 210 m. At Eyrie in
+  2021–24, 88% of requested removals cannot be applied because simulated COTS are
+  absent; the domain share is 70% (`metacommunity_culling_removal_summary.csv`).
+  North Direction's second-wave maximum falls from 0.82 to 0.55 COTS/tow
+  (`metacommunity_culling_diagnostic.csv`). This is a consistency diagnostic,
+  not a control-effectiveness estimate.
+- **Latest v0.4 diagnostics:** 15 October runs 08–13 extend through 2026, with one
+  seed pair and culling off. Score v3 is distinct from v2. Original → corrected
+  outbreak boundary: loss 15.61 → 12.63 with earlier coral thermal settings;
+  11.34 → 11.34 with revised settings. The lowest exploratory chlorophyll-modified
+  loss is 10.99 (`metacommunity_2026_diagnostics.csv`). Shared cull/SALAD evidence
+  in the corrected boundary and assessment precludes an independent validation
+  interpretation. These runs are not a newly adopted working configuration.
+
+Held-out reefs/years, regional transfer and sensitivity gates remain incomplete.
+No adaptive starting/stopping or primary-outbreak suppression benefits are claimed.
+The report and manuscript describe this snapshot. Their Discussions outline the
+planned historical assessment of culling from 2012 to the present and future
+fifth-wave suppression scenarios, without claiming completed efficacy results. The pipeline and operational SDM results above are unchanged.
+
 ## Figures
 
-All in `outputs/figures/`, 7.5 in wide at 300 dpi, built by `07` from the tables in `outputs/tables/` (run it last).
+All in `outputs/figures/`, 7.5 in wide at 300 dpi, built by `07` from the tables in `outputs/tables/` (run it last). Use `07 --metacommunity_only=1` for figures 18–19 alone after script 22.
 
 | Figure | Shows |
 |---|---|
@@ -702,6 +836,10 @@ All in `outputs/figures/`, 7.5 in wide at 300 dpi, built by `07` from the tables
 | `fig15_cull_search_area_evidence.png` | Habitat vs habitat + last season's dives and manta tows, at matched problematic-dive retention: sites searched, low-density and ghost dives avoided |
 | `fig16_manta_response_model.png` | Cull-trained vs manta-trained habitat models on both goals: tow ranking, aggregations found at 60 % of tows, low-density dives avoided |
 | `fig17_search_2027_exploration.png` | Batt and Eyrie: 2027 cull-site priority, manta tows of the last 5 seasons and exploration areas over imagery |
+| `fig18_metacommunity_candidates.png` | W, C3a and C6 historical trajectories: five-seed means and SD, with LTMP observations |
+| `fig21_manta_surveillance_highlight.png` | Plain-language surveillance summary of the same aggregation retention results: habitat-priority, evenly spaced and random tows; detailed figure 13 retained |
+| `fig20_high_density_retention.png` | Existing forward rankings re-evaluated at >0.04 CPUE: high-density retention versus actual candidate site-years searched, with same-effort random expectation and 95% bootstrap intervals |
+| `fig19_metacommunity_2026_diagnostic.png` | Single-seed recent build-up: original/corrected boundaries and earlier/revised coral settings |
 
 ## Limitations to state in the report
 
@@ -753,6 +891,11 @@ Rscript DataProcessing/cots_sdm_v2/final/scripts/18_layer_manta_within.R        
 Rscript DataProcessing/cots_sdm_v2/final/scripts/19_site_ranking_forward.R      # year-by-year forward test of the site ranking (~6 min; needs 16-17)
 Rscript DataProcessing/cots_sdm_v2/final/scripts/20_site_ranking_2027.R         # 2027 cull-site priority: CSV + KMZ (~5 min; needs 18-19)
 Rscript DataProcessing/cots_sdm_v2/final/scripts/21_exploration_areas.R         # exploration layer + areas, added to the 2027 KMZ (~30 min; needs 17, 20)
+Rscript DataProcessing/cots_sdm_v2/final/scripts/22_metacommunity_results.R      # frozen ADRIA calibration reporting snapshot
+Rscript DataProcessing/cots_sdm_v2/final/scripts/23_cull_high_density_evaluation.R # fixed rankings at >0.04; no refits
+Rscript DataProcessing/cots_sdm_v2/final/scripts/24_threshold_coral_refit.R       # coral terms + full refit at >0.04, forward test (~5 min; needs 15-17)
+Rscript DataProcessing/cots_sdm_v2/final/scripts/25_calibration_report_snapshot.R # 21 October ADRIA snapshot, independent of script 22
+Rscript DataProcessing/cots_sdm_v2/final/scripts/26_larval_concentration_report.R # review 06: concentration tables/map preparation
 Rscript DataProcessing/cots_sdm_v2/final/scripts/07_build_report_figures.R      # last: uses outputs of 06-21
 ```
 
@@ -767,11 +910,11 @@ stage under `cache/` and resumes if interrupted.
 final/
   config.R        frozen inputs (path + SHA-256), chain lengths, seeds
   R/              common.R, hmsc.R, support_grid.R, rasters.R, figures.R, context.R, forward.R, cull_sites.R, site_selection.R
-  scripts/        00-21 (see Run order; 07 runs last)
+  scripts/        00-23 (see Run order; 07 runs last)
   outputs/
     layers/       delivered GeoTIFFs + layer_manifest.csv   (tifs git-ignored)
     tables/       every number quoted in the report            (tracked)
-    figures/      fig01-fig17 PNGs                              (tracked)
+    figures/      fig01-fig19 PNGs                              (tracked)
     site_ranking/ 2027 cull-site priority (CSV, KMZ incl. exploration areas), exploration areas (CSV, GPKG)
   report/         results.qmd: Results section for the technical report
                   (quarto render report/results.qmd -> .docx and .html)
@@ -805,3 +948,141 @@ The decisions behind these choices are recorded in
   against the 12,736 training cells before it maps anything.
 - **HMSC uncertainty** comes from 400 posterior draws, with fallback calibration
   applied to every draw.
+
+### Report review 04 structure (16 October 2026)
+
+The technical report's main Methods and Results now focus on the operational
+objectives with a model-purpose table and an evaluation table. Detailed model
+specification is in Appendix G, tactical comparisons in Appendix H, and
+metacommunity calibration/diagnostics in Appendix I. Original table and figure
+data are retained; this is an editorial reorganisation, not an analysis update.
+Figure 21 presents the existing manta-thinning result without model shorthand;
+rebuild it with `07 --report_highlights_only=1`. The report title now reflects both
+habitat suitability and metacommunity work, incorporating the author's review 03
+title edits. The manuscript is unchanged.
+
+### Metacommunity report update (21 October 2026)
+
+Section 3.4 now uses the dated `2026-10-21_wwave_lf04` figure set from the
+ADRIA sandbox. Figure 22 combines source Figures 1 (COTS) and 4 (coral), with
+one reef per row. Other figures are replotted at portrait width with eight-point
+labels, preserving the source summaries and bands; projection medians are
+checked numerically against the frozen source table. Figure 23 shows recent diver/cull-density comparisons;
+Figure 24 checks additional reefs. Figures 25–27 show exploratory effort-based
+projections through 2050 and their outcomes. These supplementary figures are
+in Appendix I; Appendix J preserves the superseded 15 October snapshot.
+The overall title remains the wording restored from review 03; Section 3.4's
+heading now reflects the COTS/coral comparison and control-strategy purpose.
+
+The current calibration uses five base seed pairs and 65 runs per culling
+state, spanning one-at-a-time parameter perturbations. Its bands are full
+ranges, not confidence intervals. The working model includes updated coral,
+chlorophyll and wave-settlement responses and a +0.04 initial fast-coral
+adjustment at Lizard. Historical removals use reef-proportional allocation.
+Projections use 450 continuous-history arms (five climate models × five seeds
+× two pathways × nine culling levels). Increased effort reduces simulated
+near-term peaks, but 2026 overshoot, outside supply and structural uncertainty
+remain unresolved. This does not complete independent validation or establish
+program benefits. Population/coral summaries in Figure 27 cover five reefs;
+removals cover the full domain.
+
+Run script **25**, then **07 --calibration_report_only=1** to rebuild without
+the GBR rasters or rerunning script 22. New metadata pins in `config.R`
+freeze member tables/figures and source data checksums; the builder checks
+those checksums before combining the COTS/coral plots. Outputs are
+`calibration_20261021_{summary,peaks}.csv`,
+`projection_20261021_reef_outcomes.csv` and Figures 22–27 (PNG/PDF).
+No biological fitting is performed and old pins/results are retained.
+ADRIA base revision was `1d18e8bef3dca1ab33ad9b1add7548e2fffc27ea`, with local
+uncommitted projection changes. SALAD/cull inputs remain in the sibling worktree;
+derived figures are for local report review, with publication permissions to
+confirm as recorded in the source metadata. The manuscript is unchanged.
+
+### Review 06: hydrodynamics and larval connectivity (23 October 2026)
+
+The technical report now has a separate Methods section with the requested
+two paragraphs for Sev and Owen to complete: hydrodynamic model/particle
+tracking and connectivity matrices/network analysis. A short third paragraph
+describes the completed concentration-map comparison. New Results Section 3.4
+reports the 2022/23 concentration patterns before the population-model results
+(now 3.5). It covers 2,895 sites, 113 reefs and ten releases. Concentration does
+not establish local retention, settlement or source-to-destination exchange;
+the formal matrix/network analysis remains prospective.
+
+Figure 28 is a portrait version of source lc2 (day-10 hotspot persistence).
+Appendix K contains Figures 29–30, reformatted from lc4 (variation among releases)
+and lc6 (cross-shelf patterns). Source figures in
+`DataProcessing/connectivity_lizard/outputs/figures/` are unchanged. The main
+findings are low persistent concentration around Lizard in this season,
+release-to-release variation and differences among latitude bands. Domain-edge
+effects remain an alternative explanation for the north–south gradient.
+
+Rebuild with **26**, then **07 --larval_concentration_only=1**. The source
+tables and all day-10 shapefile components, including the DBF containing the
+concentration attributes, are pinned separately in `config.R`. Script 26
+verifies that its day-10 reef concentration ranks match the source summary.
+It writes `larval_concentration_*.csv` to the report tables and map data to
+the ignored cache. No new hydrodynamic run or network analysis is performed.
+Methods, figures, limitations and Work Plan output F distinguish this completed
+descriptive work from the outstanding matrix, source-buffer and expert-method
+details. Review 06 comments 26/45 are recorded in its response note; review 07
+provides the next clean review copy and baselines. The manuscript is unchanged.
+
+### Retention range and fallback surveys (26 October 2026)
+
+Table 3, Section 3.1.1 and the detailed Appendix H comparison now include
+80%, 90%, 95% and 99% retention of >0.04 dives. Script 23 adds the 80% target
+to the same held-out rankings, exact site counts and 500 paired bootstrap
+draws. All earlier rows in the fixed, matched and paired-difference tables
+were verified unchanged. Models and the operational product were not refitted.
+
+In the forward 2019–2026 test, the combined ranking searches 66.6% of sites
+at 80% retention (95% interval 62.0–71.1), compared with 72.6% using habitat
+alone and 80.4% at random. At 90%, it searches 80.1% (73.9–85.2), compared
+with 85.8% and 90.5%. At 80% retention it avoids 28.7% of low-density dives
+and 34.5% of ghost dives; at 90% it avoids 17.5% and 21.8%. These are initial
+selection comparisons, with 20% or 10% of observed >0.04 dives omitted.
+They are not predictions of annual effort or full-season detection.
+
+Figure 20 now marks all four retention targets. Rebuild with script **23**,
+then **07 --high_density_only=1**. Discussion and monitoring describe annual
+full-coverage surveys, pre-closure checks and earlier evidence-triggered checks
+as fallback options. They require assessment of detections, delays and all
+follow-up effort. Initial-visit audits can estimate false negatives; detections
+on later annual visits can include new populations. No recovery rate or
+vessel-time saving has been inferred. Review 08 is the new clean review copy;
+earlier annotated reviews and baselines remain unchanged.
+
+Before the next review version, Table 3 was expanded to include the existing
+`low_avoided` and `ghost_avoided` outcomes for every ranking and retention target,
+alongside sites searched, with the same 95% intervals. The Results text now
+summarises avoidance at all four targets. Low density remains positive CPUE
+below 0.02, ghost means zero COTS and 0.02–0.04 remains a separate intermediate
+class. This is a reporting amendment; model fits and result tables are unchanged.
+
+### Review 08 integration (26 October 2026)
+
+Applied the tracked Results edits and comments 52, 106, 110, 126, 163 and 164.
+The main Results now begin with GBR habitat predictions and the four-reef map;
+the map's embedded title, subtitle and footnote are removed, while its panel
+labels/legends remain and imagery attribution is retained in Appendix H.
+Rebuild the four-reef figures without the GBR overview with
+`07 --four_reef_maps_only=1`. The numerical layers and result tables are unchanged.
+
+The standalone main manta-thinning section and simplified figure were removed;
+a short benchmark interpretation remains in the preceding section and detailed
+comparisons remain in Appendix H. The practical emphasis is habitat plus recent
+observations and crew judgement, without asserting that the cull-site model
+beat the tow-thinning benchmark. The product and metacommunity prose follows the
+author's shorter wording. Projections demonstrate model capability; the recent
+population overshoot and possible culling bias remain to be tested.
+
+Connectivity Results now state the proposed early-warning application of larval
+concentration and network analysis in the initiation box. Management implications
+retain five subsections but use eight short bullet paragraphs, about 450 source
+words versus about 2,400 previously. Full management interpretation, scenario
+design and field-trial requirements are preserved in new Appendix L. The existing
+author-completion checks remain there and in their relevant Methods/appendices.
+Review 08 and its baselines are preserved; review 09 is the next clean copy,
+with a response note mapping all comments and tracked-edit themes. The manuscript
+is unchanged.

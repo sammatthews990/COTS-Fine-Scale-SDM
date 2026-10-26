@@ -5,6 +5,51 @@
 % Cite in text as [@key] or @key; keys missing from this file are reported by
 % scripts/check_draft.R.
 
+@techreport{pratchett2022salad,
+ title = {Scooter-assisted large area diver-based (SALAD) visual surveys to test for renewed outbreaks of crown-of-thorns starfish (Acanthaster cf. solaris) in the northern Great Barrier Reef},
+ author = {Pratchett, Morgan S. and Caballes, Ciemon F. and Burn, Deborah and Doll, Peter C. and Chandler, Josie F. and Doyle, Jason R. and Uthicke, Sven},
+ institution = {COTS Control Innovation Program}, year = {2022},
+ url = {https://www.barrierreef.org/uploads/CCIP-EIP-02-Early-Investment-Project-COTS-Surveys-Final-Report.pdf}
+}
+@article{beeden2014rhis,
+ title = {Rapid survey protocol that provides dynamic information on reef condition to managers of the Great Barrier Reef},
+ author = {Beeden, R. J. and Turner, M. A. and Dryden, J. and Merida, F. and Goudkamp, K. and Malone, C. and Marshall, P. A. and Birtles, A. and Maynard, J. A.},
+ journal = {Environmental Monitoring and Assessment}, volume = {186}, pages = {8527--8540}, year = {2014},
+ doi = {10.1007/s10661-014-4022-0}
+}
+@techreport{bainbridge2024reefscan,
+ title = {ReefScan Transom. Standard Operating Procedure Number 15 (v1.08)},
+ author = {Bainbridge, Scott and Coleman, G.},
+ institution = {Australian Institute of Marine Science}, address = {Townsville}, year = {2024},
+ doi = {10.25845/HD2Z-KM55},
+ url = {https://www.aims.gov.au/sites/default/files/2024-03/ReefScanTransom_StandardOperatingProcedure_V1_08_March2024_1.pdf}
+}
+@misc{reefguide2026,
+ title = {{ReefGuide.jl}: regional and suitability assessment functions},
+ author = {{open-AIMS}}, url = {https://github.com/open-AIMS/ReefGuide.jl},
+ note = {Software repository, accessed 16 October 2026}
+}
+@misc{gbrmpabathymetry2021,
+ title = {{GBR10 GBRMP Bathymetry}},
+ author = {{Great Barrier Reef Marine Park Authority}}, year = {2021},
+ publisher = {Reef Geohub},
+ url = {https://tiles-ap1.arcgis.com/8gXWSCxaJlFIfiTr/arcgis/rest/services/GBR10_GBRMP_Bathymetry/MapServer},
+ note = {Satellite-derived bathymetry; EOMAP and GBRMPA}
+}
+@misc{gbrmpageomorphic2021,
+ title = {{GBR10 GBRMP Geomorphic}},
+ author = {{Great Barrier Reef Marine Park Authority}}, year = {2021},
+ publisher = {Reef Geohub},
+ url = {https://reef-geohub-ext-geohubgbrmpa.hub.arcgis.com/maps/2621ac24d749409395d7bb1dfdec5d5c/explore},
+ note = {Geomorphic zonation dataset; University of Queensland mapping framework}
+}
+@article{roelfsema2021shallow,
+ title = {How Much Shallow Coral Habitat Is There on the Great Barrier Reef?},
+ author = {Roelfsema, Chris M. and Lyons, Mitchell B. and Castro-Sanguino, Carolina and Kovacs, Eva M. and Callaghan, David and Wettle, Magnus and Markey, Kathryn and Borrego-Acevedo, Rodney and Tudman, Paul and Roe, Meredith and Kennedy, Emma V. and Gonzalez-Rivero, Manuel and Murray, Nicholas and Phinn, Stuart R.},
+ journal = {Remote Sensing}, volume = {13}, number = {21}, pages = {4343}, year = {2021},
+ doi = {10.3390/rs13214343}
+}
+
 @article{zurell2020odmap,
   title   = {A standard protocol for reporting species distribution models},
   author  = {Zurell, Damaris and Franklin, Janet and K{\"o}nig, Christian and Bouchet, Phil J. and Dormann, Carsten F. and Elith, Jane and Fandos, Guillermo and Feng, Xiao and Guillera-Arroita, Gurutzeta and Guisan, Antoine and Lahoz-Monfort, Jos{\'e} J. and Leit{\~a}o, Pedro J. and Park, Daniel S. and Peterson, A. Townsend and Rapacciuolo, Giovanni and Schmatz, Dirk R. and Schr{\"o}der, Boris and Serra-Diaz, Josep M. and Thuiller, Wilfried and Yates, Katherine L. and Zimmermann, Niklaus E. and Merow, Cory},
@@ -155,4 +200,203 @@
   pages   = {145--151},
   year    = {2008},
   doi     = {10.1111/j.1466-8238.2007.00358.x}
+}
+
+@misc{cotsmod2026,
+  author       = {{open-AIMS}},
+  title        = {{COTSMod.jl}: crown-of-thorns starfish population and dispersal model},
+  year         = {2026},
+  howpublished = {GitHub repository, commit 0a45f58},
+  url          = {https://github.com/open-AIMS/COTSMod.jl}
+}
+
+@misc{adriacalibrationreport2026,
+  author       = {{open-AIMS}},
+  title        = {{ADRIA.jl}: COTS calibration and exploratory effort-based projections},
+  year         = {2026},
+  howpublished = {Development worktree inspected 21 October 2026; base commit 1d18e8bef3dca1ab33ad9b1add7548e2fffc27ea},
+  note         = {Includes uncommitted projection development; calibration runs 20261021T\_10 and 11 and projection runs 20261021T\_04--08. Dated report metadata freeze constituent file checksums. Final release to be confirmed},
+  url          = {https://github.com/open-AIMS/ADRIA.jl}
+}
+
+@misc{adriacalibration2026,
+  author       = {{open-AIMS}},
+  title        = {{ADRIA.jl}: COTS calibration workflow (sandbox/calibration)},
+  year         = {2026},
+  howpublished = {GitHub repository, branch cots-submodel, commit 5d326b6b},
+  url          = {https://github.com/open-AIMS/ADRIA.jl}
+}
+
+@article{bozec2022cumulative,
+  title   = {Cumulative impacts across {Australia's Great Barrier Reef}: a mechanistic evaluation},
+  author  = {Bozec, Yves-Marie and Hock, Karlo and Mason, Robert A. B. and Baird, Mark E. and Castro-Sanguino, Carolina and Condie, Scott A. and Puotinen, Marji and Thompson, Angus and Mumby, Peter J.},
+  journal = {Ecological Monographs},
+  volume  = {92},
+  number  = {1},
+  year    = {2022},
+  doi     = {10.1002/ecm.1494}
+}
+
+@article{condie2021interventions,
+  title   = {Large-scale interventions may delay decline of the {Great Barrier Reef}},
+  author  = {Condie, Scott A. and Anthony, Kenneth R. N. and Babcock, Russ C. and Baird, Mark E. and Beeden, Roger and Fletcher, Cameron S. and Gorton, Rebecca and Harrison, Daniel and Hobday, Alistair J. and Plag{\'a}nyi, {\'E}va E. and Westcott, David A.},
+  journal = {Royal Society Open Science},
+  volume  = {8},
+  number  = {4},
+  year    = {2021},
+  doi     = {10.1098/rsos.201296}
+}
+
+@article{hock2014connectivity,
+  title   = {Connectivity networks reveal the risks of crown-of-thorns starfish outbreaks on the {Great Barrier Reef}},
+  author  = {Hock, Karlo and Wolff, Nicholas H. and Condie, Scott A. and Anthony, Kenneth R. N. and Mumby, Peter J.},
+  journal = {Journal of Applied Ecology},
+  volume  = {51},
+  number  = {5},
+  pages   = {1188--1196},
+  year    = {2014},
+  doi     = {10.1111/1365-2664.12320}
+}
+
+@article{hock2017resilience,
+  title   = {Connectivity and systemic resilience of the {Great Barrier Reef}},
+  author  = {Hock, Karlo and Wolff, Nicholas H. and Ortiz, Juan C. and Condie, Scott A. and Anthony, Kenneth R. N. and Blackwell, Paul G. and Mumby, Peter J.},
+  journal = {PLOS Biology},
+  volume  = {15},
+  number  = {11},
+  pages   = {e2003355},
+  year    = {2017},
+  doi     = {10.1371/journal.pbio.2003355}
+}
+
+@article{matthews2020connectivity,
+  title     = {Larval connectivity and water quality explain spatial distribution of crown-of-thorns starfish outbreaks across the {Great Barrier Reef}},
+  author    = {Matthews, S. A. and Mellin, C. and Pratchett, M. S.},
+  journal   = {Advances in Marine Biology},
+  volume    = {87},
+  pages     = {223--258},
+  year      = {2020},
+  doi       = {10.1016/bs.amb.2020.08.007}
+}
+
+@article{matthews2020cotsmod,
+  title     = {{COTSMod}: a spatially explicit metacommunity model of outbreaks of crown-of-thorns starfish and coral recovery},
+  author    = {Matthews, S. A. and Shoemaker, K. and Pratchett, M. S. and Mellin, C.},
+  journal   = {Advances in Marine Biology},
+  volume    = {87},
+  pages     = {259--290},
+  year      = {2020},
+  doi       = {10.1016/bs.amb.2020.09.001}
+}
+
+@article{stewart2026hybrid,
+  title        = {Modelling irruptive species with hybrid machine learning: a case study of crown-of-thorns starfish outbreaks on the {Great Barrier Reef}},
+  author       = {Stewart, Owen and Matthews, Samuel and Warne, David and Bode, Michael},
+  year         = {2026},
+  journal      = {EcoEvoRxiv [Preprint]},
+  doi          = {10.32942/X2J391}
+}
+
+@article{guillaume2025coral,
+  title   = {Harnessing multiscale topographic environmental variables for regional coral species distribution models},
+  author  = {Guillaume, Annie S. and Ferrari, Renata and Selmoni, Oliver and Mocellin, V{\'e}ronique J. L. and Denis, Hugo and Naugle, Melissa and Howells, Emily and Bay, Line K. and Joost, St{\'e}phane},
+  journal = {Ecology and Evolution},
+  volume  = {15},
+  number  = {4},
+  year    = {2025},
+  doi     = {10.1002/ece3.71292}
+}
+
+@article{dealmeida2026coralblox,
+  title        = {{CoralBlox}: a computationally efficient coral model for decision support},
+  author       = {{de Almeida}, Pedro Ribeiro and Crocker, Rose and Tan, Daniel and Bairos-Novak, Kevin R. and Ani, Chinenye J. and Benthuysen, Jessica A. and Robson, Barbara J. and Matthews, Samuel and Iwanaga, Takuya},
+  year         = {2026},
+  journal      = {bioRxiv [Preprint]},
+  doi          = {10.64898/2026.04.13.718315}
+}
+
+@article{plaganyi2014mice,
+  title   = {Ecosystem modelling provides clues to understanding ecological tipping points},
+  author  = {Plag{\'a}nyi, {\'E}va E. and Ellis, N. and Blamey, L. K. and Morello, E. B. and Norman-Lopez, A. and Robinson, W. and Sporcic, M. and Sweatman, H.},
+  journal = {Marine Ecology Progress Series},
+  volume  = {512},
+  pages   = {99--113},
+  year    = {2014},
+  doi     = {10.3354/meps10909}
+}
+
+@article{morello2014model,
+  title   = {Model to manage and reduce crown-of-thorns starfish outbreaks},
+  author  = {Morello, E. B. and Plag{\'a}nyi, {\'E}va E. and Babcock, R. C. and Sweatman, H. and Hillary, R. and Punt, A. E.},
+  journal = {Marine Ecology Progress Series},
+  volume  = {512},
+  pages   = {167--183},
+  year    = {2014},
+  doi     = {10.3354/meps10858}
+}
+
+@misc{cotsmodmethods2026,
+  author       = {{open-AIMS}},
+  title        = {{COTSMod.jl}: population dynamics and observed cull removals},
+  year         = {2026},
+  howpublished = {GitHub repository, commit ecf2dae53faff4691a6f41b6508a7b297a367244; inspected 15 October 2026},
+  url          = {https://github.com/open-AIMS/COTSMod.jl}
+}
+
+@misc{adriamethods2026,
+  author       = {{open-AIMS}},
+  title        = {{ADRIA.jl}: COTS calibration and historical culling workflow},
+  year         = {2026},
+  howpublished = {Development worktree inspected 15 October 2026; base commit 3789ac219a4b5e8cc677aa3883e9848f7fa2ced1},
+  note         = {Methods include uncommitted development changes; final release to be confirmed},
+  url          = {https://github.com/open-AIMS/ADRIA.jl}
+}
+
+% Publisher metadata and DOI checked 16 October 2026:
+% https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0298073
+@article{matthews2024protecting,
+  title   = {Protecting {Great Barrier Reef} resilience through effective management of crown-of-thorns starfish outbreaks},
+  author  = {Matthews, Samuel A. and Williamson, David H. and Beeden, Roger and Emslie, Michael J. and Abom, Rickard T. M. and Beard, Daniel and Bonin, Mary and Bray, Peran and Campili, Adriana R. and Ceccarelli, Daniela M. and Fernandes, Leanne and Fletcher, Cameron S. and Godoy, Dan and Hemingson, Christopher R. and Jonker, Michelle J. and Lang, Bethan J. and Morris, Sheriden and Mosquera, Enrique and Phillips, Gareth L. and Sinclair-Taylor, Tane H. and Taylor, Sascha and Tracey, Dieter and Wilmes, Jennifer C. and Quincey, Richard},
+  journal = {PLOS ONE},
+  year    = {2024},
+  volume  = {19},
+  number  = {4},
+  pages   = {e0298073},
+  doi     = {10.1371/journal.pone.0298073}
+}
+
+@article{plaganyi2020targets,
+ title = {Ecological analyses to inform management targets for the culling of crown-of-thorns starfish to prevent coral decline},
+ author = {Plagányi, Éva E. and Babcock, Russell C. and Rogers, Jacob and Bonin, Mary and Morello, E. Bee},
+ journal = {Coral Reefs}, volume = {39}, pages = {1483--1499}, year = {2020},
+ doi = {10.1007/s00338-020-01981-z}
+}
+@article{chandler2023densities,
+ title = {Increasing densities of Pacific crown-of-thorns starfish (Acanthaster cf. solaris) at Lizard Island, northern Great Barrier Reef, resolved using a novel survey method},
+ author = {Chandler, Josie F. and Burn, Deborah and Caballes, Ciemon F. and Doll, Peter C. and Kwong, Sarah L. T. and Lang, Bethan J. and Pacey, Kai I. and Pratchett, Morgan S.},
+ journal = {Scientific Reports}, volume = {13}, pages = {19306}, year = {2023},
+ doi = {10.1038/s41598-023-46749-x}
+}
+@article{uthicke2024edna,
+ title = {{eDNA} monitoring detects new outbreak wave of corallivorous seastar (Acanthaster cf. solaris) at Lizard Island, Great Barrier Reef},
+ author = {Uthicke, Sven and Doyle, Jason R. and Gomez Cabrera, Maria and Patel, Frances and McLatchie, Madi J. and Doll, Peter C. and Chandler, Josie F. and Pratchett, Morgan S.},
+ journal = {Coral Reefs}, volume = {43}, pages = {857--866}, year = {2024},
+ doi = {10.1007/s00338-024-02506-8}
+}
+@techreport{fletcher2020strategy,
+ title = {An ecologically-based operational strategy for COTS Control: Integrated decision making from the site to the regional scale},
+ author = {Fletcher, Cameron S. and Bonin, Mary C. and Westcott, David A.},
+ institution = {Reef and Rainforest Research Centre Limited}, address = {Cairns}, year = {2020},
+ url = {https://nesptropical.edu.au/wp-content/uploads/2020/04/NESP-TWQ-Project-3.1.1-Technical-Report-2.pdf}
+}
+@misc{gbrmpadashboard2026,
+ title = {Crown-of-thorns starfish control program dashboard},
+ author = {{Great Barrier Reef Marine Park Authority}}, year = {2026},
+ url = {https://www.gbrmpa.gov.au/our-work/programs-and-projects/crown-thorns-starfish-management/crown-thorns-starfish-control-program-dashboard},
+ urldate = {2026-10-16}
+}
+@misc{matthews2025intelligence,
+ title = {From Business Intelligence to Conservation Intelligence: Operationalising adaptive pest control to protect the resilience of the Great Barrier Reef},
+ author = {Matthews, Samuel A. and Beeden, Roger and Bonin, Mary C. and Mellin, Camille and Pratchett, Morgan S. and Ryan, Isobel and Wilmes, Jennifer and Williamson, David H.},
+ year = {2025}, publisher = {EcoEvoRxiv}, doi = {10.32942/X2HD3J}, note = {Preprint}
 }

@@ -20,6 +20,40 @@ tables_dir <- cfg$dirs$tables
 layer_ids <- names(layer_labels)
 read_table <- function(name) utils::read.csv(file.path(tables_dir, name), stringsAsFactors = FALSE)
 
+# Rebuild only the new calibration figures without loading the GBR rasters.
+source(file.path(cfg$final_dir, "R", "metacommunity_figures.R"))
+source(file.path(cfg$final_dir, "R", "high_density_figures.R"))
+source(file.path(cfg$final_dir, "R", "report_highlight_figures.R"))
+source(file.path(cfg$final_dir, "R", "calibration_report_figures.R"))
+source(file.path(cfg$final_dir, "R", "larval_concentration_figures.R"))
+if (identical(script_args()[["larval_concentration_only"]], "1")) {
+  build_larval_concentration_figures(cfg)
+  write_table(tibble::tibble(file = list.files(cfg$dirs$figures, pattern = "^fig.*\\.png$")), cfg, "figure_manifest.csv")
+  quit(save = "no")
+}
+if (identical(script_args()[["calibration_report_only"]], "1")) {
+  build_calibration_report_figures(cfg)
+  write_table(tibble::tibble(file = list.files(cfg$dirs$figures, pattern = "^fig.*\\.png$")), cfg, "figure_manifest.csv")
+  quit(save = "no")
+}
+if (identical(script_args()[["report_highlights_only"]], "1")) {
+  build_report_highlight_figures(cfg)
+  write_table(tibble::tibble(file = list.files(cfg$dirs$figures, pattern = "^fig.*\\.png$")), cfg, "figure_manifest.csv")
+  quit(save = "no")
+}
+if (identical(script_args()[["high_density_only"]], "1")) {
+  build_high_density_figures(cfg)
+  write_table(tibble::tibble(file = list.files(cfg$dirs$figures, pattern = "^fig.*\\.png$")), cfg, "figure_manifest.csv")
+  quit(save = "no")
+}
+if (identical(script_args()[["metacommunity_only"]], "1")) {
+  build_metacommunity_figures(cfg)
+  write_table(tibble::tibble(file = list.files(cfg$dirs$figures, pattern = "^fig.*\\.png$")), cfg, "figure_manifest.csv")
+  quit(save = "no")
+}
+
+four_reef_maps_only <- identical(script_args()[["four_reef_maps_only"]], "1")
+if (!four_reef_maps_only) {
 support <- c(
   terra::rast(file.path(cfg$dirs$cache, "legacy_clean_year2026_120m.tif")),
   terra::rast(file.path(cfg$dirs$cache, "legacy_rg_year2026_120m.tif")),
@@ -32,8 +66,10 @@ support <- c(
   )
 )
 names(support) <- layer_ids
+}
+map_crs <- if (four_reef_maps_only) terra::crs(terra::rast(file.path(layers_dir, "cots_legacy_clean_year2026_30m.tif"))) else terra::crs(support)
 features <- sf::st_read(checked_input(cfg, "reef_features"), quiet = TRUE) |>
-  sf::st_transform(terra::crs(support))
+  sf::st_transform(map_crs)
 land <- features |>
   dplyr::filter(.data$FEAT_NAME %in% c("Mainland", "Island")) |>
   sf::st_simplify(dTolerance = 300)
@@ -45,6 +81,7 @@ value_titles <- c(
 )
 
 # --- fig01: GBR overview ------------------------------------------------------
+if (!four_reef_maps_only) {
 overview <- terra::aggregate(support, fact = 24, fun = "mean", na.rm = TRUE)
 bbox <- sf::st_bbox(terra::ext(terra::trim(overview[[1]])) |> terra::vect(crs = terra::crs(support)) |> sf::st_as_sf())
 overview_panel <- function(id) {
@@ -73,6 +110,7 @@ fig01 <- wrap_plots(lapply(layer_ids, overview_panel), nrow = 1) +
     theme = theme_report()
   )
 save_figure(fig01, cfg, "fig01_gbr_overview.png", width = 7.5, height = 5.2)
+}
 
 # --- fig02: four expert-review reefs ----------------------------------------
 native <- list(
@@ -210,52 +248,48 @@ reef_imagery <- lapply(reef_panels, function(p) {
 imagery_panel <- function(d, image, polygon, frame, fill_scale, title = NULL, ylab = NULL, rank_alpha = TRUE) {
   d$alpha <- if (rank_alpha) ifelse(d$value >= top_rank_floor, 0.8, 0.4) else 0.6
   ggplot() +
-    tidyterra::geom_spatraster_rgb(data = image, maxcell = 2e6) +
+    tidyterra::geom_spatraster_rgb(data = image, maxcell = 2e5) +
     geom_raster(data = d, aes(x, y, fill = value, alpha = alpha)) +
     geom_sf(data = polygon, fill = NA, colour = "white", linewidth = 0.25) +
     fill_scale +
     scale_alpha_identity() +
     coord_sf(xlim = frame[c(1, 3)], ylim = frame[c(2, 4)], expand = FALSE, datum = NA) +
     labs(title = title, y = ylab) +
-    theme_map(8) +
-    theme(axis.title.y = element_text(angle = 90, colour = ink$primary, face = "bold", size = 8))
+    theme_map(9.6) +
+    theme(plot.title = element_text(size = 9.6),
+      axis.title.y = element_text(angle = 90, colour = ink$primary, face = "bold", size = 9.6))
 }
+imagery_labels <- c(legacy_clean_year2026 = "Full-extent\nhabitat", legacy_rg_year2026 = "Limited-extent\nhabitat",
+  manta_within = "Manta\nhabitat", hmsc_joint = "Joint\nhabitat", hmsc_history_combined = "Habitat +\nhistory")
+imagery_titles <- c(unname(imagery_labels[names(fig02_layers)]), "Uncertainty")
 fig02b_panels <- unlist(lapply(seq_along(reef_panels), function(i) {
   p <- reef_panels[[i]]
   image <- reef_imagery[[i]]
-  titles <- if (i == 1) column_titles else rep(list(NULL), n_cols)
+  row_name <- sub(" Reef.*$", "", sub("^\\(Big\\)\\s*", "", p$name))
+  titles <- if (i == 1) imagery_titles else rep(list(NULL), n_cols)
   c(
     lapply(seq_along(fig02_layers), function(j) {
       imagery_panel(
         p$cells[[names(fig02_layers)[j]]], image, p$polygon, p$frame, top_rank_scale, titles[[j]],
-        if (j == 1) paste0(sub(" \\(.*", "", p$name), "\n", p$label) else NULL
+        if (j == 1) paste0(row_name, "\n", p$label) else NULL
       )
     }),
     list(imagery_panel(p$width, image, p$polygon, p$frame, width_scale, titles[[n_cols]], rank_alpha = FALSE))
   )
 }), recursive = FALSE)
 fig02b <- wrap_plots(fig02b_panels, ncol = n_cols, guides = "collect") +
-  plot_annotation(
-    title = "Four expert-review reefs over satellite imagery",
-    subtitle = paste(
-      "Same rankings as fig02. Cells below each reef's 70th percentile are near-transparent;",
-      "the top 30% are drawn more opaque so they stand out against the reef.",
-      sep = "\n"
-    ),
-    caption = paste(
-      "Manta model: trained on strong-evidence vs negative manta tows within reef-years. HMSC + history: habitat updated by prior Cull records.",
-      "Uncertainty: HMSC posterior 5th-95th percentile width.",
-      paste("Imagery:", maptiles::get_credit(imagery_provider)),
-      sep = "\n"
-    ),
-    theme = theme_report()
-  ) &
+  plot_annotation(theme = theme_report()) &
   theme(
     legend.position = "bottom", legend.key.width = grid::unit(1.1, "cm"),
     legend.key.height = grid::unit(0.18, "cm"), legend.title.position = "top",
-    legend.spacing.x = grid::unit(1.2, "cm")
+    legend.spacing.x = grid::unit(1.2, "cm"), legend.text = element_text(size = 9.6),
+    legend.title = element_text(size = 9.6)
   )
 save_figure(fig02b, cfg, "fig02b_four_reef_comparison_imagery.png", width = 7.5, height = 6.7)
+if (four_reef_maps_only) {
+  write_table(tibble::tibble(file = list.files(cfg$dirs$figures, pattern = "^fig.*\\.png$")), cfg, "figure_manifest.csv")
+  quit(save = "no")
+}
 
 # --- fig03: independent Manta check -----------------------------------------
 manta <- read_table("manta_independent_check.csv") |>
@@ -997,5 +1031,10 @@ if (file.exists(file.path(ranking_dir, "cots_exploration_areas_2027.gpkg"))) {
   save_figure(fig17, cfg, "fig17_search_2027_exploration.png", width = 7.5, height = 5.4)
 }
 
+if (file.exists(file.path(tables_dir, "metacommunity_candidates.csv"))) build_metacommunity_figures(cfg)
+if (file.exists(file.path(tables_dir, "calibration_20261021_summary.csv"))) build_calibration_report_figures(cfg)
+if (file.exists(file.path(tables_dir, "larval_concentration_scope.csv"))) build_larval_concentration_figures(cfg)
+if (file.exists(file.path(tables_dir, "cull_high_density_fixed.csv"))) build_high_density_figures(cfg)
+if (file.exists(file.path(tables_dir, "manta_aggregation_cv_summary.csv"))) build_report_highlight_figures(cfg)
 manifest <- tibble::tibble(file = list.files(cfg$dirs$figures, pattern = "^fig.*\\.png$"))
 write_table(manifest, cfg, "figure_manifest.csv")

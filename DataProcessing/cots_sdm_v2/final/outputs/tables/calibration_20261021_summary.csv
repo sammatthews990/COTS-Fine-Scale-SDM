@@ -1,0 +1,5 @@
+"metric","value"
+"base_seeds",5
+"calibration_arms_per_cull_state",65
+"projection_arms",450
+"climate_models",5

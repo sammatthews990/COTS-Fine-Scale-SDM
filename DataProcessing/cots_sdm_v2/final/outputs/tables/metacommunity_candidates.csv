@@ -1,0 +1,4 @@
+"candidate","summed_loss_v2_mean","summed_loss_v2_sd","coral_J_mean","coral_J_sd","liz_peak_adults_1995_2000_mean","liz_peak_adults_1995_2000_sd","seeds","matched_peaks","observed_peaks","gate10_passes","gate30_passes","run_id","status"
+"C3a",6.71644767403767,0.698513376912425,0.228397295207823,0.00159397275507091,56.1094080539126,6.52035718320947,5,7,7,0,0,"20261014T_48_candidates_1991_v2","replicated_calibration_not_promoted"
+"C6",7.13469579442803,0.849338447883468,0.279351568599272,0.0015814782477599,29.857655498853,2.08339197527463,5,7,7,3,3,"20261014T_48_candidates_1991_v2","replicated_calibration_not_promoted"
+"W",6.78819243624487,0.789554334813752,0.249995085839505,0.00177025995566367,28.9610965250344,2.3239955512205,5,7,7,0,5,"20261014T_48_candidates_1991_v2","replicated_calibration_not_promoted"

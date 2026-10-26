@@ -18,6 +18,7 @@ final_config <- function(final_dir) {
   }
   v4_artifacts <- file.path(exploration_dir, "iterations", "hmsc_corrected_v4", "artifacts")
 
+  adria_dir <- Sys.getenv("ADRIA_DIR", file.path(dirname(repo_root), "ADRIA.jl"))
   outputs <- file.path(final_dir, "outputs")
   list(
     repo_root = repo_root,
@@ -34,6 +35,135 @@ final_config <- function(final_dir) {
     ),
 
     inputs = list(
+      # Review 06: completed concentration analysis, 23 October 2026.
+      # Freeze attribute data as well as geometry; concentrations are in DBF.
+      larval_report_summary = list(
+        path = file.path(dp, "connectivity_lizard/outputs/tables/reef_concentration_summary.csv"),
+        sha256 = "4d7472bd822407388a2a57cb0ccbc915edb6283ecd1bde7211405587f8cef2e2"
+      ),
+      larval_report_zones = list(
+        path = file.path(dp, "connectivity_lizard/outputs/tables/reef_zones.csv"),
+        sha256 = "48bed3b51d26636c76c3670fcc5aa609218948a03a42c300974f411b523f4d55"
+      ),
+      larval_report_releases = list(
+        path = file.path(dp, "connectivity_lizard/outputs/tables/zone_by_release.csv"),
+        sha256 = "20e62dc04e7b022f8e8852bd79332aa69f7c08c78cecafc0a0b4ae6518cdf650"
+      ),
+      larval_report_latitude = list(
+        path = file.path(dp, "connectivity_lizard/outputs/tables/latitude_trend.csv"),
+        sha256 = "8e15a3b4723c8248c6f7957c3ec2c6932e2e238701674ec29b9a4005603124f5"
+      ),
+      larval_report_day10_shp = list(
+        path = file.path(dp, "data/fngbr_LarvalConcentrations/fngbr_reef_daily_means_day10.shp"),
+        sha256 = "99a8f5a81849fac2b4fac083e6a5af639af25b9bcc1a17233709153040ae0cd9"
+      ),
+      larval_report_day10_dbf = list(
+        path = file.path(dp, "data/fngbr_LarvalConcentrations/fngbr_reef_daily_means_day10.dbf"),
+        sha256 = "217e1e637c8eb4a62a9d8a2602dda1ddba16e661fabaad16ccb1747d61cdf5a9"
+      ),
+      larval_report_day10_shx = list(
+        path = file.path(dp, "data/fngbr_LarvalConcentrations/fngbr_reef_daily_means_day10.shx"),
+        sha256 = "b5a16f068ce92466d272acd3a322100064897ea24b887317e875720e72d187c9"
+      ),
+      larval_report_day10_prj = list(
+        path = file.path(dp, "data/fngbr_LarvalConcentrations/fngbr_reef_daily_means_day10.prj"),
+        sha256 = "a02a27b1d1982c8516d83398e85a3c8b1aef1713c13ef4d84d7bde17430c07c4"
+      ),
+      # 21 October report snapshot. Each pinned metadata file also freezes its
+      # constituent figures/data by SHA-256; script 25 and the figure builder
+      # verify those member checksums before using them. Keep October 15 intact.
+      calibration_report_20261021 = list(
+        path = file.path(adria_dir, "sandbox/data/derived/calibration_report_figures/2026-10-21_wwave_lf04/calibration/metadata.json"),
+        sha256 = "b7f8c8dbb82a5b5f77456932182ea6c4f39e30e55f63199a7b7fefb615739917"
+      ),
+      projection_report_20261021 = list(
+        path = file.path(adria_dir, "sandbox/data/derived/calibration_report_figures/2026-10-21_wwave_lf04/projections_2050/metadata.json"),
+        sha256 = "ca67abdf433b3cbe998bda0daad4fb2ed47cfb5d75f19b0042ef34e19dd7a4a6"
+      ),
+      # Review 03: frozen source records and existing ranking snapshots for a
+      # threshold-only reassessment. Refresh these pins explicitly after reruns.
+      assessment_dives = list(
+        path = file.path(exploration_dir, "artifacts/cull_observations_clean.rds"),
+        sha256 = "995a566f09559b507cf1f2dd7e0d95a034692e48a87ff9403b4bb1332e718767"
+      ),
+      assessment_sites = list(
+        path = file.path(final_dir, "cache/cull_sites_designated.gpkg"),
+        sha256 = "14b0b292bfc163d425d90e87cde39aef4a1256ba16c165802c2cf426880e9176"
+      ),
+      assessment_evidence = list(
+        path = file.path(final_dir, "cache/cull_site_evidence_scores.rds"),
+        sha256 = "9774b06af7ab11674bec49d13dc7d0ea70054eb5fb173162fa2c10b97ebe740e"
+      ),
+      assessment_manta_sites = list(
+        path = file.path(final_dir, "cache/manta_response_site_ranks.rds"),
+        sha256 = "fe68b13539404cd37c9cd119f1612cd2391bec338014a1844bcd7034de68c2ac"
+      ),
+      assessment_forward = list(
+        path = file.path(final_dir, "cache/site_ranking_forward.rds"),
+        sha256 = "2fabc8d6e888eef58e4aef3b94f19bc0119f9a9c7ac3443ecbf8bf6a94056ba5"
+      ),
+      # Metacommunity reporting snapshot, 15 October 2026. Archived run files;
+      # these pins do not select or promote a biological configuration.
+      mc_candidates_candidates_audit = list(
+        path = file.path(adria_dir, "sandbox/calibration/runs/20261014T_48_candidates_1991_v2/candidates_audit.csv"),
+        sha256 = "fba377b700c63f2526f50e1a886086455b3337cf61ee1b08a75bafc6394b7cf4"
+      ),
+      mc_candidates_candidates_audit_json = list(
+        path = file.path(adria_dir, "sandbox/calibration/runs/20261014T_48_candidates_1991_v2/candidates_audit.json"),
+        sha256 = "73fce61126f3b459be215b758100b9503ab6da10817130302ba60d3b9abdb52e"
+      ),
+      mc_candidates_candidates_replicates = list(
+        path = file.path(adria_dir, "sandbox/calibration/runs/20261014T_48_candidates_1991_v2/candidates_replicates.csv"),
+        sha256 = "06261c108c8e5ada5ee535e1f429b40393675c245651d5e646b1f43baae1153b"
+      ),
+      mc_candidates_trajectories = list(
+        path = file.path(adria_dir, "sandbox/calibration/runs/20261014T_48_candidates_1991_v2/trajectories.csv"),
+        sha256 = "a65e73532586c1142fcd5b643ee977907cc8f77a976127b2f8a7616068cd000b"
+      ),
+      mc_culling_culling_audit = list(
+        path = file.path(adria_dir, "sandbox/calibration/runs/20261014T_42_culling_1991_v1/culling_audit.csv"),
+        sha256 = "991320244274b8092391c61e577bf7ffdbfef3e4f59c2cd47ca920a2a9bc59c4"
+      ),
+      mc_culling_culling_removals = list(
+        path = file.path(adria_dir, "sandbox/calibration/runs/20261014T_42_culling_1991_v1/culling_removals.csv"),
+        sha256 = "dba0f86f1decfc623b4d3d00bd50547c0f055b447c34e08fc26b90034a025496"
+      ),
+      mc_original_trajectories = list(
+        path = file.path(adria_dir, "sandbox/calibration/runs/20261015T_08_chl_survival_owen_global_2018_2023_1991_v1/trajectories.csv"),
+        sha256 = "b0f8c7f334cf5c6514fae8d385b9d64c21f1c70269f70b1cfd2969437c1d798c"
+      ),
+      mc_original_metadata = list(
+        path = file.path(adria_dir, "sandbox/calibration/runs/20261015T_08_chl_survival_owen_global_2018_2023_1991_v1/metadata.toml"),
+        sha256 = "ce849387524bd2fab62f27e7a584929f5410065f722e645491a08610cdd15113"
+      ),
+      mc_corrected_trajectories = list(
+        path = file.path(adria_dir, "sandbox/calibration/runs/20261015T_09_chl_survival_owen_global_2018_2023_corrected_1991_v1/trajectories.csv"),
+        sha256 = "c00edaaa84a7354c43300a50a96249e0fc1b0574ea36d36e4cc3cd14f67b4883"
+      ),
+      mc_corrected_metadata = list(
+        path = file.path(adria_dir, "sandbox/calibration/runs/20261015T_09_chl_survival_owen_global_2018_2023_corrected_1991_v1/metadata.toml"),
+        sha256 = "9e09ba1a6d07bd6dd6f3084aab3d22d8d44f3a19e1a13600fd5eeb119c16e56f"
+      ),
+      mc_original_score_detectability_scores = list(
+        path = file.path(adria_dir, "sandbox/calibration/runs/20261015T_10_rescore_chl_survival_original/detectability_scores.csv"),
+        sha256 = "d39b61af63846a3dca2f5c2bc3abdfdd97f474222396f72b213f5a2c4c504892"
+      ),
+      mc_corrected_score_detectability_scores = list(
+        path = file.path(adria_dir, "sandbox/calibration/runs/20261015T_12_rescore_chl_survival_corrected/detectability_scores.csv"),
+        sha256 = "8f46320e10f5e6b0692d7c8f7a25a8bddc603f0b9c584b1c36bd7b7bd0e7ae71"
+      ),
+      mc_original_gate_gate_g2prime = list(
+        path = file.path(adria_dir, "sandbox/calibration/runs/20261015T_11_gate_chl_survival_original/gate_g2prime.csv"),
+        sha256 = "b3b4a44e29941aa35871019a8856f6bcf132a41baf85be2295e4d2511c517879"
+      ),
+      mc_corrected_gate_gate_g2prime = list(
+        path = file.path(adria_dir, "sandbox/calibration/runs/20261015T_13_gate_chl_survival_corrected/gate_g2prime.csv"),
+        sha256 = "5cd7dc7b207ef83bcaf36e1760ad7a12f64c55140d364d5ca204c1748772bbad"
+      ),
+      mc_observations = list(
+        path = file.path(adria_dir, "sandbox/data/reef_cots.csv"),
+        sha256 = "0d8871dd90a5e0f6f883fbd22a4c92d0f036d85f7e2dd484197ee7f8ffeeaef5"
+      ),
       predictor_stack_clean = list(
         path = file.path(dp, "data", "predictors_clean_12layer.tif"),
         sha256 = "dd9e201242f3c367357fcfe911159cf1baeff20782f12924289d687691ba2a8e"
@@ -91,6 +221,12 @@ final_config <- function(final_dir) {
       manta_tows = list(
         path = file.path(v4_artifacts, "manta_footprints_120m.rds"),
         sha256 = "34079b26740473ec3a901547980b06e858d8da8417cd478e002e09d4e4e14154"
+      ),
+      # Manta sheet of the CSIRO workbook. The footprint tows above are its rows
+      # (visit_id = file||row); read only for the tow coral cover codes (24).
+      manta_workbook = list(
+        path = file.path(dp, "data", "260529-COTS-Manta-Cull-RHIS-Lawrence-CSIRO.xlsx"),
+        sha256 = "950f5296f6bf206bb95e16fe0e5fa391bfa8f6cf4065988ecc9d022164109b04"
       ),
       # Designated cull sites (one polygon per site, one KML layer per reef),
       # including sites that have never been dived.
