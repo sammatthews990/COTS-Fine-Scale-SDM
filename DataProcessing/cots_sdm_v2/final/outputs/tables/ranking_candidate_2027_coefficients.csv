@@ -1,0 +1,11 @@
+model,term,estimate,training_dives,training_years,status,input_definition
+recent_cpue,(Intercept),-0.177887324208846,28431,2019-2026,experimental,(Intercept)
+recent_cpue,habitat,0.308509527639494,28431,2019-2026,experimental,habitat
+recent_cpue,site_problematic_prev,-0.356036144744403,28431,2019-2026,experimental,Internal alias for site_high_prev: any prior dive with CPUE >0.04
+recent_cpue,site_quiet_prev,-1.11271408651253,28431,2019-2026,experimental,site_quiet_prev
+recent_cpue,cull_rate,1.07834745159043,28431,2019-2026,experimental,cull_rate
+recent_cpue,log_cull_effort,-0.0268537003306358,28431,2019-2026,experimental,log_cull_effort
+recent_cpue,log_manta_strong,0.607892569176561,28431,2019-2026,experimental,log_manta_strong
+recent_cpue,log_manta_effort,-0.20892581070177,28431,2019-2026,experimental,log_manta_effort
+recent_cpue,log_recent_cpue,0.370513438858598,28431,2019-2026,experimental,log_recent_cpue
+recent_cpue,log_recent_weight,0.0704478547188209,28431,2019-2026,experimental,log_recent_weight

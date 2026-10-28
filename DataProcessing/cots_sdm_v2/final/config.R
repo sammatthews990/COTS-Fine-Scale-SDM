@@ -35,6 +35,24 @@ final_config <- function(final_dir) {
     ),
 
     inputs = list(
+      ranking_deployed_habitat = list(
+        path = file.path(outputs, "layers/cots_legacy_rg_year2026_clean_fallback_30m.tif"),
+        sha256 = "876a6b7d1dbc7282651498e64a241063c5ebfdc55ca1214ce239f63aed0343b2"
+      ),
+      ranking_train_site_years = list(
+        path = file.path(exploration_dir, "artifacts/site_year_all.rds"),
+        sha256 = "05a3e784c0b486b5ac96f18f0245f4109a6d824b6632eb6e2f611518cf173b9c"
+      ),
+      ranking_site_sample_points = list(
+        path = file.path(final_dir, "cache/cull_sites_points.rds"),
+        sha256 = "c2b803450573de551ef1823e85f326ec7f24c19d7a300e907516c504c6ac2218"
+      ),
+      # Review 09: geometry of the domain used by the 21 October population
+      # model; the calibration store now holds the archived ADRIA sandbox data.
+      report_metapop_domain = list(
+        path = file.path(dirname(repo_root), "COTSMod-Calibration/store/data/Lizard_Historical_v0.4/spatial/lizard_cluster.gpkg"),
+        sha256 = "f2ddd55b0ccefebf7aa8003623a20977125cb9ea3a8f7df745c35f0c488098f9"
+      ),
       # Review 06: completed concentration analysis, 23 October 2026.
       # Freeze attribute data as well as geometry; concentrations are in DBF.
       larval_report_summary = list(
@@ -101,6 +119,12 @@ final_config <- function(final_dir) {
       assessment_forward = list(
         path = file.path(final_dir, "cache/site_ranking_forward.rds"),
         sha256 = "2fabc8d6e888eef58e4aef3b94f19bc0119f9a9c7ac3443ecbf8bf6a94056ba5"
+      ),
+      # Explicit frozen coefficients for replaying all candidate-site ranks,
+      # including never-dived sites, without refitting the forward models.
+      assessment_forward_coefficients = list(
+        path = file.path(final_dir, "outputs/tables/site_ranking_forward_coefficients.csv"),
+        sha256 = "a82524e8309b55f14a4acbc2ba303be2fe2e2bd74e47354a509ec9a77ce6924b"
       ),
       # Metacommunity reporting snapshot, 15 October 2026. Archived run files;
       # these pins do not select or promote a biological configuration.
@@ -281,6 +305,13 @@ final_config <- function(final_dir) {
     # (19): cull-trained habitat rank + previous-season evidence; the manta
     # ensemble and "both ranks" variants performed the same, and training on
     # all earlier seasons matched the last 5 and beat the last 3.
+    ranking_candidates = list(
+      half_life_days = 90,
+      habitat_quantile = 0.90,
+      bootstrap_reps = 500L,
+      evaluation_years = 2019:2026,
+      recent_years = 2024:2026
+    ),
     site_ranking = list(
       target_season = 2027L,
       habitat = "cull",               # cull | ensemble | both

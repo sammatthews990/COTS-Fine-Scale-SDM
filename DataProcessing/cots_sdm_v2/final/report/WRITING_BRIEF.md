@@ -3,6 +3,96 @@
 Read by the `marine-science-writing` skill before drafting. Update it when a
 decision changes. Items marked `[TO CONFIRM]` are for the authors to supply.
 
+## Current ranking experiment and review 11
+
+The main report and review 11 add the three-alternative ranking experiment
+(scripts 29–32; Appendix M). Review 10 and all earlier review files remain
+preserved. This is an analysis update, not integration of new review 10 feedback.
+
+The existing ranking remains the default. The recent-CPUE candidate has modest
+positive point gains, but no candidate passed the pre-specified strong
+replacement gate. Its separately labelled CSV/GeoPackage/KMZ is experimental.
+Report changes at both equal candidate-site coverage and equal recorded dive
+effort; do not turn the 90.5% versus 89.1% site-count retention result into a
+claim of equivalent dive-time savings. At 90% high-density retention, the gain
+in recorded dives avoided is 0.89 percentage points [−0.08 to 1.97].
+
+The habitat test uses complete 30 m polygon support (median 139 cells), not
+only the old 16-point sample. The 90th-percentile combined version did not
+improve on recent CPUE with mean habitat and was worse recently. Median habitat
+performed better in the habitat-only diagnostic; it is a separately specified
+future combined-model test, not a post-hoc replacement already validated here.
+Do not interpret this result as absence of real within-site hotspots.
+
+All alternatives retain the ≥0.02 training response; only the prior direct-site
+indicator changes to >0.04. Recent CPUE uses weighted catch/weighted bottom time
+with a fixed 90-day half-life and a separate effective recent-record count.
+Historical evidence is strictly preceding-season; habitat is spatially held
+out with the existing temporal limitation. The new matched-retention comparison
+uses 1% integer-site steps rather than the older 5% percentile steps, and common
+new paired bootstrap draws. Exact incumbent A–C point estimates replay unchanged.
+
+## Lessons from review 09
+
+Review 09 is the annotated input for this pass and must remain unchanged.
+The main report and a clean review 10 incorporate its edits and comments.
+Keep the two reviews and their baselines distinct; do not refresh review 09.
+
+Explain denominators whenever discussing selection: candidate sites, recorded
+dives, individual CPUE classes and the composition of deferred dives differ.
+Table 1 now shows all-dive reduction and all four deferred classes, alongside
+the existing retention and conditional manta metrics. Equal site counts do
+not imply equal dive counts or time. Treat 0.02–0.04 CPUE dives as useful culling
+opportunities whose retention is desirable, rather than unnecessary searches.
+
+Explain the operational ranking with its actual fitted score equation and
+plain-language definitions. The ≥0.02 training response remains distinct from
+the >0.04 retention evaluation. Main Methods gives the score; Appendix G gives
+the Gaussian distance weights, missing/no-evidence treatment, fitted 2027
+coefficients, time window and within-reef class assignment. The HMSC history
+blend is a separate model and must not be substituted for this algorithm.
+
+Elevate low-density and ghost-dive avoidance in Summary and Results. Describe
+tow reductions as conservative spatial accounting: outside-polygon tows remain,
+but additional achievable savings are untested. Include hydrodynamic/connectivity
+work and the population-model framework in the summary without implying that
+fine-scale transport is already coupled or validated. Figure 1 includes the
+actual v0.4 domain polygons; its hydrodynamic mesh panel remains to be supplied.
+
+## Governing technical-report template
+
+The technical report and current review copy follow
+[`CCIP_TEMPLATE_GUIDE.md`](CCIP_TEMPLATE_GUIDE.md), distilled from the supplied
+**CCIP Final Report Template - Bridging Projects.docx**. This project-specific
+guide overrides the earlier generic technical-report structure and its 600-word
+executive-summary default. It is the authority for both Codex and Claude passes.
+The supplied DOCX remains immutable; the filled report reuses its actual cover,
+branding, styles, page furniture and native Word fields.
+
+The report now uses Project Summary, Context & Objectives, Methods, Results,
+Discussion & Outputs, Outcomes & Impact Pathway, Conclusions & Next Steps,
+Acknowledgements, Data Accessibility and References, followed by appendices.
+The summary must fit one page; Conclusions must be ≤300 words. Methods has two
+illustrations; main Results has four key displays. Full retention and tow-effort
+comparisons remain in Appendix H. A compact main table makes the A–C operational
+trade-off explicit. Display and section numbers may therefore differ from the
+pre-template review; use logical cross-reference labels rather than typed numbers.
+
+Export using `scripts/render_ccip_report.ps1`, not a bare Quarto PDF render.
+Native Word export ensures the PDF matches the DOCX. Update title and authors
+in the Quarto YAML; fill affiliations, contact, citation-author and copyright
+slots in `ccip_report_metadata.json`. Preserve the source template's standard
+funding/Traditional Owner acknowledgements and disclaimer. Inspect cover tables
+and back-page text boxes when integrating review edits to these fields.
+
+Engagement confirmed by the author on 27 October 2026 is incorporated: April
+and June activities with Malu, fine-scale observations for a separate future
+Far Northern SDM, repeated GBRMPA meetings that shaped the cull-site-ranking
+concept, a delivery workshop planned for 5 November 2026 and January–February
+2027 trials aboard BPM in Cairns and with Malu in the Far Northern GBR/Torres
+Strait. Do not report those future workshop/trials or the standalone model as
+completed. The Work Plan's selected program outcomes are 2 and 4.
+
 ## Deliverables
 
 | # | Document | Skill type | File (in this folder) | Venue / recipient | Due |
@@ -458,3 +548,25 @@ analysis in the initiation box. Describe the fifth-wave simulations and 2050
 scenarios as demonstrations of capability; recent population overshoot and its
 possible culling bias still require testing. Review 08 remains the annotated
 input; review 09 is the next clean review copy.
+
+### Clarifying cull-site selection and manta surveillance before the next review
+
+Use “sites selected for cull dives” for the candidate-site metric. This includes
+empty search dives and never-dived candidates, so “sites culled” would imply an
+actual removal outcome that the metric does not count. Report whole manta tows
+and tow distance separately, as requested by the author. Their spatial estimates
+remain conditional on retained cull dives taking place; do not infer unchanged
+detection after removing manta surveillance.
+
+Make the operational rule explicit: retain priority classes A–C and defer D on
+routine visits, with annual or pre-closure checks. Omitting the bottom 20% of
+sites is a fixed site cutoff, not an 80% high-density-dive retention target. Use
+the exact descending-rank/site-count rule of the product, including integer
+rounding. Connect this rule in Table 3, the retention curve and Figure 3. Preserve
+the older percentile-based results under their existing definitions.
+
+Keep annual coverage, added exploration and later detections separate from
+initial reductions. On 27 October the author confirmed review 09 had no comments
+and requested its refresh. Review 09 and both clean baselines now match the
+updated main report. Previous copies are archived in the pipeline cache. Use
+this refreshed review 09 for the next feedback round; review 10 has not started.

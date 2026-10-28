@@ -1,0 +1,14 @@
+"metric","value"
+"evaluated_dives",28431
+"evaluated_reef_years",861
+"candidate_site_years",32444
+"designated_sites",15884
+"sample_points",254801
+"median_sample_points",16
+"polygon_cell_memberships",2201095
+"distinct_cells",2050409
+"median_full_cells",139
+"half_life_days",90
+"habitat_quantile",0.9
+"sites_without_predictor_values",21
+"spatial_replay_max_error",0

@@ -1086,3 +1086,284 @@ author-completion checks remain there and in their relevant Methods/appendices.
 Review 08 and its baselines are preserved; review 09 is the next clean copy,
 with a response note mapping all comments and tracked-edit themes. The manuscript
 is unchanged.
+
+## Cull-site and manta-effort clarification — 27 October 2026
+
+“Sites searched” in the >0.04 assessment counts candidate designated cull
+site-years selected for a dive visit, including never-dived sites. The report
+now calls this **sites selected for cull dives**. It is not a manta-tow count,
+nor a count of sites where COTS were actually removed.
+
+New script **27_operational_cutoff_and_tow_effort.R** replays all ten forward
+score columns with the original tie-breaking stream. Every archived dive rank
+must match exactly before proceeding. The source coefficients are now explicitly
+pinned in `config.R`; there is no model refit or change to the deployed product.
+
+The product's A–C rule selects descending rank/site count ≤0.8, or
+floor(0.8 × site count) sites per reef. It selects 78.9% of candidate site-years
+and retains 89.1% of observed >0.04 dives over 2019–2026, avoiding 18.8% of
+low-density dives and 23.5% of ghost dives. Thus deferring D initially misses
+10.9% of observed high-density dives. These are new exact-product-cutoff
+results, with uncertainty and same-effort baselines in
+`outputs/tables/operational_priority_cutoff.csv`. They are distinct from the
+older percentile-cutoff results in `cull_high_density_priority_classes.csv`.
+The four existing matched-retention point estimates remain unchanged.
+
+Script 27 also overlays valid recorded start-to-end tow segments on designated
+sites. It calculates potentially avoidable **whole tows** and **straight-line
+tow distance** at the same retention targets and at the A–C cutoff. Surveillance
+outside site polygons, and in portions shared with any retained site, remains.
+Source fallback or zero-length geometries are excluded and coverage is reported.
+Exact random-site expectations account for overlapping polygons, without double
+counting distance. Uncertainty uses 500 paired reef-year bootstrap draws.
+
+At A–C, the conditional gross reductions are **11.6% of whole manta tows**
+(95% interval 11.1–12.1) and **16.2% of straight-line distance** (15.6–16.9).
+At 80%, 90%, 95% and 99% dive retention the combined ranking's whole-tow
+reductions are 19.2%, 10.9%, 5.1% and 0.9%; distance reductions are 25.5%,
+15.3%, 7.6% and 1.4%. The tow denominator is 125,375 valid segments on 774
+of the 861 evaluated reef-years; 12 records lacked usable segment geometry.
+All 240 comparable fixed-effort and 48 matched-retention point estimates
+reproduce the existing dive/site results; reductions decrease to zero at full
+site coverage. At the same A–C site count, random selection retains only
+78.5% of >0.04 dives, versus 89.1% with the combined ranking. Raw reductions
+in site or tow effort alone should not be attributed to ranking skill.
+
+These are conditional spatial effort proxies: high-density dive retention
+assumes selected cull visits still occur. They do not establish detection after
+removing manta surveillance, feasible replacement routes, vessel-time savings,
+annual savings after deferred-site checks, or exploration yield. A field trial
+must assess those outcomes, including annual/pre-closure coverage.
+
+New tables are `operational_priority_cutoff.csv`,
+`operational_tow_effort_fixed.csv`, `operational_tow_effort_matched.csv` and
+`operational_tow_effort_coverage.csv`. Run **27**, then
+**07 --high_density_only=1**, then render the technical report. The geometry
+cache is keyed to frozen geometry inputs, the evaluation reef-years and an
+explicit geometry algorithm version. Bump that version when changing geometry
+logic. Figure 20 marks A–C explicitly; Figure 17's report caption links its
+classes to the Table 3 trade-off and the separate manta-effort table.
+
+This amendment updates the main report before the next review iteration.
+After the author confirmed it had no comments, review 09 and both clean
+baselines were refreshed from the updated main report on 27 October. Previous
+copies are archived in `cache/review_09_before_effort_refresh_20261027_093641/`.
+Review 09 is now ready for feedback; no review 10 has been created.
+
+## CCIP Bridging Project report template — 27 October 2026
+
+The technical report and review 09 use the supplied
+`report/CCIP Final Report Template - Bridging Projects.docx`. The original is
+never overwritten. Formatting and section-content requirements are governed by
+[`report/CCIP_TEMPLATE_GUIDE.md`](report/CCIP_TEMPLATE_GUIDE.md), linked from
+`WRITING_BRIEF.md` for future Codex and Claude revisions. This is the scientific
+technical-report template, distinct from the administrative final-project form.
+
+The main report now follows the template's section order, one-page Project
+Summary, dedicated rights-holder/stakeholder engagement subsection, explicit
+Outcomes & Impact Pathway, ≤300-word conclusion, Data Accessibility statement
+and Coral Reefs reference style. Main Results contains four key displays; the
+full matched-retention tables, manta-effort comparisons and retention curve
+are retained in Appendix H. No model was refitted or analytical result changed.
+The new observation-footprint map `fig29_report_study_area.png` uses the frozen
+cull archive and calibration-reef locations, and is rebuilt through script 07
+with `--ccip_template_only=1`.
+
+From the repository root, export with:
+
+```powershell
+& .\DataProcessing\cots_sdm_v2\final\report\scripts\render_ccip_report.ps1
+```
+
+This renders Quarto content, assembles a working copy of the source template,
+refreshes native Word contents/caption/page fields, exports the matching PDF,
+checks source-template identity and critical formatting, and updates the main
+exports. Create the next numbered review and matching Word/Quarto baselines
+only after verification; preserve annotated review inputs. The legacy
+`-RefreshReview09` option must not overwrite the now-annotated review 09.
+Existing exports are archived under `cache/ccip_template/build_*/`.
+Inspect the page images before handing over a new review. A bare Quarto render
+is only the content intermediate and does not assemble the final template.
+
+The next feedback file is `report/reviews/technical_report_review_11.docx`,
+with matching clean baselines. Annotated review 09 and its original baselines
+are preserved. See `report/reviews/technical_report_review_09_responses.md`
+for the integration record. The older `_CCIP` copies are historical exports,
+not the current report. Close a target review before replacing its on-disk copy.
+
+The template's cover, publication information, standard acknowledgements,
+disclaimer, teal/cyan styles, Roman/Arabic numbering, footer, logos and final
+gradient page are reused. Contact, affiliations, citation-author and copyright
+slots are held in `report/ccip_report_metadata.json`; title/authors remain in the
+Quarto YAML. The original template checksum is
+`e88e42c58b01be83287e0848dc4ff68b3f5f4f0e3ccc27ba08793424f685a1f5`.
+
+Completed engagement now includes the author-confirmed April visit and June
+follow-up with Malu and multiple GBRMPA meetings, including development of the
+cull-site-ranking concept. The extra observations support a separate future Far
+Northern SDM. The 5 November 2026 delivery workshop and January–February 2027
+trials aboard BPM and with Malu remain planned. Authors/contact/copyright,
+public release links and the outstanding hydrodynamic specification still need
+author completion before final publication.
+
+## Reading the A–C trade-off: sites, dives and denominators — 27 October 2026
+
+Script **28_explain_operational_dive_tradeoff.R** adds a descriptive check of
+Table 1 using the frozen forward ranks. Run it after script 27. It writes
+`outputs/tables/operational_deferred_dive_breakdown.csv` and reproduces the
+published high-density, low-density and ghost-dive point estimates exactly.
+It also writes `operational_deferred_dive_metrics.csv`, with 500 paired
+reef-year bootstrap intervals for all-dive avoidance, intermediate retention
+and deferred-dive composition. These additions are now integrated into Table 1
+and its accompanying explanation; no existing ranking or result was refitted.
+
+The A–C rule keeps approximately the top **80%**, not the top 20%, of candidate
+sites. Its 78.9% candidate-site coverage retains 85.1% of all **recorded dives**:
+4,248 of 28,431 observed dives are deferred (14.9%). Random selection at the
+same candidate-site count defers an expected 6,139.6 dives (21.6%). Thus the
+comparison matches candidate-site coverage, not observed dive count or time.
+The ranking retains more of the sites that crews visited repeatedly; this
+reflects operator behaviour as well as the evidence used to rank sites.
+
+Of the model-deferred dives, 28.5% are ghosts, 26.7% have positive CPUE below
+0.02, 11.9% have CPUE from 0.02 through 0.04 inclusive, and 32.9% are above
+0.04. The corresponding random-site expected composition is 18.4%, 21.3%,
+15.4% and 44.9%. Ghosts plus low-density dives therefore form 55.2% of the
+deferred set, versus 39.7% under random site selection. These are shares of
+**deferred dives**, not the shares of each CPUE class avoided in Table 1.
+
+The missing intermediate class is also mostly retained: 11.6% is deferred,
+versus 21.5% under random site selection. Adding it completes the accounting;
+it does not create an additional efficiency gain. Table 1 demonstrates better
+protection of observed high-density dives at the same candidate-site count,
+but little extra avoidance of observed low-density/ghost dives. It does not
+establish a large reduction in dive effort or search time. A comparison at
+matched observed dive effort, and eventually actual operational time, is needed
+to assess that claim separately. The revised report distinguishes candidate-site
+coverage from observed-dive coverage and includes all four CPUE classes with a
+clearly labelled deferred-dive composition. Retaining the intermediate group
+preserves useful culling opportunities and is desirable to the program.
+
+## Review 09 integration and ranking explanation — 27 October 2026
+
+The main report incorporates all six tracked passages and both comments in
+review 09. Summary and Results elevate low-density (18.8%) and ghost-dive
+avoidance (23.5%); intermediate-dive retention is 88.4% [86.7–90.1].
+The summary also reflects hydrodynamic/connectivity work, ADRIA integration,
+the fifth-wave application, repeated GBRMPA engagement and exploration areas.
+The possibility of additional tow reductions outside polygons remains untested.
+
+Methods now gives the actual logistic score used for operational ranking,
+with plain-language input definitions. Appendix G adds the Gaussian weight
+(300 m scale, truncated at 900 m, at most 400 nearby records per stream),
+no-evidence and missing-habitat handling, the archived 2027 coefficients,
+the evidence window and within-reef A–D assignment. This is the ≥0.02-trained
+site-evidence model, not the separate HMSC history blend; the >0.04 evaluation
+still uses the existing scores. Two editable display equations reuse the
+template's borderless equation-table component and live equation numbers.
+
+Figure 1 adds the actual 2,895-site v0.4 domain from the population-model
+GeoPackage, pinned in `config.R`. The archive now resides in the adjacent
+`COTSMod-Calibration/store/data/` tree. The hydrodynamic mesh panel requested
+in comment 65 is explicitly reserved for the figure to be supplied; it is not
+fabricated or substituted with a different geometry. Rebuild Figure 1 with
+script 07 `--ccip_template_only=1`.
+
+Review 09 is preserved as the annotated source. Review 10 and clean baselines
+are the next review round; the template source is unchanged.
+
+## Three ranking alternatives and habitat percentiles — 27 October 2026
+
+The incumbent remains the default. Scripts **29–32** evaluate three fixed
+alternatives specified in
+[`report/ranking_alternatives_analysis_plan.md`](report/ranking_alternatives_analysis_plan.md):
+
+1. Replace the prior-site ≥0.02 indicator with any prior dive **>0.04**.
+2. Add site CPUE as recency-weighted catch / recency-weighted bottom time,
+   plus the effective recent-record count, using a fixed **90-day half-life**.
+3. Use the **within-site 90th-percentile habitat prediction** instead of its
+   mean in the recent-CPUE model.
+
+All retain the ≥0.02 training response and the original quiet-site, nearby
+dive and manta terms. Intermediate dives remain useful culling opportunities.
+Evidence is strictly preceding-season; habitat retains the existing spatial
+holdout and temporal limitation. Neither frozen inputs nor deployed products
+were replaced.
+
+The original habitat means used 16 sample points per site in validation.
+The new comparison uses 2,201,095 polygon-cell/fallback records, median 139 per
+site. Five refitted habitat folds reproduce archived sample-point means with
+**zero error**. A current-model control using the same all-cell mean separates
+denser sampling from changing the predictor. Twenty-one sites have no usable
+predictor values and are flagged. Median, 75th, 90th and 95th percentile habitat
+summaries are additional habitat-only diagnostics, not post-hoc combined models.
+
+The forward cohort is unchanged: **28,431 dives, 861 reef-years and 32,444
+candidate site-years**. Exact incumbent A–C point estimates replay unchanged.
+New trade-off curves use 1% integer-site steps and first-crossing interpolation,
+rather than the older 5% percentile-cutoff steps. Thus interpolated incumbent
+values can differ slightly from Appendix H; its exact A–C point is identical.
+New intervals use 500 common paired reef-year bootstrap draws.
+
+| Ranking | >0.04 retained at A–C (%) | Dives avoided at 90% >0.04 retention (%) | Same measure, 2024–2026 (%) |
+|---|---:|---:|---:|
+| Current ranking | 89.1 | 13.8 | 14.8 |
+| All-cell mean control | 89.4 | 13.9 | 15.1 |
+| Prior >0.04 indicator | 89.5 | 13.9 | 14.9 |
+| Indicator + recent CPUE | 90.5 | 14.7 | 16.6 |
+| Recent CPUE + 90th-percentile habitat | 90.0 | 14.3 | 13.3 |
+
+These are point estimates; full intervals and paired differences are in
+`outputs/tables/ranking_candidate_assessment.csv` and
+`ranking_candidate_differences.csv`. Recent CPUE has the best positive overall
+and recent comparison. At 90% high-density retention its extra recorded-dive
+avoidance is **0.89 points [−0.08, 1.97]** versus the incumbent and **0.77
+[−0.11, 1.83]** versus the all-cell control. Recorded bottom-time avoidance is
+14.8% versus 13.7%, a paired gain of **1.18 points [−0.01, 2.33]**. These
+intervals include zero. At the same actual recorded-dive budget its high-density
+retention gain is smaller: **0.54 points [−0.05, 1.31]**. At matched 90%
+retention it also retains fewer intermediate dives: 88.1% versus 89.6%.
+
+No alternative passes the pre-specified strong replacement gate. The recent-CPUE
+option is exported **experimentally only**, not promoted. Gains vary among
+seasons and are positive in five of eight years. The 90th-percentile combined
+version is worse recently than the mean version. Habitat-only useful-dive AUC
+is 0.576 for the mean, 0.589 for the median, 0.575 for the 75th percentile,
+0.568 for the 90th and 0.560 for the 95th. This does not support favouring the
+highest-valued habitat patches in this ranking test; it does not show that real
+hotspots are absent. Median habitat is a potential separately specified next test.
+
+### Experimental product
+
+`outputs/site_ranking_candidates/` contains
+`cots_cull_site_priority_2027_recent_cpue_experimental.csv`, `.gpkg` and `.kmz`,
+plus a plain-language README. All **15,884** sites are included; KMZ matching
+is 100%. The evidence window remains **1 June 2025–31 May 2026**. The model is
+fitted on the existing deployment years 2019–2026. The probabilities concern
+≥0.02 outcomes conditional on diving, not >0.04 outcomes or unvisited-site
+occurrence. The coefficient export explicitly labels the old internal
+`site_problematic_prev` alias as the new `site_high_prev` (>0.04) input.
+
+The candidate changes which sites fall in class D at 122 locations, while
+preserving each reef's class counts. Incumbent CSV/KMZ checksums are unchanged.
+The candidate manifest records its checksums and experimental status. Use it
+for comparison and field trials; annual checks, exploration, manta detection
+and actual vessel-time savings still require measurement. Candidate selection
+is exploratory and intervals are not adjusted for choosing among three models.
+
+### Reproduction and report
+
+Run **29 → 30 → 31 → 32 → 07 `--ranking_candidates_only=1`**, then the native
+report export. Script 29 caches distinct cell reads and verifies a direct
+extraction at five distributed polygons. Inputs and the deployed habitat layer
+are pinned in `config.R`. Script 30 replays every archived forward rank before
+fitting, checks unchanged A–C point estimates, and records annual results.
+Script 31 exports only a separately labelled comparison product; script 32
+checks geometry/candidate coverage, date/support metadata and product changes.
+
+Figures **31** (site and recorded-dive trade-offs) and **32** (habitat-summary
+AUC) are built by script 07, using `R/ranking_candidate_figures.R`. Full methods,
+three comparison tables and both figures are in new Appendix M. Main Summary,
+Methods, Results, Discussion and the product list identify the option while
+preserving existing Table 1/Appendix H results. Review 11 is the new clean copy;
+review 10 and all earlier feedback remain preserved. No commit or push was made.

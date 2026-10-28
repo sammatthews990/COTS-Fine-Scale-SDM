@@ -19,6 +19,12 @@ layers_dir <- cfg$dirs$layers
 tables_dir <- cfg$dirs$tables
 layer_ids <- names(layer_labels)
 read_table <- function(name) utils::read.csv(file.path(tables_dir, name), stringsAsFactors = FALSE)
+if (identical(script_args()[["ranking_candidates_only"]], "1")) {
+  source(file.path(cfg$final_dir,"R","ranking_candidate_figures.R"))
+  build_ranking_candidate_figures(cfg)
+  write_table(tibble::tibble(file=list.files(cfg$dirs$figures,pattern="^fig.*\\.png$")),cfg,"figure_manifest.csv")
+  quit(save="no")
+}
 
 # Rebuild only the new calibration figures without loading the GBR rasters.
 source(file.path(cfg$final_dir, "R", "metacommunity_figures.R"))
@@ -26,6 +32,13 @@ source(file.path(cfg$final_dir, "R", "high_density_figures.R"))
 source(file.path(cfg$final_dir, "R", "report_highlight_figures.R"))
 source(file.path(cfg$final_dir, "R", "calibration_report_figures.R"))
 source(file.path(cfg$final_dir, "R", "larval_concentration_figures.R"))
+if (identical(script_args()[["ccip_template_only"]], "1")) {
+  source(file.path(cfg$final_dir, "R", "cull_sites.R"))
+  source(file.path(cfg$final_dir, "R", "ccip_report_figures.R"))
+  build_ccip_report_figures(cfg)
+  write_table(tibble::tibble(file = list.files(cfg$dirs$figures, pattern = "^fig.*\\.png$")), cfg, "figure_manifest.csv")
+  quit(save = "no")
+}
 if (identical(script_args()[["larval_concentration_only"]], "1")) {
   build_larval_concentration_figures(cfg)
   write_table(tibble::tibble(file = list.files(cfg$dirs$figures, pattern = "^fig.*\\.png$")), cfg, "figure_manifest.csv")

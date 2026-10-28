@@ -1,0 +1,4 @@
+"model","status","file","evidence_start","evidence_end","half_life_days","strong_gate_met","kmz_match_fraction","sha256"
+"recent_cpue","experimental, not default","cots_cull_site_priority_2027_recent_cpue_experimental.csv","2025-06-01","2026-05-31",90,FALSE,1,"2080261d1a08461d13fd1a13869c96cb3bd2d6f5a1278aecc7de5c545eb9e351"
+"recent_cpue","experimental, not default","cots_cull_site_priority_2027_recent_cpue_experimental.gpkg","2025-06-01","2026-05-31",90,FALSE,1,"d9a34f8fc0919f812c34821d2c66d42d54557a765796509c1e6fd239dbcc1cf2"
+"recent_cpue","experimental, not default","cots_cull_site_priority_2027_recent_cpue_experimental.kmz","2025-06-01","2026-05-31",90,FALSE,1,"24381a42201c670333a72b020c1093afbc92ac9896262826a45c4761d3973c8d"

@@ -1,0 +1,577 @@
+"reef_name","sites","priority_changed","crosses_D","D_current","D_candidate"
+"(Big) Broadhurst Reef (No 1) (18-100a)",145,14,2,29,29
+"(Big) Broadhurst Reef (No 2) (18-100b)",2,0,0,1,1
+"(Little) Broadhurst Reef (18-106)",28,0,0,6,6
+"Abrahams Reef (22-093)",19,0,0,4,4
+"Adelaide Reef (17-042)",56,2,2,12,12
+"Agincourt Reefs (No 1) (15-099c)",14,0,0,3,3
+"Agincourt Reefs (No 2a) (15-099b)",8,0,0,2,2
+"Agincourt Reefs (No 2b) (15-099e)",6,0,0,2,2
+"Agincourt Reefs (No 3) (15-099a)",25,2,2,5,5
+"Agincourt Reefs (No 4) (15-096)",34,0,0,7,7
+"Agincourt Reefs (No 5) (15-099d)",9,2,0,2,2
+"Andersen Reef (15-090)",15,2,2,3,3
+"Anzac Reefs (No 1) (18-087)",7,0,0,2,2
+"Anzac Reefs (No 3) (18-090)",5,0,0,1,1
+"Arab Reef (18-040)",20,0,0,4,4
+"Arlington Reef (16-064)",111,8,4,23,23
+"Arthur Patches (17-018b)",6,0,0,2,2
+"Ashmore Banks (No 1) (11-237a)",9,0,0,2,2
+"Ashmore Banks (No 2) (11-237b)",6,0,0,2,2
+"Ashmore Banks (No 3) (11-237c)",4,0,0,1,1
+"Backnumbers Reef (18-069a)",36,2,0,8,8
+"Bait Reef (19-137)",17,0,0,4,4
+"Banfield Reef (North) (18-105a)",10,2,2,2,2
+"Banfield Reef (South) (18-105b)",8,2,0,2,2
+"Barb Reef (19-136b)",5,0,0,1,1
+"Barnett Patches (18-019)",60,2,2,12,12
+"Batt Reef (16-029)",92,6,0,19,19
+"Beaver Reef (17-051)",24,0,0,5,5
+"Bills Reef (21-565)",25,0,0,5,5
+"Bird Islands Reef (North) (11-167)",2,0,0,1,1
+"Black Island Reef (20-017)",5,0,0,1,1
+"Bligh Reef (12-118)",46,0,0,10,10
+"Block Reef (19-127)",93,2,2,19,19
+"Border Island Reef (No 1) (20-067a)",8,0,0,2,2
+"Border Island Reef (No 2) (20-067b)",3,0,0,1,1
+"Border Island Reef (No 3) (20-067c)",3,0,0,1,1
+"Boulder Reef (15-012)",27,0,0,6,6
+"Boult Reef (23-079)",32,2,0,7,7
+"Bowden Reef (19-019)",97,14,4,20,20
+"Bowl Reef (18-080)",38,0,0,8,8
+"Bowles Reef (11-214)",69,0,0,14,14
+"Bramble Reef (18-029)",64,0,0,13,13
+"Breaking Patches (16-042)",10,2,0,2,2
+"Briggs Reef (16-074)",8,2,0,2,2
+"Britomart Reef (18-024)",156,0,0,32,32
+"Broomfield Reef (23-048)",19,0,0,4,4
+"Bushy-Redbill Reef (20-310)",22,13,4,5,5
+"Cairns Reef (15-086)",124,0,0,25,25
+"Carter Reef (14-137)",36,0,0,8,8
+"Castor Reef (19-025)",11,0,0,3,3
+"Cat Reef (12-143)",25,0,0,5,5
+"Cayley Reef (17-023)",23,0,0,5,5
+"Centipede Reef (18-088)",46,0,0,10,10
+"Charity Reef (19-047)",14,0,0,3,3
+"Chauvel Reefs (North) (20-307)",60,0,0,12,12
+"Chesterman Reef (22-090)",12,0,0,3,3
+"Chicken Reef (18-086)",17,0,0,4,4
+"Chinaman Reef (16-024)",22,2,0,5,5
+"Chinaman Reef (22-102)",12,0,0,3,3
+"Circular Quay Reef (19-134)",99,4,2,20,20
+"Clack Reef (14-017)",31,0,0,7,7
+"Coates Reef (17-011)",13,0,0,3,3
+"Cobham Reef (North) (19-074a)",62,0,0,13,13
+"Cobham Reef (South) (19-074b)",87,0,0,18,18
+"Cockburn Reef (11-173)",129,8,4,26,26
+"Collette Reef (11-037)",9,0,0,2,2
+"Combe Reef (14-063)",55,0,0,11,11
+"Corbett Reef (14-016)",216,0,0,44,44
+"Creech Reef (South) (13-118b)",4,0,0,1,1
+"Crescent Reef (14-082)",35,0,0,7,7
+"Cup Reef (North) (18-084a)",5,0,0,1,1
+"Darley Reef (19-043)",125,6,0,25,25
+"Davie Reef (13-130)",20,0,0,4,4
+"Davies Reef (18-096)",37,4,0,8,8
+"Day Reef (14-089)",54,0,0,11,11
+"Deloraine Reef (20-089)",5,0,0,1,1
+"Derry Reef (13-002)",7,0,0,2,2
+"Detour Reef (21-514)",21,0,0,5,5
+"Devlin Reef (11-229a)",36,0,0,8,8
+"Dicks Reef (22-141)",19,0,0,4,4
+"Dingo Reef (No 1) (19-038a)",57,2,0,12,12
+"Dingo Reef (No 2) (19-038b)",73,0,0,15,15
+"Dingo Reef (No 3) (19-038c)",27,0,0,6,6
+"Dingo Reef (No 6) (19-038f)",80,0,0,16,16
+"Dip Reef (18-039)",16,0,0,4,4
+"Dumbell Reef (No 1) (20-068a)",4,0,0,1,1
+"Dumbell Reef (No 2) (20-068b)",1,0,0,1,1
+"Duncan Reef (18-020)",23,0,0,5,5
+"East Cay Reef (21-305)",34,4,0,7,7
+"Eddy Reef (17-047)",31,0,0,7,7
+"Egret Reef (15-013)",21,0,0,5,5
+"Elford Reef (16-073)",54,0,0,11,11
+"Elizabeth Reef (19-082)",20,0,0,4,4
+"Emily Reef (15-082)",66,2,2,14,14
+"Emperor Reef (21-538)",57,6,2,12,12
+"Endeavour Reef (15-089)",39,4,0,8,8
+"Erskine Reef (23-068)",7,0,0,2,2
+"Escape Reef (15-094)",44,0,0,9,9
+"Evening Reef (15-095)",34,4,0,7,7
+"Eves Reef (13-131)",4,0,0,1,1
+"Eye Reef (14-134)",7,4,0,2,2
+"Eyrie Reef (14-118)",33,0,0,7,7
+"Fairey Reef (No 1) (19-109a)",21,2,0,5,5
+"Fairfax Islands Reef (23-081)",17,4,2,4,4
+"Faith Reef (19-044)",14,0,0,3,3
+"Faraday Reef (18-041)",12,0,0,3,3
+"Farquharson Reef (No 1) (17-063a)",33,0,0,7,7
+"Feather Reef (17-034)",31,0,0,7,7
+"Fitzroy Island Reef (No 1) (16-054a)",4,2,2,1,1
+"Fitzroy Island Reef (No 2) (16-054b)",2,0,0,1,1
+"Fitzroy Reef (23-077)",63,6,2,13,13
+"Flora Reef (17-010)",21,0,0,5,5
+"Fly Reef (14-109)",11,0,0,3,3
+"Flynn Reef (16-065)",9,0,0,2,2
+"Fore And Aft Reef (18-043)",37,0,0,8,8
+"Fork Reef (18-083)",12,0,0,3,3
+"Forrester Reef (15-009)",25,2,0,5,5
+"Frigate Reef (21-511)",13,0,0,3,3
+"Gannett Cay Reef (21-556)",7,0,0,2,2
+"Gargoyle Reef (19-180)",21,0,0,5,5
+"Gater Reef (22-130)",19,0,0,4,4
+"Gibson Reef (17-017)",43,0,0,9,9
+"Gilbey Reef (17-057)",22,0,0,5,5
+"Girder Reef (19-156)",16,0,0,4,4
+"Glow Reef (18-071)",8,0,0,2,2
+"Gould Reef (No 1) (19-072a)",29,0,0,6,6
+"Gould Reef (No 4) (19-072d)",33,0,0,7,7
+"Gould Reef (No 5) (19-072e)",27,0,0,6,6
+"Green Island Reef (16-049)",21,2,0,5,5
+"Grub Reef (18-077)",32,2,2,7,7
+"Gull Reef (15-016)",4,0,0,1,1
+"Hackie Reef (22-099)",7,0,0,2,2
+"Hall-Thompson Reef (17-037)",46,4,2,10,10
+"Ham Reef (13-005)",12,0,0,3,3
+"Hardy Reef (19-135)",60,0,0,12,12
+"Harrier Reef (15-025)",9,0,0,2,2
+"Harrington Reef (10-335)",12,0,0,3,3
+"Hastings Reef (16-057)",25,0,0,5,5
+"Hayman Island Reef (20-014)",23,2,2,5,5
+"Hedge Reef (13-108)",114,0,0,23,23
+"Hedley Reef (17-014)",35,0,0,7,7
+"Helix Reef (18-076)",5,2,0,1,1
+"Helsdon Reef (14-135)",27,2,0,6,6
+"Herald No 1 (22-094)",8,0,0,2,2
+"Heralds Prong No 2 (21-459)",105,0,0,21,21
+"Heron Reef (23-052a)",51,8,2,11,11
+"Hewitt Reef (19-187)",52,0,0,11,11
+"Hicks Reef (14-086)",49,0,0,10,10
+"Hilder Reef (14-085)",31,0,0,7,7
+"Hill Reef (21-579)",5,0,0,1,1
+"Hixson Cay Reef (22-145)",8,0,0,2,2
+"Holbourne Island Reef (No 1) (19-103a)",7,2,0,2,2
+"Holbourne Island Reef (No 2) (19-103b)",2,0,0,1,1
+"Hook Island Reef (No 1) (20-028a)",13,0,0,3,3
+"Hook Island Reef (No 10) (20-028i)",7,0,0,2,2
+"Hook Island Reef (No 11) (20-028l)",1,0,0,1,1
+"Hook Island Reef (No 2) (20-028b)",13,0,0,3,3
+"Hook Island Reef (No 3) (20-028c)",10,0,0,2,2
+"Hook Island Reef (No 4) (20-028d)",22,0,0,5,5
+"Hook Island Reef (No 5) (20-028e)",14,0,0,3,3
+"Hook Island Reef (No 6) (20-028f)",10,0,0,2,2
+"Hook Island Reef (No 7) (20-028g)",6,0,0,2,2
+"Hook Island Reef (No 8) (20-028j)",2,0,0,1,1
+"Hook Island Reef (No 9) (20-028h)",6,0,0,2,2
+"Hook Reef (19-136a)",108,2,0,22,22
+"Hook Reef (22-116)",17,0,0,4,4
+"Hope Islands Reef (East) (15-065)",19,0,0,4,4
+"Hope Islands Reef (West) (15-064)",18,0,0,4,4
+"Hope Reef (19-046)",13,0,0,3,3
+"Hopkinson Reef (18-073)",23,4,0,5,5
+"Horseshoe Reef (No 1) (22-104a)",51,0,0,11,11
+"Hoskyn Islands Reef (23-080)",14,2,0,3,3
+"Houdini Reef (21-524)",15,4,2,3,3
+"Howard Patch (No 2) (22-148b)",17,0,0,4,4
+"Howie Reef (17-018a)",61,0,0,13,13
+"Irene Reef (15-084)",36,2,0,8,8
+"Isobel Bennett Reef (21-505)",35,4,2,7,7
+"Jaguar Reef (18-120)",13,0,0,3,3
+"Jewell Reef (14-079)",84,0,0,17,17
+"Joan Reef (13-128)",8,0,0,2,2
+"John Brewer Reef (18-075)",101,8,0,21,21
+"Jorgensen Patch (16-041)",3,0,0,1,1
+"Judith Wright Reef (18-101)",40,2,0,8,8
+"Junior Reef (22-122)",11,0,0,3,3
+"Jupiter Reef (18-115)",9,0,0,2,2
+"Kangaroo Reef (East) (19-063a)",70,0,0,14,14
+"Keeper Reef (18-079)",23,0,0,5,5
+"Kelso Reef (18-030)",27,0,0,6,6
+"Kennedy Reef (19-096)",62,0,0,13,13
+"Knife Reef (18-081)",15,0,0,3,3
+"Knuckle Reef (19-116)",50,0,0,10,10
+"Lady Elliot Island Reef (24-008)",16,6,2,4,4
+"Lady Musgrave Reef (23-082a)",57,12,2,12,12
+"Lamont Reef (23-076)",18,4,0,4,4
+"Langford-Bird Reef (20-019)",13,2,0,3,3
+"Lark Reef (15-033)",94,0,0,19,19
+"Lath Reef (19-142)",11,0,0,3,3
+"Lena Reef (15-085)",18,0,0,4,4
+"Line Reef (19-128)",52,2,0,11,11
+"Linnet Reef (14-126)",13,0,0,3,3
+"Little Fitzroy Island Reef (16-055)",3,3,2,1,1
+"Little Kelso Reef (18-031)",13,2,2,3,3
+"Little Reef (19-157)",7,0,0,2,2
+"Lizard Island Reef (Coconut Bay) (14-116c)",2,0,0,1,1
+"Lizard Island Reef (Lagoon) (14-116d)",19,2,0,4,4
+"Lizard Island Reef (North East) (14-116b)",10,0,0,2,2
+"Lizard Island Reef (North West) (14-116a)",7,0,0,2,2
+"Llewellyn Reef (23-078)",52,8,0,11,11
+"Lodestone Reef (18-078)",16,0,0,4,4
+"Long Reef (15-019)",18,0,0,4,4
+"Low Islands Reef (16-028)",12,0,0,3,3
+"Lynchs Reef (18-091)",55,2,2,11,11
+"Lytton Reef (13-088)",97,0,0,20,20
+"MacGillivray Reef (14-114)",6,0,0,2,2
+"Mackay Reef (16-015)",10,4,0,2,2
+"Mackay Reefs (15-024)",50,4,0,10,10
+"Magpie Reef (13-087)",119,0,0,24,24
+"Maori Reef (17-006)",33,0,0,7,7
+"Martin Reef (14-123)",23,0,0,5,5
+"Marx Reef (15-027)",9,0,0,2,2
+"Mast Head Reef (23-069)",23,0,0,5,5
+"McCulloch Reef (No 1) (17-016a)",62,0,0,13,13
+"McSweeney Reef (11-016)",18,0,0,4,4
+"Mervs Reef (21-536)",20,0,0,4,4
+"Michaelmas Reef (16-060)",50,2,0,10,10
+"Mid Reef (19-029)",24,2,0,5,5
+"Middle Banks (11-222a)",24,0,0,5,5
+"Milln Reef (16-067)",12,2,0,3,3
+"Monkman Reef (11-059)",22,0,0,5,5
+"Monsoon Reef (11-029)",11,0,0,3,3
+"Moore Reef (16-071)",52,4,2,11,11
+"Morning Reef (15-098)",23,2,0,5,5
+"Munro Reef (14-055)",31,0,0,7,7
+"Myrmidon Reef (18-034)",20,0,0,4,4
+"Napier Reef (19-195)",13,0,0,3,3
+"Nathan Reef (17-035)",53,0,0,11,11
+"Net Reef (19-097)",91,0,0,19,19
+"No 10 Patches (No 1) (14-151)",6,0,0,2,2
+"No 10 Patches (No 2) (14-152)",10,0,0,2,2
+"No 10 Patches (No 3) (14-153a)",11,0,0,3,3
+"No Name Reef (14-139)",24,0,0,5,5
+"Noggin Reef (17-008)",24,0,0,5,5
+"Noreaster Reef (17-062)",43,0,0,9,9
+"Norman Reef (16-030)",13,0,0,3,3
+"Normanby-Mabel Reef (17-012)",8,0,0,2,2
+"North Direction Reef (14-143)",7,0,0,2,2
+"North Reef (North) (23-045a)",12,0,0,3,3
+"North Warden Reef (14-039)",9,0,0,2,2
+"North West Island Reef (23-049)",52,0,0,11,11
+"Obstruction Reef (21-552)",6,0,0,2,2
+"Ogilvie Reef (13-076)",72,0,0,15,15
+"Old Reef (19-048)",69,0,0,14,14
+"One Tree Island Reef (23-055a)",38,2,0,8,8
+"Opal Reef (16-025)",46,6,0,10,10
+"Osterlund Reef (15-078)",118,0,0,24,24
+"Otter Reef (18-018)",86,0,0,18,18
+"Outlier Reef (19-120)",18,0,0,4,4
+"Oyster Reef (16-043a)",21,0,0,5,5
+"Parke Reef (14-083)",17,0,0,4,4
+"Parsons Reef (11-036)",15,0,0,3,3
+"Pasco Reef (15-018)",9,0,0,2,2
+"Paul Reef (21-086)",1,0,0,1,1
+"Pearl Reef (15-087)",6,0,0,2,2
+"Peart Reef (17-024)",31,0,0,7,7
+"Pellowe Reef (16-070)",6,0,0,2,2
+"Pelorus (North Palm or Yanooa) Reef (18-048)",16,0,0,4,4
+"Pickersgill Reef (15-093)",30,0,0,6,6
+"Pike Reef (21-549)",41,4,2,9,9
+"Pine Peak Reef (21-386)",20,0,0,4,4
+"Pipon Reef (14-038)",14,0,0,3,3
+"Pith Reef (18-033)",32,0,0,7,7
+"Pixie Reef (16-040)",4,0,0,1,1
+"Plaster Reef (19-147)",25,0,0,5,5
+"Polmaise Reef (23-071)",24,0,0,5,5
+"Potter Reef (No 1) (17-059a)",36,4,2,8,8
+"Poulson Reef (21-548)",7,0,0,2,2
+"Prawn Reef (19-024)",32,0,0,7,7
+"Price Cay Reef (21-518)",10,0,0,2,2
+"Pullen Reefs (15-031)",5,0,0,1,1
+"Rachel Carson Reef (15-092)",17,2,2,4,4
+"Rafter Reef (19-146)",11,0,0,3,3
+"Recreation Reef (21-501)",24,2,0,5,5
+"Reg Ward Reef (18-017)",15,0,0,3,3
+"Rib Reef (18-032)",15,0,0,3,3
+"Ribbon No 1 Reef (15-080)",14,0,0,3,3
+"Ribbon No 10 Reef (14-146)",141,0,0,29,29
+"Ribbon No 2 Reef (No 1) (15-075a)",41,0,0,9,9
+"Ribbon No 2 Reef (No 2) (15-075b)",1,0,0,1,1
+"Ribbon No 2 Reef (No 3) (15-075c)",1,0,0,1,1
+"Ribbon No 3 Reef (15-050)",31,0,0,7,7
+"Ribbon No 4 Reef (15-046)",28,0,0,6,6
+"Ribbon No 5 Reef (15-038)",34,0,0,7,7
+"Ribbon No 7 Reef (15-026)",51,0,0,11,11
+"Ribbon No 8 Reef (15-021a)",44,0,0,9,9
+"Ribbon No 9 Reef (14-154)",34,0,0,7,7
+"Rocky Islets Reef (14-132a)",16,0,0,4,4
+"Rodda Reef (13-127)",15,0,0,3,3
+"Ron Isbel Reef (22-108)",14,0,0,3,3
+"Rosser Reef (15-081)",27,0,0,6,6
+"Round-Russell Reef (17-013)",9,0,0,2,2
+"Roxburgh Reef (18-042)",13,0,0,3,3
+"Ruby Reef (15-088)",41,2,2,9,9
+"Rudder Reef (16-023)",76,4,0,16,16
+"Sanctuary Reef (22-109)",20,0,0,4,4
+"Sand Bank No 1 Reef (14-045)",15,0,0,3,3
+"Sand Bank No 5 Reef (13-120)",33,0,0,7,7
+"Sand Bank No 8 Reef (13-056)",11,0,0,3,3
+"Sandshoe Reef (22-133)",24,0,0,5,5
+"Satellite Reef (16-031)",9,0,0,2,2
+"Saucer Reef (18-084c)",10,0,0,2,2
+"Saville-Kent Reef (18-099)",27,2,0,6,6
+"Saxon Reef (16-032)",9,0,0,2,2
+"Scott Reef (17-004)",26,0,0,6,6
+"Seagull Reef (19-107)",31,4,2,7,7
+"Shell Reef (19-028)",14,2,0,3,3
+"Showers Reef (19-076)",25,0,0,5,5
+"Shrimp Reef (18-118)",20,0,0,4,4
+"Sinclair Reef (11-026)",14,0,0,3,3
+"Sir Charles Hardy Islands Reef (11-184c)",28,0,0,6,6
+"Small Reef (21-517)",5,0,0,1,1
+"Snake Reef (14-087)",23,0,0,5,5
+"South Direction Reef (North) (14-147a)",11,4,0,3,3
+"South Direction Reef (South) (14-147b)",4,0,0,1,1
+"South Ledge (10-327)",41,0,0,9,9
+"South Warden Reef (14-051)",134,0,0,27,27
+"Spitfire Reefs (East) (16-012b)",7,3,0,2,2
+"Spoon Reef (North) (18-085a)",10,0,0,2,2
+"St Crispin Reef (16-019)",59,8,0,12,12
+"Stanley Reef (19-045)",94,0,0,19,19
+"Startle Reefs (15-028)",28,12,4,6,6
+"Strickland Reef (15-020)",5,0,0,1,1
+"Stucco Reef (19-141)",26,2,2,6,6
+"Sudbury Reef (No 1) (17-001a)",124,0,0,25,25
+"Sweetlip Reef (22-140)",55,0,0,11,11
+"Swinger Reef (15-030)",12,0,0,3,3
+"Sydney Schubert Reef (14-140)",8,0,0,2,2
+"Sykes Reef (23-054)",26,6,2,6,6
+"Sylvan Reef (16-017)",5,0,0,1,1
+"Taiwan Reef (22-124)",15,0,0,3,3
+"Taylor Reef (17-064)",52,0,0,11,11
+"Tern Reef (20-309)",12,0,0,3,3
+"Thetford Reef (16-068)",27,6,2,6,6
+"Three Reefs (11-223)",35,0,0,7,7
+"Throne Shoals (13-036)",43,0,0,9,9
+"Tiger Reef (19-054)",74,0,0,15,15
+"Tijou Reef (13-028)",114,0,0,23,23
+"Tile Reef (19-151)",21,0,0,5,5
+"Tobias Spit (17-009a)",11,2,0,3,3
+"Tongue Reef (16-026)",270,14,6,54,54
+"Trunk Reef (18-027)",143,0,0,29,29
+"Tryon Reef (23-046)",11,0,0,3,3
+"Turning Point Patches (No 1) (11-048a)",38,0,0,8,8
+"Turrum Reef (21-490)",24,0,0,5,5
+"Turtle Reef (21-519)",16,0,0,4,4
+"Twins Reef (West) (22-146a)",3,0,0,1,1
+"Two Islands Reef (15-002)",9,0,0,2,2
+"Tydeman Reef (13-133)",25,0,0,5,5
+"U/N Reef (10-299)",17,0,0,4,4
+"U/N Reef (10-351)",21,0,0,5,5
+"U/N Reef (10-353)",11,0,0,3,3
+"U/N Reef (10-371)",9,0,0,2,2
+"U/N Reef (10-372)",6,0,0,2,2
+"U/N Reef (10-381)",11,0,0,3,3
+"U/N Reef (10-384)",42,8,2,9,9
+"U/N Reef (10-385)",10,4,2,2,2
+"U/N Reef (10-386)",16,2,0,4,4
+"U/N Reef (10-387)",16,0,0,4,4
+"U/N Reef (10-400)",18,4,2,4,4
+"U/N Reef (10-403)",20,4,0,4,4
+"U/N Reef (10-412)",56,0,0,12,12
+"U/N Reef (10-414)",39,0,0,8,8
+"U/N Reef (10-418b)",15,0,0,3,3
+"U/N Reef (10-426)",22,2,0,5,5
+"U/N Reef (10-800)",8,0,0,2,2
+"U/N Reef (11-025)",31,0,0,7,7
+"U/N Reef (11-034)",30,0,0,6,6
+"U/N Reef (11-039)",8,0,0,2,2
+"U/N Reef (11-042)",20,0,0,4,4
+"U/N Reef (11-047)",16,0,0,4,4
+"U/N Reef (11-049)",17,2,0,4,4
+"U/N Reef (11-050)",23,0,0,5,5
+"U/N Reef (11-056a)",12,0,0,3,3
+"U/N Reef (11-056b)",41,0,0,9,9
+"U/N Reef (11-056c)",19,0,0,4,4
+"U/N Reef (11-155)",56,0,0,12,12
+"U/N Reef (11-159)",35,0,0,7,7
+"U/N Reef (11-162)",14,2,0,3,3
+"U/N Reef (12-127)",36,0,0,8,8
+"U/N Reef (12-134)",22,0,0,5,5
+"U/N Reef (12-137)",16,0,0,4,4
+"U/N Reef (12-141)",5,0,0,1,1
+"U/N Reef (13-001)",38,0,0,8,8
+"U/N Reef (13-014)",16,0,0,4,4
+"U/N Reef (13-033)",89,0,0,18,18
+"U/N Reef (13-040)",16,0,0,4,4
+"U/N Reef (13-050a)",43,0,0,9,9
+"U/N Reef (13-061a)",31,0,0,7,7
+"U/N Reef (13-074)",30,0,0,6,6
+"U/N Reef (13-077)",116,0,0,24,24
+"U/N Reef (13-093a)",58,0,0,12,12
+"U/N Reef (13-093b)",2,0,0,1,1
+"U/N Reef (13-093c)",27,0,0,6,6
+"U/N Reef (13-116)",59,0,0,12,12
+"U/N Reef (13-117a)",6,0,0,2,2
+"U/N Reef (13-117b)",9,0,0,2,2
+"U/N Reef (13-119)",38,0,0,8,8
+"U/N Reef (13-121)",14,0,0,3,3
+"U/N Reef (13-122)",56,0,0,12,12
+"U/N Reef (13-124)",25,0,0,5,5
+"U/N Reef (13-125)",87,0,0,18,18
+"U/N Reef (14-034)",210,0,0,42,42
+"U/N Reef (14-043)",21,0,0,5,5
+"U/N Reef (14-049)",5,0,0,1,1
+"U/N Reef (14-053)",27,0,0,6,6
+"U/N Reef (14-056)",21,0,0,5,5
+"U/N Reef (14-073)",16,0,0,4,4
+"U/N Reef (14-074)",68,0,0,14,14
+"U/N Reef (14-075)",23,0,0,5,5
+"U/N Reef (14-077a)",37,0,0,8,8
+"U/N Reef (14-078)",11,0,0,3,3
+"U/N Reef (14-132b)",16,0,0,4,4
+"U/N Reef (14-132c)",3,0,0,1,1
+"U/N Reef (14-133)",14,0,0,3,3
+"U/N Reef (14-141)",2,0,0,1,1
+"U/N Reef (14-142)",2,0,0,1,1
+"U/N Reef (14-145)",4,0,0,1,1
+"U/N Reef (14-149)",19,6,0,4,4
+"U/N Reef (14-150)",6,0,0,2,2
+"U/N Reef (14-163)",2,0,0,1,1
+"U/N Reef (15-022)",21,0,0,5,5
+"U/N Reef (15-023)",16,0,0,4,4
+"U/N Reef (15-035)",3,0,0,1,1
+"U/N Reef (15-036)",5,0,0,1,1
+"U/N Reef (15-037)",4,0,0,1,1
+"U/N Reef (15-040)",5,0,0,1,1
+"U/N Reef (15-041)",7,0,0,2,2
+"U/N Reef (15-043)",40,2,0,8,8
+"U/N Reef (15-044)",12,8,2,3,3
+"U/N Reef (15-045)",5,5,2,1,1
+"U/N Reef (15-047)",18,2,0,4,4
+"U/N Reef (15-048)",14,2,0,3,3
+"U/N Reef (15-049)",20,0,0,4,4
+"U/N Reef (15-071a)",8,0,0,2,2
+"U/N Reef (15-071b)",8,2,0,2,2
+"U/N Reef (15-071c)",9,2,0,2,2
+"U/N Reef (15-072)",4,0,0,1,1
+"U/N Reef (15-073)",6,0,0,2,2
+"U/N Reef (15-077)",21,2,0,5,5
+"U/N Reef (16-013a)",4,0,0,1,1
+"U/N Reef (16-013b)",3,0,0,1,1
+"U/N Reef (16-016)",4,0,0,1,1
+"U/N Reef (16-018a)",1,0,0,1,1
+"U/N Reef (16-027)",16,0,0,4,4
+"U/N Reef (16-054f)",5,0,0,1,1
+"U/N Reef (16-054g)",3,0,0,1,1
+"U/N Reef (18-025)",10,0,0,2,2
+"U/N Reef (18-103)",5,0,0,1,1
+"U/N Reef (18-104)",1,0,0,1,1
+"U/N Reef (19-039)",7,0,0,2,2
+"U/N Reef (19-040)",2,0,0,1,1
+"U/N Reef (19-131a)",21,0,0,5,5
+"U/N Reef (19-138)",11,0,0,3,3
+"U/N Reef (19-161)",4,0,0,1,1
+"U/N Reef (19-188)",16,0,0,4,4
+"U/N Reef (20-348)",32,0,0,7,7
+"U/N Reef (20-354)",11,0,0,3,3
+"U/N Reef (20-380)",28,0,0,6,6
+"U/N Reef (20-386)",36,6,0,8,8
+"U/N Reef (21-056a)",8,0,0,2,2
+"U/N Reef (21-056b)",54,8,2,11,11
+"U/N Reef (21-057)",53,6,2,11,11
+"U/N Reef (21-062)",16,0,0,4,4
+"U/N Reef (21-063)",8,0,0,2,2
+"U/N Reef (21-064)",10,0,0,2,2
+"U/N Reef (21-067)",6,0,0,2,2
+"U/N Reef (21-069)",7,0,0,2,2
+"U/N Reef (21-092)",9,0,0,2,2
+"U/N Reef (21-093)",12,0,0,3,3
+"U/N Reef (21-094)",21,2,2,5,5
+"U/N Reef (21-104)",28,0,0,6,6
+"U/N Reef (21-129)",39,0,0,8,8
+"U/N Reef (21-139)",26,0,0,6,6
+"U/N Reef (21-181)",15,0,0,3,3
+"U/N Reef (21-186)",27,2,0,6,6
+"U/N Reef (21-187)",19,0,0,4,4
+"U/N Reef (21-188)",32,2,2,7,7
+"U/N Reef (21-205)",6,0,0,2,2
+"U/N Reef (21-221)",7,0,0,2,2
+"U/N Reef (21-238)",44,0,0,9,9
+"U/N Reef (21-245)",27,2,0,6,6
+"U/N Reef (21-250a)",22,4,2,5,5
+"U/N Reef (21-250b)",2,0,0,1,1
+"U/N Reef (21-271)",10,0,0,2,2
+"U/N Reef (21-278)",12,0,0,3,3
+"U/N Reef (21-281)",27,0,0,6,6
+"U/N Reef (21-285)",11,0,0,3,3
+"U/N Reef (21-437)",6,0,0,2,2
+"U/N Reef (21-438)",14,0,0,3,3
+"U/N Reef (21-441)",22,0,0,5,5
+"U/N Reef (21-442)",18,4,2,4,4
+"U/N Reef (21-444)",18,0,0,4,4
+"U/N Reef (21-450)",21,0,0,5,5
+"U/N Reef (21-451)",20,0,0,4,4
+"U/N Reef (21-453)",11,0,0,3,3
+"U/N Reef (21-454)",17,2,0,4,4
+"U/N Reef (21-460)",44,0,0,9,9
+"U/N Reef (21-461)",9,0,0,2,2
+"U/N Reef (21-464)",29,0,0,6,6
+"U/N Reef (21-465)",72,4,0,15,15
+"U/N Reef (21-466)",46,3,0,10,10
+"U/N Reef (21-467)",23,0,0,5,5
+"U/N Reef (21-481)",10,0,0,2,2
+"U/N Reef (21-488)",12,0,0,3,3
+"U/N Reef (21-496)",14,0,0,3,3
+"U/N Reef (21-499)",24,0,0,5,5
+"U/N Reef (21-500)",23,4,2,5,5
+"U/N Reef (21-502)",4,0,0,1,1
+"U/N Reef (21-504)",22,0,0,5,5
+"U/N Reef (21-509)",15,0,0,3,3
+"U/N Reef (21-512)",6,0,0,2,2
+"U/N Reef (21-513)",16,0,0,4,4
+"U/N Reef (21-515)",6,0,0,2,2
+"U/N Reef (21-520)",15,0,0,3,3
+"U/N Reef (21-521)",3,0,0,1,1
+"U/N Reef (21-523)",11,0,0,3,3
+"U/N Reef (21-525)",5,0,0,1,1
+"U/N Reef (21-526)",24,0,0,5,5
+"U/N Reef (21-530)",12,0,0,3,3
+"U/N Reef (21-531)",13,0,0,3,3
+"U/N Reef (21-532)",13,0,0,3,3
+"U/N Reef (21-539)",6,3,2,2,2
+"U/N Reef (21-542)",15,0,0,3,3
+"U/N Reef (21-544)",27,0,0,6,6
+"U/N Reef (21-550)",16,0,0,4,4
+"U/N Reef (21-551)",38,4,0,8,8
+"U/N Reef (21-553)",11,0,0,3,3
+"U/N Reef (21-554)",31,0,0,7,7
+"U/N Reef (21-555)",15,0,0,3,3
+"U/N Reef (21-557)",1,0,0,1,1
+"U/N Reef (21-558)",35,0,0,7,7
+"U/N Reef (21-559)",18,0,0,4,4
+"U/N Reef (21-560)",16,0,0,4,4
+"U/N Reef (21-569)",13,0,0,3,3
+"U/N Reef (21-580)",15,0,0,3,3
+"U/N Reef (21-591)",12,0,0,3,3
+"U/N Reef (22-084)",7,0,0,2,2
+"U/N Reef (22-085)",14,0,0,3,3
+"U/N Reef (22-087)",14,0,0,3,3
+"U/N Reef (22-088a)",54,0,0,11,11
+"U/N Reef (22-098)",10,0,0,2,2
+"U/N Reef (22-123)",12,0,0,3,3
+"U/N Reef (22-142)",3,0,0,1,1
+"U/N Reef (22-143)",26,0,0,6,6
+"U/N Reef (22-144)",14,0,0,3,3
+"U/N Reef (22-147a)",10,0,0,2,2
+"Undine Reef (East) (16-020b)",12,2,0,3,3
+"Undine Reef (West) (16-020a)",57,0,0,12,12
+"Upolu Reef (16-046)",11,2,0,3,3
+"Vicki Harriott Reef (15-070)",28,4,0,6,6
+"Viper Reef (18-112)",10,0,0,2,2
+"Vlasoff Reef (16-044b)",19,0,0,4,4
+"Waining Reef (14-088)",96,0,0,20,20
+"Walker Reef (18-026)",33,0,0,7,7
+"Wallaby Reef (19-071)",59,0,0,12,12
+"Wallace Islet Reef (11-055)",17,0,0,4,4
+"Wardle Reef (17-032)",31,0,0,7,7
+"Wheeler Reef (18-095)",8,2,2,2,2
+"Wilson Island Reef (23-050)",16,0,0,4,4
+"Wilson Reef (13-129)",28,0,0,6,6
+"Wilson Reef (22-086)",7,0,0,2,2
+"Wistari Reef (23-053)",39,0,0,8,8
+"Wizard Reef (11-156)",35,4,2,7,7
+"Wyborn Reef (10-336)",30,0,0,6,6
+"Yamacutta Reef (17-066)",46,0,0,10,10
+"Yankee Reef (18-074)",25,0,0,5,5
+"Yonge Reef (14-138)",34,0,0,7,7

@@ -16,9 +16,16 @@ build_high_density_figures <- function(cfg) {
   ggplot2::scale_linetype_manual(values=c('solid','longdash','dotted'))+
   ggplot2::scale_x_continuous(labels=scales::label_percent(),limits=c(0,1))+
   ggplot2::scale_y_continuous(labels=scales::label_percent(),limits=c(0,1))+
-  ggplot2::labs(x='Designated site-years searched',y='Dives above 0.04 CPUE retained',colour=NULL,fill=NULL,linetype=NULL,
+  ggplot2::labs(x='Cull site-years selected for dives',y='Dives above 0.04 CPUE retained',colour=NULL,fill=NULL,linetype=NULL,
     title='Search reductions depend on high-density retention',
     subtitle='Existing forward evidence ranking, 2019–2026; no model refit')+
   theme_report(10)+ggplot2::theme(legend.position='bottom')
+ # The product's integer A-C rule differs slightly from the percentile grid
+ # used for matched-retention interpolation. Mark its exact measured result.
+ op <- utils::read.csv(file.path(cfg$dirs$tables,'operational_priority_cutoff.csv'))
+ op <- op[op$score=='combined',]
+ xop <- op$value[op$metric=='sites_selected']; yop <- op$value[op$metric=='high_retained']
+ p <- p+ggplot2::annotate('point',x=xop,y=yop,shape=23,size=3.3,fill=ink$surface,colour=ink$primary)+
+  ggplot2::annotate('text',x=xop-.015,y=yop+.04,label='A-C only (defer D)',hjust=1,size=3.1,colour=ink$primary)
  ggplot2::ggsave(file.path(cfg$dirs$figures,'fig20_high_density_retention.png'),p,width=7.5,height=5,dpi=300,bg=ink$surface)
 }

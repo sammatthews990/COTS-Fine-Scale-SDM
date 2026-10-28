@@ -41,14 +41,24 @@ of effort.
     outside cull sites and away from recent tows. Rankings learned from past
     effort otherwise keep consolidating search on the same places.
 - Details, numbers and caveats are in `DataProcessing/cots_sdm_v2/final/README.md`.
+- **27 October ranking experiment.** Scripts 29–32 test three alternatives,
+  including recent CPUE and polygon habitat percentiles. The original ranking
+  remains the default. `outputs/site_ranking_candidates/` holds a separately
+  labelled experimental recent-CPUE option; no candidate passed the strong
+  replacement gate. Read the README comparison before changing deployment.
 
 ## Where things are
 
 - `DataProcessing/cots_sdm_v2/final/` holds the delivered pipeline: layers,
   validation and report figures. **Read `final/README.md` first.** It records
   every result, caveat and the run order.
-- `DataProcessing/cots_sdm_v2/final/report/results.qmd` is the Results section
-  of the technical report.
+- `DataProcessing/cots_sdm_v2/final/report/technical_report.qmd` is the current
+  technical-report source; `report/results.qmd` is an earlier Results draft.
+  **Read `report/WRITING_BRIEF.md` and `report/CCIP_TEMPLATE_GUIDE.md` before
+  report edits.** The supplied CCIP Bridging Project DOCX is immutable and
+  governs section focus, length and formatting. Use
+  `report/scripts/render_ccip_report.ps1` for the template-based Word/PDF export;
+  a bare Quarto render produces only its content intermediate.
 - Everything else under `DataProcessing/cots_sdm_v2/` (iterations, artifacts,
   reports) is exploratory history. It is due to be moved to
   `cots_sdm_v2/archive/`; the user will do this move. The pipeline's
