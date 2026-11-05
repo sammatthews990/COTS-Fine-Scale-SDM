@@ -40,6 +40,41 @@ of effort.
   - Script 21 adds exploration areas to the same KMZ: high-ranked habitat
     outside cull sites and away from recent tows. Rankings learned from past
     effort otherwise keep consolidating search on the same places.
+- **Deployment-realistic validation (script 33, 30 October).** Forward in
+  time, with every reef's own history in training. The combined ranking gains
+  little from that, but refreshing the evidence to each voyage's departure
+  (earlier voyages in the season count) selects about 8 points fewer sites at
+  90 % > 0.04 retention. It suggests re-ranking before each voyage; the
+  product is unchanged. Those savings are against random selection; crews
+  already dive open sites (last > 0.04) first, which alone scores about the
+  same.
+- **Option A, tow only the zone (script 34).** Crews dive open sites first,
+  tow only the A–C zone, then let the tows guide the dives. This is the fair
+  test against current practice; diving A sites without towing cannot be
+  checked, because recorded dives were directed by tows.
+  - Each tow counts once, on the visit that made it (fixed 2 November: the
+    30-day window had double-counted the earlier visit's sweep).
+  - On follow-up visits (after an earlier visit that season), the top-50 %
+    zone saves 21 % of tows and misses 41 > 0.04 dives, against 82 for random
+    placement and 68 for 9-on-3-off blocks. On first visits blocks are
+    better. The zone avoids few ghost dives.
+  - Reusing tows from the last 12 months saves about 40 % with little loss of
+    > 0.04 dives, but adds ghost dives and stale triggers. It needs a field
+    trial.
+- **Proposed protocol (script 35, 2 November).** Written up for GBRMPA.
+  - Priority classes are now A 20 %, B 50 %, C 66 %, D 80 %, E the rest
+    (`config.R`, script 20); the old A–C (top 80 %) is now A–D.
+  - Dive rule: without strong manta evidence, dive only sites ranked A–C, at
+    crew discretion. It avoids 30 % of ghost and 19 % of low-density dives
+    for 2.8 % of > 0.04 dives missed (mean CPUE 0.099); 4.4 ghost dives per
+    miss against 2.0 at random.
+  - Zone with season memory keeps sites near strong tows from earlier that
+    season; it halves the zone's misses (one Horseshoe Reef site drove them).
+  - One voyage cannot test the dive rule (about two flagged dives); about 25
+    voyages of shadow records can.
+- **Old SDM_Validation_Report ROC (AUC 0.865)** came from pooling across reefs,
+  in-sample dives and point memorisation. On unseen 2026 dives the old RG
+  map matches the current forward habitat layer. See the README.
 - Details, numbers and caveats are in `DataProcessing/cots_sdm_v2/final/README.md`.
 - **27 October ranking experiment.** Scripts 29–32 test three alternatives,
   including recent CPUE and polygon habitat percentiles. The original ranking

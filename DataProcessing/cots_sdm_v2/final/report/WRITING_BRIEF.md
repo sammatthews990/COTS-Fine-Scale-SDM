@@ -32,6 +32,46 @@ out with the existing temporal limitation. The new matched-retention comparison
 uses 1% integer-site steps rather than the older 5% percentile steps, and common
 new paired bootstrap draws. Exact incumbent A–C point estimates replay unchanged.
 
+## On-water workflow integration (2 November 2026)
+
+The technical report now integrates the proposed manta tow and cull dive workflow
+(scripts 34–35; GBRMPA protocol document). Review 11 had no comments or tracked
+changes, so this is an analysis update, not review integration. Author decisions:
+
+- **Placement:** Methods subsection "Replaying a proposed on-water workflow",
+  Results subsection "Keeping strong evidence and ranking the rest avoids more
+  empty dives", Discussion section "From rankings to an on-water workflow"
+  (`#sec-workflow`, with the decision diagram fig23), and Appendix N (rules,
+  definitions, all settings, ghost-dive sources, the zone and fig22 map, trial
+  design). Results keeps four key displays: Table 1 was extended with two
+  workflow columns rather than adding a display.
+- **Scope framing:** the workflow was outside the original objectives; present
+  it as the translation step that makes the ranking usable on the water.
+- **GBRMPA's earlier analysis:** an ad hoc, manager-led analysis that led the
+  program to count feeding scars instead of absent/present/common codes, and
+  suggested a two-scar dive trigger could help but might miss too many sites
+  above 0.04. There is nothing to cite; describe it as a response to managers'
+  needs and their own knowledge. The replay supports both halves of that concern.
+- **Classes:** the product now has five classes (A 20 %, B 50 %, C 66 %, D 80 %,
+  E rest). The old top-80 % "A–C" rule is relabelled "A–D" (site rule, defer E)
+  throughout; "A–C" now means the workflow's dive rule (top 66 %). Code keys in
+  the ranking-candidate tables keep the hyphenated "A-C" label of the source data.
+- **Terminology:** "site rule" = rank applied to every dive; "workflow" or
+  "dive rule" = open sites and strong evidence kept, rank applied to other dives;
+  "follow-up visit", "tow zone" and "season memory" as defined in Appendix N.
+- **Fair comparison:** report the site rule and the workflow on the same visits
+  (similar dive shares deferred); the workflow misses fewer > 0.04 dives and
+  avoids more ghost dives. Do not compare the workflow's dive sample directly with
+  the script 23 candidate-site sample without saying the samples differ.
+- **Trial:** one live voyage (zone-first towing, flag-and-defer dives) tests
+  usability and towing time; season-long shadow recording (about 25 voyages)
+  tests the dive rule. Decision thresholds remain [TO CONFIRM].
+- **Export:** the template export passed (summary 349 rendered words, conclusions
+  249, four main Results displays, template hash unchanged). The builder now sizes
+  the operational table by column count. Discussion is 5 pages against the 3–4
+  page guidance. Review 12 and both clean baselines were created from this export;
+  review 11 is preserved unchanged.
+
 ## Lessons from review 09
 
 Review 09 is the annotated input for this pass and must remain unchanged.

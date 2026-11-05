@@ -121,15 +121,13 @@ log_message("Model: ", sr$habitat, " habitat + evidence, ", format(nrow(train), 
 # --- Score and rank every designated site ----------------------------------------
 sites$score <- stats::predict(model, site_evidence_terms(sites, habitat$h, habitat$h2))
 breaks <- sr$priority_breaks
+labels <- c(names(breaks), LETTERS[length(breaks) + 1L])   # the last class takes the rest
 sites <- sites |>
   dplyr::group_by(.data$reef_name) |>
   dplyr::arrange(dplyr::desc(.data$score), dplyr::desc(.data$rank_cull), .by_group = TRUE) |>
   dplyr::mutate(sites_on_reef = dplyr::n(), rank_on_reef = dplyr::row_number(),
                 top_fraction = .data$rank_on_reef / .data$sites_on_reef,
-                priority = dplyr::case_when(.data$top_fraction <= breaks[[1]] ~ names(breaks)[1],
-                                            .data$top_fraction <= breaks[[2]] ~ names(breaks)[2],
-                                            .data$top_fraction <= breaks[[3]] ~ names(breaks)[3],
-                                            TRUE ~ "D")) |>
+                priority = labels[findInterval(.data$top_fraction, breaks, left.open = TRUE) + 1L]) |>
   dplyr::ungroup() |>
   dplyr::mutate(p_problematic_if_dived = stats::plogis(.data$score),
                 evidence = dplyr::case_when(
@@ -167,7 +165,7 @@ utils::write.csv(reefs, file.path(out_dir, "cots_cull_site_priority_2027_reefs.c
 # What each class kept in the forward test (19), for the chosen score.
 fw <- readRDS(file.path(cfg$dirs$cache, "site_ranking_forward.rds"))
 col <- paste(sr$habitat, sr$forward_window, sep = "_")
-cum <- c(breaks, D = 1)
+cum <- stats::setNames(c(breaks, 1), labels)
 classes <- tibble::tibble(
   priority = names(cum), searched_through = c(sprintf("top %d%% of the reef's sites", round(100 * breaks)), "all sites"),
   problematic_dives_kept = vapply(cum, function(a) site_metrics(fw, col, a)[["problematic_dives_kept"]], numeric(1)),
@@ -195,8 +193,9 @@ xml_unescape <- function(x) gsub("&amp;", "&", gsub("&lt;", "<", gsub("&gt;", ">
 pm_key <- paste(xml_unescape(pm_reef), clean_site_name(xml_unescape(pm_name)), sep = "||")
 idx <- match(pm_key, paste(sites$reef_name, clean_site_name(sites$site_name), sep = "||"))
 log_message(sprintf("KMZ: %d placemarks, %.1f%% matched to a ranked site", length(pm), 100 * mean(!is.na(idx))))
-# Priority colours (KML aabbggrr): A red, B orange, C yellow, D grey.
-colours <- c(A = "cc4849e3", B = "cc3468eb", C = "9900a1ed", D = "4d818789")
+# Priority colours (KML aabbggrr): A red, B orange, C yellow, D pale yellow,
+# E grey (the last class is always grey).
+colours <- stats::setNames(c("cc4849e3", "cc3468eb", "9900a1ed", "8099e6f5", "4d818789")[c(seq_along(breaks), 5L)], labels)
 pri <- ifelse(is.na(idx), NA, sites$priority[idx])
 normal_colour <- "<color>33669900</color>"
 pos <- regexpr(normal_colour, pm, fixed = TRUE)
@@ -217,7 +216,7 @@ balloon_rows <- paste0(vapply(c("Priority 2027", "Rank on reef", "P(problematic 
   paste0("<tr>\n<td class='property-name'>", f, "</td>\n<td class='property-value'>$[", f, "]</td>\n</tr>\n"), character(1)), collapse = "")
 out_kml <- gsub("</tbody>", paste0(balloon_rows, "</tbody>"), out_kml, fixed = TRUE)
 out_kml <- sub("<name>Eotr_CotsCullSites_[^<]*</name>",
-               paste0("<name>COTS cull site priority ", sr$target_season, " (A red, B orange, C yellow, D grey)</name>"), out_kml)
+               paste0("<name>COTS cull site priority ", sr$target_season, " (A red, B orange, C yellow, D pale yellow, E grey)</name>"), out_kml)
 stage <- file.path(cfg$dirs$cache, "site_ranking_kmz")
 dir.create(stage, showWarnings = FALSE)
 writeLines(out_kml, file.path(stage, "doc.kml"), useBytes = TRUE)

@@ -651,7 +651,7 @@ its reef for the 2027 season. Outputs are in `outputs/site_ranking/`:
 
 | File | Contents |
 |---|---|
-| `cots_cull_site_priority_2027.kmz` | The EoTR cull-site KMZ, unchanged in structure (one folder per reef; same site names, IDs and polygons). Each polygon is coloured by priority (A red, B orange, C yellow, D grey), and its data and pop-up gain *Priority 2027*, *Rank on reef*, *P(problematic if dived)* and *Last season*. |
+| `cots_cull_site_priority_2027.kmz` | The EoTR cull-site KMZ, unchanged in structure (one folder per reef; same site names, IDs and polygons). Each polygon is coloured by priority (A red, B orange, C yellow, D pale yellow, E grey), and its data and pop-up gain *Priority 2027*, *Rank on reef*, *P(problematic if dived)* and *Last season*. |
 | `cots_cull_site_priority_2027.csv` | One row per site: Cull site ID, priority, rank on reef, score, the evidence behind it (dives and problematic dives last season, nearby problematic rate, dive effort, strong and total manta tows) and both habitat ranks. |
 | `cots_cull_site_priority_2027_reefs.csv` | Per reef: sites, priority-A sites, sites flagged last season, and whether the reef was dived or towed last season. |
 | `cots_cull_site_priority_classes_2027.csv` | What each class kept in the forward test. |
@@ -671,18 +671,22 @@ its reef for the 2027 season. Outputs are in `outputs/site_ranking/`:
   (+0.26 across the whole reef range), so the effect is minor.
 
 **Priority classes:** share of the reef's designated sites, highest score
-first. Retention is from the forward test, 2019-2026:
+first (`priority_breaks`; five classes since 2 November 2026, when the old
+50-80 % band C was split at 66 % so the protocol's dive rule can sit at A-C;
+scores and ranks unchanged). Retention is from the forward test, 2019-2026:
 
 | Searching through | Sites on the reef | Problematic dives kept | Low-density dives avoided | Ghost dives avoided |
 |---|---:|---:|---:|---:|
 | A | top 20 % | 33 % | 75 % | 79 % |
 | A + B | top 50 % | 64 % | 42 % | 49 % |
-| A + B + C | top 80 % | 89 % | 18 % | 22 % |
-| all (incl. D) | 100 % | 100 % | 0 % | 0 % |
+| A + B + C | top 66 % | 79 % | 30 % | 36 % |
+| A to D | top 80 % | 89 % | 18 % | 22 % |
+| all (incl. E) | 100 % | 100 % | 0 % | 0 % |
 
 How to use it:
-- **Work down the classes; don't stop at A.** Class D (the bottom 20 % of a
-  reef's sites) is the realistic candidate to skip or leave until last.
+- **Work down the classes; don't stop at A.** Class E (the bottom 20 % of a
+  reef's sites) is the realistic candidate to skip or leave until last; the
+  proposed protocol (35) also leaves D for dives without strong evidence.
   Skipping it gave up about 11 % of problematic dives and avoided 18 % of
   low-density and 22 % of ghost dives.
 - **Most sites have no recent evidence.** 10,654 sites (67 %) sit on reefs
@@ -836,6 +840,8 @@ All in `outputs/figures/`, 7.5 in wide at 300 dpi, built by `07` from the tables
 | `fig15_cull_search_area_evidence.png` | Habitat vs habitat + last season's dives and manta tows, at matched problematic-dive retention: sites searched, low-density and ghost dives avoided |
 | `fig16_manta_response_model.png` | Cull-trained vs manta-trained habitat models on both goals: tow ranking, aggregations found at 60 % of tows, low-density dives avoided |
 | `fig17_search_2027_exploration.png` | Batt and Eyrie: 2027 cull-site priority, manta tows of the last 5 seasons and exploration areas over imagery |
+| `fig22_protocol_batt_eyrie.png` | Batt and Eyrie: the proposed protocol (35): five priority classes, the follow-up tow zone (A-B + 100 m) and the last 12 months of strong vs other tows |
+| `fig23_workflow_decision.png` | Decision diagram for a reef visit under the proposed workflow (35): open sites, tow zone, strong-evidence trigger, A–C dive rule |
 | `fig18_metacommunity_candidates.png` | W, C3a and C6 historical trajectories: five-seed means and SD, with LTMP observations |
 | `fig21_manta_surveillance_highlight.png` | Plain-language surveillance summary of the same aggregation retention results: habitat-priority, evenly spaced and random tows; detailed figure 13 retained |
 | `fig20_high_density_retention.png` | Existing forward rankings re-evaluated at >0.04 CPUE: high-density retention versus actual candidate site-years searched, with same-effort random expectation and 95% bootstrap intervals |
@@ -896,6 +902,10 @@ Rscript DataProcessing/cots_sdm_v2/final/scripts/23_cull_high_density_evaluation
 Rscript DataProcessing/cots_sdm_v2/final/scripts/24_threshold_coral_refit.R       # coral terms + full refit at >0.04, forward test (~5 min; needs 15-17)
 Rscript DataProcessing/cots_sdm_v2/final/scripts/25_calibration_report_snapshot.R # 21 October ADRIA snapshot, independent of script 22
 Rscript DataProcessing/cots_sdm_v2/final/scripts/26_larval_concentration_report.R # review 06: concentration tables/map preparation
+# 27-32: see their README sections (27 October 2026)
+Rscript DataProcessing/cots_sdm_v2/final/scripts/33_deployment_validation.R      # deployment-realistic forward test (~25 min; needs 14-17)
+Rscript DataProcessing/cots_sdm_v2/final/scripts/34_manta_zone_strategy.R        # option A: tow the zone, tows guide dives (~10 min; needs 33)
+Rscript DataProcessing/cots_sdm_v2/final/scripts/35_protocol_statistics.R        # proposed protocol: dive rule, zone, trial planning (~3 min; needs 34)
 Rscript DataProcessing/cots_sdm_v2/final/scripts/07_build_report_figures.R      # last: uses outputs of 06-21
 ```
 
@@ -1367,3 +1377,277 @@ three comparison tables and both figures are in new Appendix M. Main Summary,
 Methods, Results, Discussion and the product list identify the option while
 preserving existing Table 1/Appendix H results. Review 11 is the new clean copy;
 review 10 and all earlier feedback remain preserved. No commit or push was made.
+
+## Deployment-realistic validation (33) — 30 October 2026
+
+**Question.** Do the leave-reef-out statistics undersell the ranking? A
+deployed model has seen every reef the program works on, and crews plan a
+voyage knowing everything up to the day it leaves. Leave-reef-out answers "how
+does this work on a reef the model has never seen"; the deployment question is
+"how well does it rank the next visit, given all earlier data".
+
+**Method.** Strictly forward in time, 2019–2026:
+- For each test season T, every model is fitted only on data from before T, but
+  from **all reefs**, so the test reef's own earlier seasons are in training.
+- All rankings are scored on the same 28,431 dives, grouped by reef visit
+  (reef × voyage; 2,976 visits in 861 reef-years).
+- **Habitat:** leave-reef-out rank (15); forward rank (XGBoost refitted on
+  site-years before T, all reefs); and the deployed layer, which has seen
+  season T's own dives (a leaked ceiling, shown only to size the leak).
+- **Evidence** (the site-evidence logistic model, fitted on dives 2013..T−1):
+  previous calendar season (as deployed), or the **365 days before the voyage
+  left port**. The second counts earlier voyages in the same season, but not
+  the voyage's own manta survey or dives.
+- 300 paired reef-year bootstraps (`deployment_validation*.csv`).
+
+**Results, 2019–2026, at 90 % of > 0.04 dives kept:**
+
+| Ranking | Sites selected | Low-density avoided | Ghost avoided | > 0.04 kept at A–C (top 80 %) | AUC, > 0.04 vs rest |
+|---|---:|---:|---:|---:|---:|
+| Habitat, leave-reef-out | 88.7 % | 9.6 % | 11.9 % | 84.2 % | 0.554 |
+| Habitat, forward (sees own reef's past) | 82.5 % | 13.6 % | 17.0 % | 88.0 % | 0.556 |
+| Habitat, in-sample (leaked ceiling) | 84.7 % | 13.7 % | 16.6 % | 86.6 % | 0.582 |
+| **Current:** leave-reef-out habitat + previous season | 81.3 % | 16.5 % | 21.6 % | 89.0 % | 0.560 |
+| Forward habitat + previous season | 82.2 % | 15.6 % | 20.0 % | 88.7 % | 0.563 |
+| Leave-reef-out habitat + evidence to voyage start | 73.3 % | 20.4 % | 29.6 % | 94.0 % | 0.605 |
+| **Forward habitat + evidence to voyage start** | **72.8 %** | **20.2 %** | **28.7 %** | **93.7 %** | **0.609** |
+
+Paired against the current validation, forward habitat + evidence to voyage
+start selects **8.4 points fewer sites** (95 % CI 2.0–15.5). It keeps **4.7
+points more > 0.04 dives** at the A–C cutoff (2.5–7.3) and avoids 7.1 points
+more ghost dives (0.5–13.6). The low-density gain (+3.7) has an interval that
+includes zero. Season by season it has the higher AUC in all eight seasons,
+and selects fewer sites in seven (2023 is the exception: 76 % vs 75 %; range
+53–77 % vs 68–86 %).
+
+**What this means:**
+- **Seeing the reef's own history helps the habitat model on its own** (88.7 %
+  → 82.5 % of sites). Once last season's evidence is in, it adds nothing
+  (81.3 % vs 82.2 %), because the evidence terms already carry that history.
+  The leave-reef-out statistics undersold the habitat layer alone, not the
+  combined ranking.
+- **The in-sample layer is no better than the forward one.** Letting the
+  habitat model see the test season's own dives does not buy accuracy here.
+  Same-season leakage is not inflating the deployed habitat layer much.
+- **The real gain is fresher evidence.** Updating the evidence to each
+  voyage's start, so earlier voyages in the same season count, is what moves
+  the result. It is legitimate: crews know those outcomes when they plan.
+- **Manta tows:** the forward within reef-year manta model ranks this season's
+  tows the same as leave-reef-out (AUC 0.615 vs 0.611; lift 1.46 vs 1.42;
+  difference CI spans 0).
+- **Deployment implication:** re-rank before each voyage, with the evidence
+  window ending at departure, rather than once a year. Script 20 currently
+  fixes `evidence_end` for the season. The product is unchanged by this
+  analysis.
+- **Not tested:** using the voyage's own manta survey before its dives. That
+  is current practice (manta triggers cull) and would score well, but it is
+  the loop the program wants to reduce.
+- **Note on numbers:** grouping by visit and a 2 % fraction grid mean the
+  current-ranking values differ slightly from 19, 23 and 27 (for example
+  81.3 % vs 80.1 % of sites at 90 % > 0.04 retention).
+- **Fair baseline caveat.** These savings are measured against random site
+  selection. Crews are not random: they dive open sites (last > 0.04) first
+  and then follow the manta tows. The prior > 0.04 indicator alone scores
+  about the same as the full ranking (29–32), and the gain from fresher
+  evidence largely reproduces what crews already know when they leave port.
+  Script 34 tests the ranking against current practice instead.
+
+## Option A: tow only the priority zone, then let the tows guide (34) — 30 October 2026
+
+**Question.** Under a realistic workflow, what does the ranking add beyond
+what crews already do? Open sites are dived first under any system. The
+remaining choice is where to tow. Option A tows only within a priority zone
+(the top 80 % or 50 % of sites, plus open sites) and lets the tows guide the dives, as now. The alternative,
+diving A sites without towing, is what 16–33 score; it cannot be checked
+fairly, because recorded dives were themselves directed by tows.
+
+**Rules (applied identically to every strategy):**
+- **Open site:** the last dive in the 365 days before planning was > 0.04.
+  Dived first under every strategy, so excluded from outcomes and always in
+  the zone.
+- **Guiding tows:** tows on the reef from 30 days before the visit's first
+  dive to its last dive, in recorded order. The export row order is the
+  towing order: consecutive tows are a median 421 m apart, against 1.9 km for
+  a random order. A segment breaks on a new day or a > 1 km jump.
+- **Own tows (corrected 2 November):** each tow belongs to the earliest visit
+  whose window holds it. Follow-up visits come a median 15 days after the
+  previous visit, so the 30-day window pulled in the earlier visit's sweep:
+  75,425 of 180,414 window tows were counted twice. A follow-up visit now
+  keeps those tows as evidence (they were towed then) but can skip, and
+  counts as effort, only its own tows: 104,989 distinct tows.
+- **Planning date:** the zone is set before the visit's own survey. Evidence
+  runs to the earlier of departure and the first own tow, using 33's season-T
+  coefficients (forward habitat + evidence). Before the fix, inherited tows
+  pulled the planning date back before the earlier visit's dives, so sites
+  that visit found above 0.04 were not treated as open.
+- **Zone:** sites in the top `cut` of the reef plus open sites. A tow is in
+  the zone if it passes within 100 m of a zone site.
+- **Feasible skipping:** only runs of three or more consecutive out-of-zone
+  tows are skipped. Shorter gaps are towed on the way past.
+- **Trigger:** crews dive designated sites within 100 m of a kept
+  strong-evidence tow. **Neighbour fill** also dives sites near the skipped
+  tow next to a kept strong tow.
+- **Recent-tow variant:** in-zone tows that repeat ground towed in the last
+  365 days (midpoints within 100 m) may also be skipped. A skipped tow whose
+  earlier tow was strong still triggers.
+- **Baselines at the same tows saved:**
+  - *Shifted:* the same skip pattern rotated to random positions in the
+    visit's tow sequence (20 offsets).
+  - *Block thinning:* k tows on and m off, averaged over phases.
+  - Single-tow systematic thinning (14) is dropped: it is not feasible, and
+    it gained from counting an aggregation as found from one tow.
+- **Outcomes:** the visit's actual dives at non-open sites, relative to full
+  towing; 300 paired reef-year bootstraps (`manta_zone_*.csv`).
+
+**Coverage (`manta_zone_coverage.csv`):**
+- **Sample:** 1,876 visits (726 reef-years), 104,989 distinct tows; 96 % pass
+  within 100 m of a designated site.
+- **> 0.04 dives:** of 7,920, **61 % are at open sites**. Of the rest, 59 %
+  lie within 100 m of a strong guiding tow; the others came from crew
+  judgement or other information.
+
+**Results, 2019–2026, all visits, direct trigger, fresh tows (full towing = 100):**
+
+| Strategy | Tows saved | > 0.04 dives found | Aggregations seen | Low-density incurred | Ghost incurred |
+|---|---:|---:|---:|---:|---:|
+| Tow near designated sites only (cut 100 %) | 1.7 % | 100.0 | 99.8 | 100.0 | 100.0 |
+| Zone top 80 %, combined ranking | 7.8 % | 95.9 | 98.2 | 97.9 | 93.3 |
+| Same skips, random place | 7.8 % | 95.8 | 97.2 | 96.2 | 93.5 |
+| Zone top 80 %, habitat only | 8.1 % | 96.4 | 97.8 | 95.5 | 92.9 |
+| **Zone top 50 %, combined** | **23.1 %** | **91.7** | **93.7** | **89.3** | **85.3** |
+| Same skips, random place | 23.1 % | 89.1 | 91.5 | 86.3 | 83.0 |
+| Blocks 9 on 3 off | 25.0 % | 92.5 | 91.3 | 86.6 | 85.4 |
+| Zone, recent tows reused (cut 100 %) | 39.0 % | 98.0 | 81.1 (fresh) | 105.5 | 106.5 |
+
+Zone minus the same skips at random (paired, `manta_zone_strategy_differences.csv`):
+top 50 % combined, > 0.04 found +2.6 (−0.5 to 5.3), aggregations +2.1
+(1.3–3.1); top 80 % combined, +0.1 (−2.3 to 2.0) and +1.0 (0.6–1.5).
+
+**Follow-up vs first visit of the season (`manta_zone_absolute.csv`):**
+
+| Visits | Strategy | Tows saved | > 0.04 dives not triggered | Ghost avoided | Aggregations seen |
+|---|---|---:|---:|---:|---:|
+| Follow-up (1,256; 55,452 own tows) | **Top-50 % zone** | **11,734 (21 %)** | **41 of 1,155** | **20 of 244** | **96.0 %** |
+| | Same skips, random place | 11,734 | 82 | 24 | 94.0 % |
+| | Blocks 9 on 3 off | 13,863 (25 %) | 68 | 26 | 93.1 % |
+| First of season (620; 49,537 tows) | Top-50 % zone | 12,526 (25 %) | 108 of 646 | 48 | 84.4 % |
+| | Blocks 9 on 3 off | 12,384 | 68 | 42 | 83.9 % |
+
+**What this means:**
+- **Use the zone only on follow-up visits.** There it halves the misses of
+  random placement and beats feasible block thinning; on first visits blocks
+  are better. Sweep first, then use the zone.
+- **The zone saves towing, not ghost dives:** only 464 ghost dives over eight
+  seasons were near a strong guiding tow at all.
+- **Reusing recent tows** still saves about 40 % of tows for 98 % of > 0.04
+  dives, but sees only 81 % of aggregations fresh and adds 5–7 % ghost dives.
+  It needs a field trial before use.
+- **The earlier (double-counted) version of this section** reported 22.9 %
+  tows saved and 118 > 0.04 dives missed on follow-ups. Both came mostly from
+  re-skipping the earlier visit's sweep. The direction of every comparison is
+  unchanged.
+- **Caveats:** tows saved counts tows, not boat time; a follow-up that
+  inherits tows from an earlier follow-up keeps them even if that visit
+  skipped them (slightly optimistic); visits without tows in the window
+  (1,154) are excluded.
+
+**Where ghost dives come from (`manta_zone_dive_pools.csv`;** every dive of the
+1,876 visits by why it could have been chosen, scored with 33's ranking at
+voyage start):
+
+| Pool | Dives | > 0.04 | Ghost | Ghost rate | AUC > 0.04 vs ghost |
+|---|---:|---:|---:|---:|---:|
+| Open site | 7,273 | 4,817 | 313 | 4 % | 0.59 |
+| Strong tow within 100 m | 3,752 | 1,769 | 456 | 12 % | 0.60 |
+| **Weak-scar tow only** | **5,393** | **872** | **1,952** | **36 %** | **0.65** |
+| Negative tows only | 1,037 | 163 | 460 | 44 % | 0.61 |
+| No guiding tow within 100 m | 612 | 230 | 127 | 21 % | 0.65 |
+
+59 % of ghost dives follow a weak-scar tow. The dive decision after weak or
+no evidence, not the tow zone, is the lever for ghost dives; 35 scores it.
+
+## Proposed tow and cull dive protocol (35) — 2 November 2026
+
+Written up for GBRMPA as a protocol proposal (Claude Doc, 2 November 2026).
+
+**Protocol scored** (recorded dives of 2019–2026 visits, 34's rules):
+1. Dive open sites first.
+2. Follow-up visits tow only the zone: A–B sites (top 50 %), open sites and,
+   with **season memory**, sites within 100 m of a strong tow on an earlier
+   visit that season. First visits tow everything.
+3. Dive sites within 100 m of a kept strong tow.
+4. **Dive rule:** any other dive (weak scar, only negative tows, or no tow
+   nearby, e.g. an adjacent site or long-unvisited ground) only at sites
+   ranked A–C (top 66 %) at voyage start, at crew discretion.
+
+A dive whose only strong tows were skipped counts as missed. Ranking classes
+changed with this work (`config.R`, script 20): A 20 %, B 50 %, **C 66 %**,
+**D 80 %**, E the rest. The old A–C (top 80 %) is now A–D.
+
+**Results** (`protocol_statistics.csv`; 18,182 dives, 104,989 tows; 95 %
+reef-year bootstrap):
+
+| Option | Tows saved | Ghost avoided | Low-density avoided | > 0.04 missed | CPUE of missed > 0.04, mean (CI) | COTS not culled | Ghost per > 0.04 missed |
+|---|---:|---:|---:|---:|---|---:|---:|
+| Dive rule A–D | 0 | 18 % (611) | 12 % (475) | 1.4 % (111) | 0.097 (0.077–0.121) | 1.3 % | 5.5 |
+| **Dive rule A–C** | 0 | **30 % (991)** | **19 % (776)** | **2.8 % (223)** | **0.099 (0.085–0.115)** | **2.6 %** | **4.4** |
+| Same number at random | 0 | 24 % (806) | 18 % (738) | 5.1 % (401) | 0.128 (0.099–0.165) | — | 2.0 |
+| Dive rule A–B | 0 | 41 % (1,370) | 27 % (1,108) | 4.5 % (359) | 0.097 (0.086–0.108) | 4.0 % | 3.8 |
+| Evidence rule: skip weak-scar dives | 0 | 59 % (1,959) | 46 % | 11 % (874) | 0.102 | 9.9 % | 2.2 |
+| Evidence rule: strong evidence only | 0 | 77 % (2,546) | 57 % | 16 % (1,267) | 0.128 | 14.5 % | 2.0 |
+| Zone (top 50 %), follow-ups | 11 % | 0.6 % | 1.1 % | 0.5 % (41) | 0.56 (0.10–0.89) | 1.0 % | 0.5 |
+| Zone with season memory | 10 % (20 % of follow-up tows) | 0.5 % | 0.6 % | 0.3 % (22) | 0.28 (0.08–0.65) | 0.5 % | 0.8 |
+| **Zone with memory + dive rule A–C** | **10 %** | **30 % (1,008)** | **20 % (801)** | **3.1 % (245)** | **0.116 (0.089–0.148)** | **3.1 %** | **4.1** |
+
+- **The dive rule carries the protocol.** A–C is the middle setting: from
+  A–D to A–C each extra > 0.04 dive missed avoids 3.4 ghost dives; from A–C
+  to A–B, 2.8 (random 2.0). Missed > 0.04 dives are marginal (median CPUE
+  0.069, IQR 0.052–0.113; all > 0.04 dives: mean 0.187, median 0.10).
+- **No-tow dives are productive.** Skipping every dive with no tow nearby
+  would lose 230 > 0.04 dives to avoid 127 ghost dives (38 % of them were
+  > 0.04). The dive rule therefore leaves them to crew discretion within A–C.
+- **Zone misses come from one site.** Of the 41 > 0.04 dives the plain zone
+  missed (`protocol_zone_missed_dives.csv`, `_reefs.csv`), 14 were at
+  Horseshoe Reef (22-104a) site 11 in April 2019 (CPUE 0.38–2.7, 46 % of the
+  missed COTS). A strong tow on the season's first visit 70 days earlier had
+  flagged it, but the ranking placed it bottom. Season memory halves the
+  misses (41 → 22) for 1.5 points of tows saved. Trunk Reef site 126 (2019,
+  CPUE 1.7–1.8, 22 % of missed COTS) had no earlier flag.
+- **Field trial (`protocol_voyage_summary.csv`, `protocol_trial_power.csv`;
+  2024–2026 voyages):** a median voyage has 3 reefs, 2 follow-ups, 152 own
+  tows, 25 dives and 2 dives the A–C rule would skip (0–8). One voyage shows
+  the rule's effect (lower > 0.04 share among skipped dives) only 29 % of the
+  time; about 25 voyages give 95 %. Proposed: one live voyage (zone-first
+  towing, flag-and-defer dives) for feasibility, then a season of shadow
+  recording with the ranking frozen before each voyage.
+- **Caveats:** scored on dives crews made; missed counted cautiously; COTS
+  not culled remain until the next visit; tows, not boat time.
+
+## Why the old SDM validation ROC looked better (2 November 2026)
+
+`DataProcessing/SDM_Validation_Report.qmd` showed AUC 0.865 for the cull
+XGBoost Reef Guide model and the weighted ensemble on 1,535 2025 cull dives
+(top 30 reefs). Checked with `scratchpad` scripts, not part of the pipeline:
+
+| Same 1,535 dives (2025) | Pooled AUC | Within-reef AUC |
+|---|---:|---:|
+| RG model, at dive GPS | 0.865 | 0.767 |
+| Ensemble | 0.865 | 0.769 |
+| Each reef's mean RG score only | 0.792 | 0.5 |
+| Clean (12-predictor) model | 0.660 | 0.623 |
+
+- **Pooled across reefs:** reef identity alone scores 0.79; that is most of
+  the pooled curve.
+- **In-sample:** the 2025 raster was fitted on data including all 2025 dives
+  (training AUC 0.968 in 02's metrics; out-of-fold 0.690).
+- **Point memorisation:** scored at the cull-site location instead of each
+  dive's GPS point, the same raster's within-reef AUC on 2025 dives falls to
+  0.563.
+- **Unseen 2026 dives:** at dive points (March–May 2026, 440 dives) pooled
+  0.79 (reef mean alone 0.81), within reef 0.656; at site locations
+  (1,082 dives) 0.606 vs 0.603 for the forward habitat layer and 0.74–0.76
+  for the current combined ranking (33).
+- **Conclusion:** the RG layers are already the habitat input to the product
+  (RG + year, clean fallback). The old curve reflects between-reef
+  differences and in-sample site memory, which the ranking now takes from
+  dive and tow history explicitly. No better habitat map is being missed.

@@ -289,12 +289,15 @@ def build(template:Path,content:Path,output:Path,audit:Path,metadata:Path|None=N
                  'Change in dive avoidance' in text(rows[0])) or
                 '>0.04 retained: same dive count' in text(rows[0]) or
                 '0.02–0.04 retained' in text(rows[0]))
-            preferred_widths=[4200,2432,2432] if operational_table else None
+            cols=max(sum(int(first(first(tc,'w:tcPr'),'w:gridSpan').getAttribute('w:val')) if first(tc,'w:tcPr') and first(first(tc,'w:tcPr'),'w:gridSpan') else 1 for tc in children(row,'w:tc')) for row in rows)
+            # Operational table: a wide label column, the rest sharing the portrait width.
+            preferred_widths=None
+            if operational_table:
+                preferred_widths=[4200,2432,2432] if cols==3 else [2600]+[(9064-2600)//(cols-1)]*(cols-1)
             if preferred_widths:
                 layout=first(first(e,'w:tblPr'),'w:tblLayout')
                 if layout is None:layout=el(doc,'w:tblLayout');first(e,'w:tblPr').appendChild(layout)
                 layout.setAttribute('w:type','fixed')
-            cols=max(sum(int(first(first(tc,'w:tcPr'),'w:gridSpan').getAttribute('w:val')) if first(tc,'w:tcPr') and first(first(tc,'w:tcPr'),'w:gridSpan') else 1 for tc in children(row,'w:tc')) for row in rows)
             total=13438 if cols>=6 else 9064
             tw=first(first(e,'w:tblPr'),'w:tblW')
             if tw is None:tw=el(doc,'w:tblW');first(e,'w:tblPr').appendChild(tw)

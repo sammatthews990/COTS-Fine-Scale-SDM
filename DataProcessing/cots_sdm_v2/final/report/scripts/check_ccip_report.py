@@ -25,7 +25,7 @@ def main(a):
      assert actual is not None,(sid,path,'missing')
      for k,v in expected.attrib.items():assert actual.get(k)==v,(sid,path,k,v,actual.get(k))
   alltext='\n'.join(ptext(p) for p in doc.findall('.//w:p',N))
-  for phrase in ['Where and when to search for COTS on a reef','Engagement with Rights-holders and Management Stakeholders','Data Accessibility','5 November 2026','January–February 2027']:
+  for phrase in ['Integrative fine-scale habitat suitability and metapopulation modelling for targeted Crown-of-Thorns Starfish management','Engagement with Rights-holders and Management Stakeholders','Data Accessibility','5 November 2026','January–February 2027']:
    assert phrase.casefold() in alltext.casefold(),phrase
   for phrase in ['Length guidance:','This is the Heading 2 style','Use this section as a quick reference','Report title: report subtitle as needed']:
    assert phrase not in alltext,phrase

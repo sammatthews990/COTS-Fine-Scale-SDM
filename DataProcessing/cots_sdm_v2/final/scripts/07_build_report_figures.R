@@ -991,12 +991,12 @@ if (file.exists(file.path(ranking_dir, "cots_exploration_areas_2027.gpkg"))) {
     dplyr::summarise(sx = dplyr::first(.data$start_x), sy = dplyr::first(.data$start_y),
                      ex = dplyr::first(.data$end_x), ey = dplyr::first(.data$end_y), .groups = "drop")
   recent <- readRDS(checked_input(cfg, "manta_tows")) |>
-    dplyr::select("visit_id", "survey_date") |>
+    dplyr::select("visit_id", "survey_date", "manta_evidence_class") |>
     dplyr::inner_join(tow_geom, by = "visit_id") |>
     dplyr::filter(is.finite(.data$sx), .data$survey_date > cfg$site_ranking$evidence_end - 365 * 5,
                   .data$survey_date <= cfg$site_ranking$evidence_end)
-  priority_cols <- c(A = "#e34948", B = "#eb6834", C = "#eda100", D = "#898781")
-  priority_labels <- c(A = "A: top 20%", B = "B: 20-50%", C = "C: 50-80%", D = "D: bottom 20%")
+  priority_cols <- c(A = "#e34948", B = "#eb6834", C = "#eda100", D = "#f2d98d", E = "#898781")
+  priority_labels <- c(A = "A: top 20%", B = "B: 20-50%", C = "C: 50-66%", D = "D: 66-80%", E = "E: bottom 20%")
   fig17_panel <- function(slug) {
     i <- match(slug, names(reef_ids))
     p <- reef_panels[[i]]
@@ -1042,7 +1042,94 @@ if (file.exists(file.path(ranking_dir, "cots_exploration_areas_2027.gpkg"))) {
     theme(legend.position = "bottom", legend.box = "vertical", legend.text = element_text(size = 7),
           legend.spacing.y = grid::unit(0.05, "cm"), legend.margin = margin(0, 0, 0, 0))
   save_figure(fig17, cfg, "fig17_search_2027_exploration.png", width = 7.5, height = 5.4)
+
+  # --- fig22: how the ranking drives the proposed protocol (35) ------------------
+  strong_classes <- c("direct_cots", "multiple_counted_scars", "legacy_common_scars")
+  recent12 <- recent[recent$survey_date > cfg$site_ranking$evidence_end - 365, ]
+  recent12$evidence <- ifelse(recent12$manta_evidence_class %in% strong_classes, "Strong evidence", "Weak or none")
+  recent12 <- recent12[order(recent12$evidence == "Strong evidence"), ]   # strong tows drawn on top
+  fig22_panel <- function(slug) {
+    i <- match(slug, names(reef_ids))
+    p <- reef_panels[[i]]
+    frame <- p$frame
+    label <- reef_ids[[slug]]
+    sites_r <- sf::st_transform(cull_sites[grepl(paste0("(", label, ")"), cull_sites$reef_name, fixed = TRUE), ], sf::st_crs(p$polygon))
+    zone_r <- sf::st_sf(geometry = sf::st_union(sf::st_buffer(sites_r[sites_r$priority %in% c("A", "B"), ], 100)))
+    tows_r <- recent12[recent12$sx > frame[1] & recent12$sx < frame[3] & recent12$sy > frame[2] & recent12$sy < frame[4], ]
+    ggplot() +
+      tidyterra::geom_spatraster_rgb(data = reef_imagery[[i]], maxcell = 2e6) +
+      geom_sf(data = p$polygon, fill = NA, colour = "white", linewidth = 0.25) +
+      geom_sf(data = sites_r, aes(fill = priority), colour = NA, alpha = 0.8) +
+      geom_segment(data = tows_r, aes(x = sx, y = sy, xend = ex, yend = ey, colour = evidence, linewidth = evidence)) +
+      geom_sf(data = zone_r, aes(linetype = "Tow zone on follow-up visits"), fill = NA, colour = "white", linewidth = 0.7) +
+      scale_fill_manual(values = priority_cols, labels = priority_labels, name = "Site priority", na.translate = FALSE) +
+      scale_colour_manual(values = c("Strong evidence" = "#2ee6ff", "Weak or none" = "#cde2fb"), name = "Manta tows, last 12 months") +
+      scale_linewidth_manual(values = c("Strong evidence" = 0.9, "Weak or none" = 0.25), guide = "none") +
+      scale_linetype_manual(values = c("Tow zone on follow-up visits" = "22"), name = NULL) +
+      coord_sf(xlim = frame[c(1, 3)], ylim = frame[c(2, 4)], expand = FALSE, datum = NA) +
+      labs(title = paste0(sub(" \\(.*", "", p$name), " (", label, ")")) +
+      theme_map(8) +
+      guides(fill = guide_legend(order = 1, nrow = 1, override.aes = list(alpha = 0.9)),
+             colour = guide_legend(order = 2, override.aes = list(linewidth = c(0.9, 0.4))),
+             linetype = guide_legend(order = 3, override.aes = list(colour = "#52514e")))
+  }
+  fig22 <- (fig22_panel("batt") | fig22_panel("eyrie")) +
+    plot_layout(widths = c(1.35, 1), guides = "collect") +
+    plot_annotation(
+      title = "On a follow-up visit: tow the A-B zone, dive strong evidence, and dive other sites only if A-C",
+      subtitle = paste(
+        "Cull sites coloured by priority (habitat + last 12 months of dives and manta tows). Dashed: A-B sites plus 100 m, the ground",
+        "towed on a follow-up visit (open sites and sites near strong tows earlier that season are added on the day).", sep = "\n"),
+      caption = paste(
+        paste0("Tows and evidence to ", format(cfg$site_ranking$evidence_end, "%d %B %Y"),
+               "; strong evidence = COTS seen, >= 2 feeding scars, or scars recorded as common."),
+        paste("Imagery:", maptiles::get_credit(imagery_provider)), sep = "\n"),
+      theme = theme_report()
+    ) &
+    theme(legend.position = "bottom", legend.box = "vertical", legend.text = element_text(size = 7),
+          legend.spacing.y = grid::unit(0.05, "cm"), legend.margin = margin(0, 0, 0, 0))
+  save_figure(fig22, cfg, "fig22_protocol_batt_eyrie.png", width = 7.5, height = 5.6)
 }
+
+# --- fig23: proposed on-water workflow for a reef visit (35) ----------------------
+wf_boxes <- tibble::tribble(
+  ~id,      ~x,   ~y,  ~w,  ~h,  ~new,  ~label,
+  "plan",   2.1,  9.0, 3.8, 1.2, TRUE,  "Before each voyage\nrefresh the ranking to departure;\nissue A–E maps and tow zones",
+  "open",   2.1,  7.1, 3.8, 1.0, FALSE, "Dive open sites first\n(last dive > 0.04); cull to < 0.04",
+  "tow",    2.1,  4.9, 3.8, 1.6, TRUE,  "Manta tow\nfirst visit: whole reef\nfollow-up: A–B zone, open sites and\nsites near earlier strong tows",
+  "strong", 6.4,  4.9, 3.2, 1.2, FALSE, "Strong tow within 100 m?\nCOTS seen, >= 2 scars\nor scars 'common'",
+  "rank",   6.4,  2.6, 3.2, 1.0, TRUE,  "Site ranked A–C?\n(top two-thirds of the reef)",
+  "dive1",  10.1, 4.9, 2.6, 0.8, FALSE, "Dive",
+  "dive2",  10.1, 2.6, 2.6, 1.4, FALSE, "Dive at crew discretion\nweak scar, negative tows,\nadjacent or long-unvisited",
+  "defer",  6.4,  0.7, 3.2, 0.9, TRUE,  "Defer to the next visit\nor the annual check"
+)
+wf_arrows <- tibble::tribble(
+  ~x,   ~y,   ~xend, ~yend, ~label, ~lx,  ~ly,
+  2.1,  8.4,  2.1,   7.6,   "",     NA,   NA,
+  2.1,  6.6,  2.1,   5.7,   "",     NA,   NA,
+  4.0,  4.9,  4.8,   4.9,   "",     NA,   NA,
+  8.0,  4.9,  8.8,   4.9,   "yes",  8.4,  5.15,
+  6.4,  4.3,  6.4,   3.1,   "no",   6.65, 3.7,
+  8.0,  2.6,  8.8,   2.6,   "yes",  8.4,  2.85,
+  6.4,  2.1,  6.4,   1.15,  "no",   6.65, 1.6
+)
+fig23 <- ggplot() +
+  geom_segment(data = wf_arrows, aes(x = x, y = y, xend = xend, yend = yend), colour = ink$secondary, linewidth = 0.4,
+               arrow = grid::arrow(length = grid::unit(0.08, "in"), type = "closed")) +
+  geom_text(data = wf_arrows[!is.na(wf_arrows$lx), ], aes(x = lx, y = ly, label = label), colour = ink$secondary,
+            size = 2.6, family = report_font) +
+  geom_rect(data = wf_boxes, aes(xmin = x - w / 2, xmax = x + w / 2, ymin = y - h / 2, ymax = y + h / 2, fill = new, colour = new),
+            linewidth = 0.5) +
+  geom_text(data = wf_boxes, aes(x = x, y = y, label = label), colour = ink$primary, size = 2.7, lineheight = 0.95,
+            family = report_font) +
+  scale_fill_manual(values = c(`TRUE` = ramp_blue[1], `FALSE` = ink$surface), guide = "none") +
+  scale_colour_manual(values = c(`TRUE` = ramp_blue[4], `FALSE` = ink$axis), guide = "none") +
+  annotate("text", x = 0.2, y = -0.3, hjust = 0, size = 2.5, colour = ink$secondary, family = report_font,
+           label = "Blue: new steps. Crews may override any step when they see COTS or fresh feeding; record each dive's evidence, rank and any override.") +
+  coord_cartesian(xlim = c(0.1, 11.5), ylim = c(-0.5, 9.7), expand = FALSE) +
+  theme_void() +
+  theme(plot.background = element_rect(fill = ink$surface, colour = NA))
+save_figure(fig23, cfg, "fig23_workflow_decision.png", width = 7.5, height = 4.6)
 
 if (file.exists(file.path(tables_dir, "metacommunity_candidates.csv"))) build_metacommunity_figures(cfg)
 if (file.exists(file.path(tables_dir, "calibration_20261021_summary.csv"))) build_calibration_report_figures(cfg)

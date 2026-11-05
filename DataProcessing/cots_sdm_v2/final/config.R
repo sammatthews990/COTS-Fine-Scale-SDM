@@ -322,8 +322,10 @@ final_config <- function(final_dir) {
       evidence_end = as.Date("2026-05-31"),
       evidence_days = 365L,
       kernel_sigma_m = 300,
-      # Priority classes by share of the reef's designated sites, from the top.
-      priority_breaks = c(A = 0.2, B = 0.5, C = 0.8)
+      # Priority classes by share of the reef's designated sites, from the top;
+      # the last class (E) takes the rest. C/D split 50-80 % so A-C (top 66 %)
+      # is the dive-rule setting in the protocol (35).
+      priority_breaks = c(A = 0.2, B = 0.5, C = 0.66, D = 0.8)
     ),
 
     figures = list(
