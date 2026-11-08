@@ -9,7 +9,7 @@
 # Protocol, scored on the recorded dives of 2019-2026 visits (34's rules):
 #   1 Open sites are dived first.
 #   2 Follow-up visits (after an earlier visit to the reef that season) tow
-#     only the A-B zone (top 50 %, open sites, and with season memory sites
+#     only the A-C zone (top 66 %, open sites, and with season memory sites
 #     near a strong tow on an earlier visit that season; 34's skip rules);
 #     first visits of the season tow everything.
 #   3 Sites within 100 m of a kept strong-evidence tow are dived.
@@ -41,7 +41,7 @@ boot_reps <- 300L
 trial_reps <- 2000L
 min_skip <- 3L
 segment_break_m <- 1000
-zone_cut <- 0.5
+zone_cut <- 0.66   # tow zone A-C (was A-B, 0.5, until 6 November 2026)
 filter_keep <- c(`A-D` = 0.8, `A-C` = 0.66, `A-B` = 0.5)
 trial_filter <- "A-C"
 trial_years <- 2024:2026

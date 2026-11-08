@@ -706,7 +706,89 @@ How to use it:
 - **Re-run each season.** Update `evidence_end` and `training_years` in
   `config.R`, then run 20.
 
-## Exploration areas: outside the cull sites and recent tow paths (21)
+## Density-aware priority classes (20b) — 6 November 2026
+
+**Why.** The classes in 20 are shares of each reef's sites, so every reef
+gets 20 % A sites whatever its COTS density: in 2027, 1,985 of the 2,951 A
+sites were on reefs with no dives or tows in the last 12 months. 20b keeps
+each reef's order from 20 but lets the reef's density set how many of its
+sites reach each class.
+
+**Method** (`scripts/20b_site_ranking_density_2027.R`):
+- **Reef density:** logistic model of "a dive here is problematic" on the
+  reef's previous-season share of problematic dives and of strong tows (each
+  shrunk by half a dive or tow), log dive count, no-dive / no-tow indicators,
+  the GBR-wide outbreak forecast for the previous year (Stewart et al.
+  hybrid model; `data/gbrPreds2026Adj_20262408.csv`, hindcasts in
+  `gbrPredsAdj_20262408.csv`, both now pinned in `config.R`), plus the site's
+  within-reef percentile. Reef density = mean P over the reef's sites.
+- **Unknown reefs** (no dives or tows in the last 12 months; 394 of 576
+  reefs): the model's rows for such reefs are reef-years crews dived anyway,
+  usually after tows had just found COTS, so it put them at a median 43 %
+  problematic. Their P is scaled by the chance such a reef needed culling at
+  all: of 872 cull-site reef-years towed with no evidence the season before
+  (2012–2026), 19 % had a problematic dive (14 % at forecast < 0.02, about
+  25 % above 0.05; logistic on the forecast). Median unknown reef: 7 %.
+  A reef without a forecast would get the median forecast; none in 2027.
+- **Scaled quotas:** cumulative class share = plogis(logit(break) + Δ),
+  Δ = logit(reef density) − logit(typical culled reef, 0.35). A typical
+  reef keeps A 20 / B 50 / C 66 / D 80 %; the order within a reef is
+  unchanged.
+- **Absolute cut-offs on P were tried first and rejected:** the within-reef
+  slope is about 1 logit across a whole reef, so density swamped it. Every
+  reef above about 30 % got all its sites in A–C (Batt and Eyrie 100 % A)
+  and every unknown reef none, leaving crews no order on most reefs.
+
+**Forward test** (`site_ranking_density_forward.csv`, `_by_season.csv`;
+seasons 2020–2026, models fitted on earlier seasons, 200 reef-year
+bootstraps; per-season thresholds; 802 reef-years, 24,051 dives):
+
+| At the same total sites as within-reef A–C (65 %) | Within-reef (20) | Density-aware (scaled) | Difference |
+|---|---:|---:|---:|
+| > 0.04 dives kept | 81.1 % | 88.5 % | **+7.3 (2.7 to 11.0)** |
+| Problematic dives kept | 80.6 % | 88.2 % | +7.6 (3.4 to 10.9) |
+| Low-density dives avoided | 29.9 % | 23.3 % | −6.6 (−8.3 to −4.5) |
+| Ghost dives avoided | 36.3 % | 36.1 % | −0.2 (−2.6 to 3.0) |
+| Sites to keep 90 % of > 0.04 dives | 78.5 % | 70.3 % | **−8.2 (−16.2 to −1.4)** |
+| Ghost avoided at 90 % of > 0.04 kept | 23.6 % | 31.6 % | +8.0 (−0.1 to 15.6) |
+
+- Better in every season (> 0.04 kept at equal effort: 2020 96 vs 86 %,
+  2024 79 vs 77 %, 2026 92 vs 87 %).
+- **Absolute cut-offs** keep more (+13.8 points without the unknown-reef
+  scaling) but 13–27 % of dived reef-years get no A–C site at all.
+- **The forecast adds little where there are data:** evidence-only and
+  evidence + forecast differ by about 1 point; it matters for unknown reefs,
+  which this test cannot score fairly (every unknown reef-year in it was
+  dived, usually because tows found COTS). Scaling them down is penalised
+  here; in use, the first tows of a visit re-rank the reef (33).
+- **Where the gain comes from:** mostly moving A–C sites between reefs, i.e.
+  the which-reef decision, and dives counted are where crews chose to dive.
+  Within a reef the order is the same as 20.
+
+**2027 product** (`site_ranking/cots_cull_site_priority_density_2027.csv`,
+`_reefs.csv`, `.kmz`; `tables/site_ranking_density_2027_classes.csv`,
+`_coefficients.csv`):
+
+| Reef density (expected share of problematic dives) | Reefs | A share | A–C share |
+|---|---:|---:|---:|
+| < 10 % (mostly unknown reefs) | 376 | 3 % | 21 % |
+| 10–20 % | 21 | 5 % | 31 % |
+| 20–35 % | 36 | 15 % | 58 % |
+| 35–50 % | 61 | 27 % | 75 % |
+| 50–70 % | 61 | 41 % | 84 % |
+| > 70 % | 21 | 65 % | 93 % |
+
+- A sites 1,956 (within-reef 2,951); A–C 6,206 (10,170). Unknown reefs drop
+  from 6,831 A–C sites to 2,319; reefs with recent dives and tows rise from
+  2,616 to 3,024. Batt (69 %): 47 A of 92; Eyrie (74 %): 19 of 33.
+- The KMZ pop-up gives both classes, the rank, P and the reef density with
+  its source. 21 adds the exploration zones to this KMZ too.
+- **Status:** an alternative to the within-reef product, not yet adopted.
+  Absolute P mixes "conditional on crews diving" (reefs with evidence) with
+  "unconditional" (scaled unknown reefs); the classes for unknown reefs are
+  a survey order, and should be refreshed after the first tows.
+
+## Exploration zones: outside the cull sites and recent tow paths (21)
 
 **Why.** Every ranking above learns from where crews have already dived and
 towed. Used alone, it would keep consolidating effort on the same sites and
@@ -732,51 +814,61 @@ models still ranked tows there (`exploration_new_ground_check.csv`):
 - **Eligible cells:** reef cells 0.5-16 m deep (clean DEM), more than 100 m
   from any designated cull site and more than 150 m from any manta tow in the
   last 5 seasons (June 2021 – May 2026).
-- **Candidate areas:**
-  - eligible cells in the reef's top 30 % of habitat;
-  - one-cell gaps closed through eligible cells, so nearby pockets join;
-  - patches over about 9 ha split into compact chunks (k-means on cell
-    centres; about one cull site each);
-  - outlines rounded (+45 m / -30 m buffer, kernel smoothing, holes under
-    1 ha filled, simplified to 8 m), then clipped to the reef and kept
-    outside cull sites;
-  - areas of at least 0.5 ha, ranked by mean habitat percentile;
-  - the top 10 per reef polygon, at least 350 m apart.
+- **Exploration zones (6 November 2026; replace the discrete areas):**
+  - habitat percentile smoothed with a 5 × 5 cell (150 m) mean and
+    re-ranked within the reef, so zones read as ground rather than
+    scattered cells;
+  - all eligible ground in the reef's top 40, 30, 20 and 10 % of habitat,
+    as four nested bands (each band clipped inside the one below);
+  - outlines closed (+30 m / −30 m buffer), simplified to 20 m to cut the
+    cell stairs and rounded by Chaikin corner-cutting; holes under 0.5 ha
+    filled, pieces under 0.5 ha dropped, clipped to the reef and kept
+    outside cull sites, simplified to 8 m. (Kernel smoothing took ~35 s per
+    reef on these large bands, about 5 hours in all.)
+  - in the KMZ the bands are stacked semi-transparent purple fills, so the
+    shading darkens continuously towards the best-ranked habitat.
+- **Why zones, not areas.** The earlier product drew the top 10 discrete
+  areas per reef (top 30 % habitat, split into ~9 ha chunks, ≥ 350 m apart).
+  In review, nothing separated those areas from the surrounding unsearched
+  habitat: the chunking and spacing rules decided where they fell. The zones
+  show all rarely searched habitat, graded by rank, and leave the choice of
+  where to look to the crew.
 
 **Outputs:**
 - `layers/cots_exploration_2027_30m.tif`, three bands:
-  1. exploration score (habitat percentile on eligible cells);
+  1. exploration score (150 m-smoothed habitat percentile on eligible cells);
   2. distance to the nearest manta tow in the last 5 seasons (m);
   3. distance to the nearest designated cull site (m).
 
   It covers reefs with designated cull sites only.
-- `site_ranking/cots_exploration_areas_2027.csv` and `.gpkg`: 3,807 areas on
-  488 reefs, most with the full 10. Median area 8 ha, median habitat
-  percentile 0.84, median 170 m from a cull site. 898 areas are on reefs
-  with no manta tow in 5 seasons. Outlines are simplified to 8 m (area
-  change < 1 %) to keep the KMZ small (12 MB).
-- The 2027 KMZ gains an **"Exploration areas 2027 (purple)"** folder (one
-  sub-folder per reef). Each area's pop-up gives its rank, area, habitat
-  percentile, depth and distance to the nearest cull site and recent tow.
+- `site_ranking/cots_exploration_zones_2027.csv` (one row per reef and band:
+  area, pieces, largest piece and its centre, mean habitat percentile, depth
+  range) and `.gpkg`. Zones on 483 reefs; median per reef 38 ha in the top
+  10 % band (421 reefs), 68 ha top 20 %, 95 ha top 30 %, 128 ha top 40 %.
+  The old `cots_exploration_areas_2027.*` files are removed.
+- Both 2027 KMZs (20 and 20b) gain an **"Exploration zones 2027 (purple,
+  darker = better habitat)"** folder: one sub-folder per reef, one
+  placemark per band (pop-up: band, area, depth). Each band fills at about
+  25 % opacity, so the nested bands stack towards the best habitat; the top
+  10 % band has a thin white outline. KMZs grew from 12 to 18 MB.
 - fig17 shows Batt and Eyrie.
 
 What this means:
-- **On well-surveyed reefs the gaps are small.** On Batt and Eyrie, the cull
-  sites and 5 seasons of tows already cover most of the high-habitat
-  perimeter. On Batt the areas are outer-edge pockets and the ends of the
-  reef. Eyrie also gets a group on the northern back reef near the island,
-  which no tow has crossed in 5 seasons.
-- **The larger opportunities are reefs with little recent towing.**
+- **The zones are large on big, perimeter-towed reefs.** On Batt the top-40 %
+  band is 2,600 ha, mostly the outer northern reef flat and lagoon edge
+  beyond the tow paths; the top-10 % band is 440 ha in 45 pieces. Eyrie's
+  best ground is the north-western reef flat and the northern back reef near
+  the island, which no tow has crossed in 5 seasons.
 - **Status:** these are places to look, not predictions. The manta model is
-  extrapolated away from tow paths, which is exactly where these areas lie.
+  extrapolated away from tow paths, which is exactly where these zones lie.
   It ranks new ground about as well as old (AUC 0.62), but no layer is
   strong.
-- **Suggested use:** add one or two exploration areas to a reef's manta
-  plan, or as a single scouting dive per visit. Log the result so the next
-  season's evidence includes it.
-- **Settings:** clearances, depth band, habitat floor, chunk size, spacing
-  and areas per reef are set at the top of script 21. The script takes
-  about 30 minutes.
+- **Suggested use:** pick a scouting tow or dive in the darkest band that is
+  reachable on the day, and log nil results so the next season's evidence
+  includes them.
+- **Settings:** clearances, depth band, band floors, smoothing and minimum
+  piece size are set at the top of script 21. The script takes about 17
+  minutes.
 
 ## Metacommunity calibration reporting snapshot (22; 15 October 2026)
 
@@ -839,8 +931,8 @@ All in `outputs/figures/`, 7.5 in wide at 300 dpi, built by `07` from the tables
 | `fig14_cull_search_area.png` | Diving only the top-ranked designated cull sites: problematic vs low-density vs ghost dives kept (held out and deployed) |
 | `fig15_cull_search_area_evidence.png` | Habitat vs habitat + last season's dives and manta tows, at matched problematic-dive retention: sites searched, low-density and ghost dives avoided |
 | `fig16_manta_response_model.png` | Cull-trained vs manta-trained habitat models on both goals: tow ranking, aggregations found at 60 % of tows, low-density dives avoided |
-| `fig17_search_2027_exploration.png` | Batt and Eyrie: 2027 cull-site priority, manta tows of the last 5 seasons and exploration areas over imagery |
-| `fig22_protocol_batt_eyrie.png` | Batt and Eyrie: the proposed protocol (35): five priority classes, the follow-up tow zone (A-B + 100 m) and the last 12 months of strong vs other tows |
+| `fig17_search_2027_exploration.png` | Batt and Eyrie: 2027 cull-site priority, manta tows of the last 5 seasons and exploration zones (nested habitat bands) over imagery |
+| `fig22_protocol_batt_eyrie.png` | Batt and Eyrie: the proposed protocol (35): five priority classes, the follow-up tow zone (A-C + 100 m) and the last 12 months of strong vs other tows |
 | `fig23_workflow_decision.png` | Decision diagram for a reef visit under the proposed workflow (35): open sites, tow zone, strong-evidence trigger, A–C dive rule |
 | `fig18_metacommunity_candidates.png` | W, C3a and C6 historical trajectories: five-seed means and SD, with LTMP observations |
 | `fig21_manta_surveillance_highlight.png` | Plain-language surveillance summary of the same aggregation retention results: habitat-priority, evenly spaced and random tows; detailed figure 13 retained |
@@ -896,7 +988,8 @@ Rscript DataProcessing/cots_sdm_v2/final/scripts/17_manta_response_model.R      
 Rscript DataProcessing/cots_sdm_v2/final/scripts/18_layer_manta_within.R        # manta within reef-year 30 m layer (~30 min; needs 11, 14)
 Rscript DataProcessing/cots_sdm_v2/final/scripts/19_site_ranking_forward.R      # year-by-year forward test of the site ranking (~6 min; needs 16-17)
 Rscript DataProcessing/cots_sdm_v2/final/scripts/20_site_ranking_2027.R         # 2027 cull-site priority: CSV + KMZ (~5 min; needs 18-19)
-Rscript DataProcessing/cots_sdm_v2/final/scripts/21_exploration_areas.R         # exploration layer + areas, added to the 2027 KMZ (~30 min; needs 17, 20)
+Rscript DataProcessing/cots_sdm_v2/final/scripts/20b_site_ranking_density_2027.R # density-aware classes: forward test, CSV + KMZ (~15 min; needs 19, 20)
+Rscript DataProcessing/cots_sdm_v2/final/scripts/21_exploration_areas.R         # exploration layer + zones, added to both 2027 KMZs (needs 17, 20, 20b)
 Rscript DataProcessing/cots_sdm_v2/final/scripts/22_metacommunity_results.R      # frozen ADRIA calibration reporting snapshot
 Rscript DataProcessing/cots_sdm_v2/final/scripts/23_cull_high_density_evaluation.R # fixed rankings at >0.04; no refits
 Rscript DataProcessing/cots_sdm_v2/final/scripts/24_threshold_coral_refit.R       # coral terms + full refit at >0.04, forward test (~5 min; needs 15-17)
@@ -925,7 +1018,7 @@ final/
     layers/       delivered GeoTIFFs + layer_manifest.csv   (tifs git-ignored)
     tables/       every number quoted in the report            (tracked)
     figures/      fig01-fig19 PNGs                              (tracked)
-    site_ranking/ 2027 cull-site priority (CSV, KMZ incl. exploration areas), exploration areas (CSV, GPKG)
+    site_ranking/ 2027 cull-site priority, within-reef (20) and density-aware (20b) (CSV, KMZ incl. exploration zones), exploration zones (CSV, GPKG)
   report/         results.qmd: Results section for the technical report
                   (quarto render report/results.qmd -> .docx and .html)
   models/         Hmsc production posteriors                    (git-ignored)
@@ -1572,7 +1665,8 @@ Written up for GBRMPA as a protocol proposal (Claude Doc, 2 November 2026).
 
 **Protocol scored** (recorded dives of 2019–2026 visits, 34's rules):
 1. Dive open sites first.
-2. Follow-up visits tow only the zone: A–B sites (top 50 %), open sites and,
+2. Follow-up visits tow only the zone: A–C sites (top 66 %; A–B, top 50 %,
+   until 6 November 2026), open sites and,
    with **season memory**, sites within 100 m of a strong tow on an earlier
    visit that season. First visits tow everything.
 3. Dive sites within 100 m of a kept strong tow.
@@ -1595,9 +1689,15 @@ reef-year bootstrap):
 | Dive rule A–B | 0 | 41 % (1,370) | 27 % (1,108) | 4.5 % (359) | 0.097 (0.086–0.108) | 4.0 % | 3.8 |
 | Evidence rule: skip weak-scar dives | 0 | 59 % (1,959) | 46 % | 11 % (874) | 0.102 | 9.9 % | 2.2 |
 | Evidence rule: strong evidence only | 0 | 77 % (2,546) | 57 % | 16 % (1,267) | 0.128 | 14.5 % | 2.0 |
-| Zone (top 50 %), follow-ups | 11 % | 0.6 % | 1.1 % | 0.5 % (41) | 0.56 (0.10–0.89) | 1.0 % | 0.5 |
-| Zone with season memory | 10 % (20 % of follow-up tows) | 0.5 % | 0.6 % | 0.3 % (22) | 0.28 (0.08–0.65) | 0.5 % | 0.8 |
-| **Zone with memory + dive rule A–C** | **10 %** | **30 % (1,008)** | **20 % (801)** | **3.1 % (245)** | **0.116 (0.089–0.148)** | **3.1 %** | **4.1** |
+| Zone (A–C, top 66 %), follow-ups | 7.2 % | 0.3 % | 0.5 % | 0.4 % (29) | 0.75 (0.11–1.10) | 0.9 % | 0.3 |
+| Zone with season memory | 6.7 % (13 % of follow-up tows) | 0.2 % | 0.3 % | 0.2 % (13) | 0.41 (0.08–1.06) | 0.4 % | 0.6 |
+| **Zone with memory + dive rule A–C** | **6.7 %** | **30 % (999)** | **19 % (788)** | **3.0 % (236)** | **0.116 (0.089–0.150)** | **3.0 %** | **4.2** |
+
+Zone rows use the A–C zone (6 November 2026). The earlier A–B zone (top
+50 %) saved 11 % of all tows (20 % of follow-up tows with season memory) and
+missed 41 > 0.04 dives (22 with season memory); with the dive rule it missed
+245. Widening the zone to A–C gives up about 7 points of follow-up tow
+savings to halve the zone's misses again.
 
 - **The dive rule carries the protocol.** A–C is the middle setting: from
   A–D to A–C each extra > 0.04 dive missed avoids 3.4 ghost dives; from A–C
@@ -1606,13 +1706,13 @@ reef-year bootstrap):
 - **No-tow dives are productive.** Skipping every dive with no tow nearby
   would lose 230 > 0.04 dives to avoid 127 ghost dives (38 % of them were
   > 0.04). The dive rule therefore leaves them to crew discretion within A–C.
-- **Zone misses come from one site.** Of the 41 > 0.04 dives the plain zone
-  missed (`protocol_zone_missed_dives.csv`, `_reefs.csv`), 14 were at
-  Horseshoe Reef (22-104a) site 11 in April 2019 (CPUE 0.38–2.7, 46 % of the
+- **Zone misses come from one site.** Of the 29 > 0.04 dives the plain A–C
+  zone missed (`protocol_zone_missed_dives.csv`, `_reefs.csv`), 14 were at
+  Horseshoe Reef (22-104a) site 11 in April 2019 (CPUE 0.38–2.7, 52 % of the
   missed COTS). A strong tow on the season's first visit 70 days earlier had
-  flagged it, but the ranking placed it bottom. Season memory halves the
-  misses (41 → 22) for 1.5 points of tows saved. Trunk Reef site 126 (2019,
-  CPUE 1.7–1.8, 22 % of missed COTS) had no earlier flag.
+  flagged it, but the ranking placed it bottom. Season memory removes them
+  (29 → 13) for 0.8 points of follow-up tows saved. Trunk Reef site 126
+  (2019, CPUE 1.7–1.8, 24 % of missed COTS) had no earlier flag.
 - **Field trial (`protocol_voyage_summary.csv`, `protocol_trial_power.csv`;
   2024–2026 voyages):** a median voyage has 3 reefs, 2 follow-ups, 152 own
   tows, 25 dives and 2 dives the A–C rule would skip (0–8). One voyage shows

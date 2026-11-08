@@ -258,6 +258,18 @@ final_config <- function(final_dir) {
         path = file.path(repo_root, "data", "Eotr_CotsCullSites_2025_11_19_1_58_PM_1.kmz"),
         sha256 = "9ff89578a76a2220009c5250b8965a1eac4640be197f01c7d05d051790d8c3b2"
       ),
+      # GBR-wide reef outbreak probability (Stewart et al. hybrid model), one
+      # row per reef and target year. The 2026 file is a one-year-ahead
+      # forecast; the 1991-2025 file holds hindcasts (probably in-sample).
+      # Reef-level density only, for the density-aware classes (20b).
+      reef_forecast_2026 = list(
+        path = file.path(dp, "data", "gbrPreds2026Adj_20262408.csv"),
+        sha256 = "66fb80ace6188ad559e55ad4a65dfc6d1176d1a7d635baf454d6ec59c9541480"
+      ),
+      reef_forecast_hindcast = list(
+        path = file.path(dp, "data", "gbrPredsAdj_20262408.csv"),
+        sha256 = "3de391611addd2d19cdd4012078d0073de463e5bc3146cf4512b76c01ddebde8"
+      ),
       footprint_links = list(
         path = file.path(exploration_dir, "iterations", "hmsc_geomorphic_v3", "artifacts", "footprint_links_120m.rds"),
         sha256 = "8aad8b68a79b5b8d8ab67357037e04ae7cb008e68a3cea0c10be5b7d9a8c61dd"
@@ -325,7 +337,12 @@ final_config <- function(final_dir) {
       # Priority classes by share of the reef's designated sites, from the top;
       # the last class (E) takes the rest. C/D split 50-80 % so A-C (top 66 %)
       # is the dive-rule setting in the protocol (35).
-      priority_breaks = c(A = 0.2, B = 0.5, C = 0.66, D = 0.8)
+      priority_breaks = c(A = 0.2, B = 0.5, C = 0.66, D = 0.8),
+      # Density-aware classes (20b): the same breaks become fixed cut-offs on
+      # P(problematic dive), calibrated over the reef-years culled in these
+      # seasons, so reefs with fewer COTS get fewer A-C sites.
+      density_calibration_years = c(2019L, 2026L),
+      density_forecast_lag = 1L        # forecast for T - 1 informs season T
     ),
 
     figures = list(

@@ -1,4 +1,4 @@
-# Exploration areas: high-ranked habitat outside the designated cull sites and
+# Exploration zones: high-ranked habitat outside the designated cull sites and
 # away from recent manta tows, so search effort does not only consolidate on
 # the same sites and tow paths.
 #
@@ -11,25 +11,32 @@
 #   habitat   ensemble of the two layers best at locating COTS evidence: the
 #             cull-trained primary layer and the within reef-year manta model
 #             (mean of within-reef percentiles, re-ranked within the reef;
-#             primary layer alone where the manta layer is missing)
+#             primary layer alone where the manta layer is missing),
+#             smoothed with a 5 x 5 cell (150 m) mean so zones read as ground
+#             to search rather than scattered cells
 #   eligible  reef cell 0.5-16 m deep (clean DEM), > 100 m from any designated
 #             cull site and > 150 m from any manta tow in the last 5 seasons
 #   outputs   cots_exploration_2027_30m.tif
-#               band 1 exploration score: habitat percentile on eligible cells
+#               band 1 exploration score: smoothed habitat percentile on
+#               eligible cells
 #               band 2 distance to the nearest manta tow, last 5 seasons (m)
 #               band 3 distance to the nearest designated cull site (m)
-#             candidate areas: eligible cells in the reef's top 30 % of
-#             habitat; one-cell gaps closed (dilate then erode, eligible
-#             cells only) so nearby pockets join; patches over ~9 ha split
-#             into compact chunks (k-means on cell centres, about one cull
-#             site each); outlines rounded (+45 m / -30 m buffer, kernel
-#             smoothing, small holes filled, simplified to 8 m) and clipped to the reef and
-#             outside cull sites. Areas >= 0.5 ha are ranked by mean habitat
-#             percentile and the top 10 per reef, at least 350 m apart, are
-#             added as an "Exploration areas" folder to the 2027 cull-site
-#             KMZ (20) and written to a CSV and GeoPackage.
+#             exploration zones: all eligible ground in the reef's top 40, 30,
+#             20 and 10 % of habitat, as nested shaded bands (outlines closed
+#             with a +30 m / -30 m buffer, simplified to 20 m to cut the cell
+#             stairs, Chaikin corner-cutting; holes < 0.5 ha filled, pieces
+#             < 0.5 ha dropped, clipped to the reef and outside cull sites,
+#             simplified to 8 m). Kernel smoothing took ~35 s per reef on
+#             these large bands; Chaikin takes a few seconds. Each band lies inside the one
+#             below it, so stacked semi-transparent fills darken towards the
+#             best habitat. Added as an "Exploration zones" folder to the 2027
+#             cull-site KMZs (20, 20b) and written to a GeoPackage and a
+#             per-reef CSV.
+# Zones replace the earlier top-10 discrete areas per reef: nothing separated
+# those areas from the surrounding unsearched habitat, so the whole of it is
+# shown, graded by habitat rank.
 # The manta layer is extrapolated away from tow paths, which is exactly where
-# these areas are; treat them as places to look, not predictions to trust.
+# these zones are; treat them as places to look, not predictions to trust.
 
 source(file.path(dirname(sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))), "..", "R", "common.R"))
 cfg <- initialise_final()
@@ -42,11 +49,10 @@ lookback_seasons <- 5L
 site_clearance_m <- 100
 tow_clearance_m <- 150
 depth_range <- c(-16, -0.5)
-habitat_floor <- 0.7
-min_area_ha <- 0.5
-chunk_ha <- 9
-min_spacing_m <- 350
-areas_per_reef <- 10L
+zone_floors <- c(0.6, 0.7, 0.8, 0.9)   # top 40, 30, 20, 10 % of the reef's habitat
+smooth_cells <- 5   # 150 m mean, so zones read as ground rather than scattered cells
+hole_ha <- 0.5
+min_piece_ha <- 0.5
 simplify_m <- 8   # smoothing adds many vertices; 8 m keeps the shape (area change < 1 %)
 boot_reps <- 500L
 out_dir <- file.path(cfg$dirs$outputs, "site_ranking")
@@ -97,7 +103,7 @@ new_ground_check$score[new_ground_check$score == "within"] <- "manta_within"
 write_table(new_ground_check, cfg, "exploration_new_ground_check.csv")
 print(new_ground_check, n = Inf)
 
-# --- Part 2: exploration surface on reefs with designated cull sites -------------
+# --- Part 2: exploration zones on reefs with designated cull sites ---------------
 sites_sf <- read_designated_sites(cfg)
 template <- terra::rast(file.path(cfg$dirs$cache, "reef_id_30m.tif"))
 reefs_sf <- sf::st_read(checked_input(cfg, "reef_features"), quiet = TRUE) |>
@@ -130,8 +136,26 @@ tow_lines <- terra::vect(sf::st_sfc(lapply(seq_len(nrow(recent_tows)), function(
 site_vect <- terra::vect(sites_sf)
 log_message(format(nrow(recent_tows), big.mark = ","), " manta tows in the last ", lookback_seasons, " seasons")
 
+# Rounded outline of a set of cells, clipped to the reef and outside cull
+# sites, without pieces too small to matter.
+zone_outline <- function(raw, reef_geom, site_union) {
+  usable <- function(g) length(g) && !all(sf::st_is_empty(g)) && !anyNA(sf::st_coordinates(g))
+  g <- sf::st_simplify(sf::st_buffer(sf::st_buffer(sf::st_make_valid(raw), 30), -30), dTolerance = 20)   # close gaps, cut the 30 m stairs
+  if (!usable(g)) g <- raw
+  smoothed <- tryCatch(smoothr::smooth(g, method = "chaikin", refinements = 3), error = function(e) NULL)
+  if (!is.null(smoothed) && usable(smoothed)) g <- sf::st_make_valid(smoothed)
+  g <- smoothr::fill_holes(g, threshold = units::set_units(hole_ha, "ha"))
+  g <- sf::st_intersection(g, reef_geom)
+  if (length(site_union)) g <- sf::st_difference(g, site_union)
+  g <- sf::st_simplify(g, dTolerance = simplify_m, preserveTopology = TRUE)
+  g <- sf::st_cast(sf::st_collection_extract(sf::st_make_valid(g), "POLYGON"), "POLYGON")
+  g <- g[as.numeric(sf::st_area(g)) / 1e4 >= min_piece_ha]
+  if (!length(g)) return(NULL)
+  sf::st_union(g)
+}
+
 cells <- list()
-areas <- list()
+zones <- list()
 for (i in seq_len(nrow(reef_map))) {
   idx <- reef_map$reef_index[i]
   poly <- terra::vect(reefs_sf[idx, ])
@@ -150,6 +174,12 @@ for (i in seq_len(nrow(reef_map))) {
   hab[only_cull] <- cp[only_cull]
   ok <- in_reef & is.finite(hab)
   hab[ok] <- pct_rank(hab[ok])
+  # Smoothed habitat (smooth_cells-square mean over reef cells), re-ranked within the reef.
+  hab_r <- rid
+  terra::values(hab_r) <- hab
+  hs <- terra::values(terra::focal(hab_r, matrix(1, smooth_cells, smooth_cells), fun = mean, na.rm = TRUE), mat = FALSE)
+  hs[!ok] <- NA
+  hs[ok] <- pct_rank(hs[ok])
   # Distances to designated sites and recent tows (NA-cells are the targets).
   near_sites <- terra::crop(site_vect, frame)
   d_site <- if (length(near_sites)) terra::values(terra::distance(terra::rasterize(near_sites, rid, touches = TRUE)), mat = FALSE) else rep(Inf, length(cp))
@@ -158,95 +188,44 @@ for (i in seq_len(nrow(reef_map))) {
   eligible <- ok & is.finite(z) & z >= depth_range[1] & z <= depth_range[2] &
     d_site > site_clearance_m & d_tow > tow_clearance_m
   global <- terra::cellFromXY(template, terra::xyFromCell(rid, which(ok)))
-  cells[[i]] <- data.frame(cell = global, score = ifelse(eligible[ok], hab[ok], NA_real_),
+  cells[[i]] <- data.frame(cell = global, score = ifelse(eligible[ok], hs[ok], NA_real_),
                            d_tow = pmin(d_tow[ok], 1e5), d_site = pmin(d_site[ok], 1e5))
-  # Candidate areas: eligible top-habitat cells, one-cell gaps closed
-  # through eligible cells so nearby pockets join into one area.
-  cand01 <- rid
-  terra::values(cand01) <- as.numeric(eligible & hab >= habitat_floor)
-  if (!any(terra::values(cand01, mat = FALSE) == 1, na.rm = TRUE)) next
-  w3 <- matrix(1, 3, 3)
-  closed <- terra::focal(terra::focal(cand01, w3, fun = "max", na.rm = TRUE), w3, fun = "min", na.rm = TRUE)
-  closed_v <- terra::values(closed, mat = FALSE) == 1 & eligible
-  closed_v[is.na(closed_v)] <- FALSE
-  cand <- rid
-  terra::values(cand) <- ifelse(closed_v, 1, NA)
-  pv <- terra::values(terra::patches(cand, directions = 8), mat = FALSE)
-  # Split large patches into compact, roughly site-sized chunks.
-  cxy <- terra::xyFromCell(rid, seq_len(terra::ncell(rid)))
-  cell_ha <- prod(terra::res(rid)) / 1e4
-  group <- rep(NA_real_, length(pv))
-  for (pid in unique(stats::na.omit(pv))) {
-    members <- which(pv == pid)
-    k <- ceiling(length(members) * cell_ha / chunk_ha)
-    group[members] <- if (k <= 1) pid * 1000 else {
-      set.seed(pid)
-      pid * 1000 + stats::kmeans(cxy[members, ], centers = k, nstart = 3, iter.max = 50)$cluster
-    }
-  }
-  keep <- !is.na(group)
-  stats_df <- data.frame(patch = group[keep], hab = hab[keep], cp = cp[keep], mp = mp[keep], z = z[keep],
-                         d_site = d_site[keep], d_tow = d_tow[keep], x = cxy[keep, 1], y = cxy[keep, 2]) |>
-    dplyr::group_by(.data$patch) |>
-    dplyr::summarise(cells = dplyr::n(), habitat_percentile = mean(.data$hab), weight = mean(.data$hab),
-                     cull_layer_percentile = mean(.data$cp, na.rm = TRUE), manta_layer_percentile = mean(.data$mp, na.rm = TRUE),
-                     depth_min_m = -max(.data$z), depth_max_m = -min(.data$z),
-                     nearest_cull_site_m = min(.data$d_site), nearest_recent_tow_m = min(.data$d_tow),
-                     cx = mean(.data$x), cy = mean(.data$y), .groups = "drop") |>
-    dplyr::filter(.data$cells * cell_ha >= min_area_ha) |>
-    dplyr::arrange(dplyr::desc(.data$weight), dplyr::desc(.data$cells))
-  if (!nrow(stats_df)) next
-  # Greedy pick: best chunks first, at least min_spacing_m apart.
-  chosen <- integer(0)
-  for (j in seq_len(nrow(stats_df))) {
-    if (length(chosen) >= areas_per_reef) break
-    if (!length(chosen) || all(sqrt((stats_df$cx[chosen] - stats_df$cx[j])^2 + (stats_df$cy[chosen] - stats_df$cy[j])^2) >= min_spacing_m)) {
-      chosen <- c(chosen, j)
-    }
-  }
-  stats_df <- stats_df[chosen, ]
-  # Outlines: dissolve cells, round the staircase edges, clip to the reef
-  # and keep outside the designated sites.
-  groups_r <- rid
-  terra::values(groups_r) <- ifelse(group %in% stats_df$patch, group, NA)
-  polys_sf <- sf::st_as_sf(terra::as.polygons(groups_r, values = TRUE))
-  names(polys_sf)[1] <- "patch"
+  # Nested zones: eligible ground above each habitat floor, each band kept
+  # inside the one below it.
   reef_geom <- sf::st_geometry(reefs_sf[idx, ])
   frame_sf <- sf::st_geometry(sf::st_as_sf(terra::as.polygons(frame, crs = terra::crs(rid))))
   site_union <- sf::st_union(sf::st_geometry(sites_sf)[lengths(sf::st_intersects(sites_sf, frame_sf)) > 0])
-  usable <- function(g) length(g) && !all(sf::st_is_empty(g)) && !anyNA(sf::st_coordinates(g))
-  geoms <- lapply(seq_len(nrow(polys_sf)), function(r) {
-    raw <- sf::st_make_valid(sf::st_geometry(polys_sf)[r])
-    g <- sf::st_buffer(sf::st_buffer(raw, 45), -30)
-    if (!usable(g)) g <- raw
-    smoothed <- tryCatch(smoothr::smooth(g, method = "ksmooth", smoothness = 3), error = function(e) NULL)
-    if (!is.null(smoothed) && usable(smoothed)) g <- sf::st_make_valid(smoothed)
-    g <- smoothr::fill_holes(g, threshold = units::set_units(1, "ha"))
-    g <- sf::st_intersection(g, reef_geom)
-    if (length(site_union)) g <- sf::st_difference(g, site_union)
-    g <- sf::st_simplify(g, dTolerance = simplify_m, preserveTopology = TRUE)
-    g <- sf::st_collection_extract(sf::st_make_valid(g), "POLYGON")
-    if (!length(g)) return(sf::st_multipolygon())
-    sf::st_union(g)[[1]]
-  })
-  polys_sf <- sf::st_sf(patch = polys_sf$patch, geometry = sf::st_sfc(geoms, crs = sf::st_crs(reefs_sf)))
-  polys_sf <- polys_sf[!sf::st_is_empty(polys_sf), ]
-  if (!nrow(polys_sf)) next
-  polys_sf$area_ha <- as.numeric(sf::st_area(polys_sf)) / 1e4
-  polys_sf <- polys_sf[polys_sf$area_ha >= min_area_ha, ] |>
-    dplyr::left_join(dplyr::select(stats_df, -"cx", -"cy", -"cells"), by = "patch") |>
-    dplyr::mutate(reef_name = reef_map$reef_name[i])
-  areas[[i]] <- polys_sf
+  outer <- NULL
+  reef_zones <- list()
+  for (b in zone_floors) {
+    m <- rid
+    terra::values(m) <- ifelse(eligible & hs >= b, 1, NA)
+    if (!any(terra::values(m, mat = FALSE) == 1, na.rm = TRUE)) break
+    raw <- sf::st_geometry(sf::st_as_sf(terra::as.polygons(m, dissolve = TRUE)))
+    g <- zone_outline(raw, reef_geom, site_union)
+    if (!is.null(g) && !is.null(outer)) {
+      g <- sf::st_collection_extract(sf::st_make_valid(sf::st_intersection(g, outer)), "POLYGON")
+      g <- if (length(g)) sf::st_union(g) else NULL
+    }
+    if (is.null(g)) break
+    outer <- g
+    pieces <- sf::st_cast(g, "POLYGON")
+    piece_ha <- as.numeric(sf::st_area(pieces)) / 1e4
+    zm <- ok & eligible & hs >= b
+    reef_zones[[length(reef_zones) + 1L]] <- sf::st_sf(
+      reef_name = reef_map$reef_name[i], habitat_floor = b, zone = sprintf("Top %d %% habitat", round(100 * (1 - b))),
+      area_ha = sum(piece_ha), pieces = length(pieces), largest_piece_ha = max(piece_ha),
+      mean_habitat_percentile = mean(hs[zm]), depth_min_m = -max(z[zm]), depth_max_m = -min(z[zm]),
+      largest_piece = sf::st_geometry(pieces)[which.max(piece_ha)], geometry = g, sf_column_name = "geometry")
+  }
+  if (length(reef_zones)) zones[[i]] <- do.call(rbind, reef_zones)
+  if (i %% 50 == 0) log_message(i, " of ", nrow(reef_map), " reef polygons")
 }
 cells <- dplyr::bind_rows(cells)
 cells <- cells[!duplicated(cells$cell), ]
-areas <- do.call(rbind, Filter(Negate(is.null), areas)) |>
-  dplyr::group_by(.data$reef_name) |>
-  dplyr::arrange(dplyr::desc(.data$weight), .by_group = TRUE) |>
-  dplyr::mutate(area_rank_on_reef = dplyr::row_number()) |>
-  dplyr::ungroup()
-log_message(format(sum(is.finite(cells$score)), big.mark = ","), " eligible cells; ", nrow(areas), " candidate areas on ",
-            dplyr::n_distinct(areas$reef_name), " reefs")
+zones <- do.call(rbind, Filter(Negate(is.null), zones))
+log_message(format(sum(is.finite(cells$score)), big.mark = ","), " eligible cells; exploration zones on ",
+            dplyr::n_distinct(zones$reef_name), " reefs")
 
 # --- Write the 30 m exploration layer --------------------------------------------
 band_paths <- file.path(cfg$dirs$cache, paste0("exploration_", c("score", "dist_tow", "dist_site"), "_30m.tif"))
@@ -259,28 +238,28 @@ layer_path <- file.path(cfg$dirs$layers, "cots_exploration_2027_30m.tif")
 write_layer(layer, layer_path)
 register_layer(
   cfg, "exploration_2027", layer_path,
-  description = paste("Exploration score: within-reef habitat percentile (primary layer + manta within reef-year ensemble) on reef cells",
-                      "0.5-16 m deep, > 100 m from designated cull sites and > 150 m from manta tows in the last 5 seasons;",
-                      "bands 2-3: distance to recent tows and to cull sites. Reefs with designated cull sites only."),
+  description = paste("Exploration score: within-reef habitat percentile (primary layer + manta within reef-year ensemble,",
+                      "5 x 5 cell mean) on reef cells 0.5-16 m deep, > 100 m from designated cull sites and > 150 m from",
+                      "manta tows in the last 5 seasons; bands 2-3: distance to recent tows and to cull sites.",
+                      "Reefs with designated cull sites only."),
   model = "ensemble of primary search-planning layer and manta within reef-year layer (scripts 11, 18, 21)",
   units = "percentile / m"
 )
 
-# --- Candidate areas: CSV and KMZ folder -------------------------------------------
-areas_ll <- sf::st_transform(areas, 4326)
-centre <- sf::st_coordinates(suppressWarnings(sf::st_point_on_surface(sf::st_geometry(areas_ll))))
-area_table <- sf::st_drop_geometry(areas_ll) |>
-  dplyr::transmute(reef_name = .data$reef_name, area_rank_on_reef = .data$area_rank_on_reef,
-                   area_ha = round(.data$area_ha, 1), habitat_percentile = round(.data$habitat_percentile, 3),
-                   cull_layer_percentile = round(.data$cull_layer_percentile, 3),
-                   manta_layer_percentile = round(.data$manta_layer_percentile, 3),
-                   depth_min_m = round(.data$depth_min_m, 1), depth_max_m = round(.data$depth_max_m, 1),
-                   nearest_cull_site_m = round(.data$nearest_cull_site_m), nearest_recent_tow_m = round(pmin(.data$nearest_recent_tow_m, 1e5)),
-                   centre_longitude = round(centre[, 1], 5), centre_latitude = round(centre[, 2], 5))
-utils::write.csv(area_table, file.path(out_dir, "cots_exploration_areas_2027.csv"), row.names = FALSE)
-sf::st_write(dplyr::select(areas, "reef_name", "area_rank_on_reef", "area_ha", "habitat_percentile",
-                           "nearest_cull_site_m", "nearest_recent_tow_m"),
-             file.path(out_dir, "cots_exploration_areas_2027.gpkg"), delete_dsn = TRUE, quiet = TRUE)
+# --- Zones: GeoPackage, per-reef CSV and KMZ folder ---------------------------------
+zones_ll <- sf::st_transform(zones, 4326)
+centre <- sf::st_coordinates(suppressWarnings(sf::st_point_on_surface(sf::st_transform(zones$largest_piece, 4326))))
+zone_table <- sf::st_drop_geometry(zones_ll) |>
+  dplyr::select(-"largest_piece") |>
+  dplyr::mutate(dplyr::across(c("area_ha", "largest_piece_ha", "depth_min_m", "depth_max_m"), ~ round(.x, 1)),
+                mean_habitat_percentile = round(.data$mean_habitat_percentile, 3),
+                largest_piece_longitude = round(centre[, 1], 5), largest_piece_latitude = round(centre[, 2], 5))
+utils::write.csv(zone_table, file.path(out_dir, "cots_exploration_zones_2027.csv"), row.names = FALSE)
+sf::st_write(dplyr::select(zones, "reef_name", "habitat_floor", "zone", "area_ha", "pieces", "mean_habitat_percentile"),
+             file.path(out_dir, "cots_exploration_zones_2027.gpkg"), delete_dsn = TRUE, quiet = TRUE)
+# The discrete areas these zones replace.
+old <- file.path(out_dir, paste0("cots_exploration_areas_2027.", c("csv", "gpkg")))
+if (any(file.exists(old))) file.remove(old[file.exists(old)])
 
 xml_escape <- function(x) gsub(">", "&gt;", gsub("<", "&lt;", gsub("&", "&amp;", x)))
 ring_text <- function(m) paste(sprintf("%.6f,%.6f,0", m[, 1], m[, 2]), collapse = " ")
@@ -293,44 +272,56 @@ polygon_kml <- function(g) {
            ring_text(p[[1]]), "</coordinates></LinearRing></outerBoundaryIs>", inner, "</Polygon>")
   }, character(1)), collapse = "")
 }
+style_id <- function(b) paste0("exploration-", round(100 * b))
 placemark <- function(j) {
-  a <- area_table[j, ]
-  fields <- c("Exploration area" = paste0(a$area_rank_on_reef, " of ", sum(area_table$reef_name == a$reef_name), " on reef"),
-              "Reef" = a$reef_name, "Area (ha)" = a$area_ha,
-              "Habitat percentile" = sprintf("%.0f%%", 100 * a$habitat_percentile),
-              "Depth (m)" = sprintf("%.1f-%.1f", a$depth_min_m, a$depth_max_m),
-              "Nearest cull site (m)" = a$nearest_cull_site_m,
-              "Nearest manta tow, last 5 seasons (m)" = ifelse(a$nearest_recent_tow_m >= 1e5, "none on reef", a$nearest_recent_tow_m))
+  a <- zone_table[j, ]
+  fields <- c("Exploration zone" = a$zone, "Reef" = a$reef_name, "Area (ha)" = a$area_ha,
+              "Depth (m)" = sprintf("%.1f-%.1f", a$depth_min_m, a$depth_max_m))
   rows <- paste0("<tr><td class='property-name'>", names(fields), "</td><td class='property-value'>", xml_escape(fields), "</td></tr>", collapse = "")
   data <- paste0("<Data name=\"", names(fields), "\"><value>", xml_escape(fields), "</value></Data>", collapse = "")
-  paste0("<Placemark><name>Explore ", a$area_rank_on_reef, "</name><styleUrl>#exploration-area</styleUrl>",
-         "<description><![CDATA[<table>", rows, "</table><p>High-ranked habitat outside designated cull sites and away from ",
-         "manta tows of the last 5 seasons. A place to look, not a prediction to trust.</p>]]></description>",
-         "<ExtendedData>", data, "</ExtendedData><MultiGeometry>", polygon_kml(sf::st_geometry(areas_ll)[[j]]),
+  paste0("<Placemark><name>", xml_escape(a$zone), "</name><styleUrl>#", style_id(a$habitat_floor), "</styleUrl>",
+         "<description><![CDATA[<table>", rows, "</table><p>Habitat ranked in the reef's ", tolower(a$zone),
+         ", outside designated cull sites and more than 150 m from any manta tow of the last 5 seasons. Darker purple is ",
+         "better-ranked habitat. A place to look, not a prediction to trust.</p>]]></description>",
+         "<ExtendedData>", data, "</ExtendedData><MultiGeometry>", polygon_kml(sf::st_geometry(zones_ll)[[j]]),
          "</MultiGeometry></Placemark>")
 }
-folders <- vapply(split(seq_len(nrow(area_table)), area_table$reef_name), function(js) {
-  paste0("<Folder><name>Reef: ", xml_escape(area_table$reef_name[js[1]]), "</name><visibility>1</visibility>",
+# Lowest band first, so better bands draw on top and the fills stack.
+order_rows <- order(zone_table$reef_name, zone_table$habitat_floor)
+folders <- vapply(split(order_rows, zone_table$reef_name[order_rows]), function(js) {
+  paste0("<Folder><name>Reef: ", xml_escape(zone_table$reef_name[js[1]]), "</name><visibility>1</visibility>",
          paste0(vapply(js, placemark, character(1)), collapse = ""), "</Folder>")
 }, character(1))
-style <- paste0("<Style id=\"exploration-area\"><LineStyle><color>ffffffff</color><width>1.5</width></LineStyle>",
-                "<PolyStyle><color>b3a73a4a</color><fill>1</fill><outline>1</outline></PolyStyle>",
-                "<LabelStyle><scale>0.8</scale></LabelStyle></Style>")
+# Purple (KML aabbggrr); each stacked band adds about a quarter opacity, and
+# the best band gets a thin outline.
+styles <- paste0(vapply(zone_floors, function(b) paste0(
+  "<Style id=\"", style_id(b), "\"><LineStyle><color>", if (b == max(zone_floors)) "ccffffff" else "00ffffff",
+  "</color><width>", if (b == max(zone_floors)) 1 else 0, "</width></LineStyle><PolyStyle><color>40a73a4a</color>",
+  "<fill>1</fill><outline>", as.integer(b == max(zone_floors)), "</outline></PolyStyle></Style>"), character(1)), collapse = "\n    ")
 exploration_folder <- paste0(
-  "<Folder><name>Exploration areas ", sr$target_season, " (purple): outside cull sites, away from recent manta tows</name>",
+  "<Folder><name>Exploration zones ", sr$target_season,
+  " (purple, darker = better habitat): rarely searched ground outside cull sites</name>",
   "<open>0</open><visibility>1</visibility>", paste0(folders, collapse = ""), "</Folder>")
 
-stage_kml <- file.path(cfg$dirs$cache, "site_ranking_kmz", "doc.kml")
-if (!file.exists(stage_kml)) stop("Run 20_site_ranking_2027.R first (needs ", stage_kml, ")")
-kml <- paste(readLines(stage_kml, encoding = "UTF-8", warn = FALSE), collapse = "\n")
-kml <- sub("<Style id=", paste0(style, "\n    <Style id="), kml, fixed = TRUE)
-kml <- sub("</Document>", paste0(exploration_folder, "\n  </Document>"), kml, fixed = TRUE)
-combined_dir <- file.path(cfg$dirs$cache, "site_ranking_kmz_exploration")
-dir.create(combined_dir, showWarnings = FALSE)
-writeLines(kml, file.path(combined_dir, "doc.kml"), useBytes = TRUE)
-kmz_path <- file.path(out_dir, "cots_cull_site_priority_2027.kmz")
-if (file.exists(kmz_path)) file.remove(kmz_path)
-utils::zip(kmz_path, file.path(combined_dir, "doc.kml"), flags = "-j9Xq")
-log_message("Wrote ", kmz_path, " (cull-site priority + exploration areas)")
+# Add the zones to each cull-site KMZ staged by 20 and 20b.
+kmz_targets <- c(site_ranking_kmz = "cots_cull_site_priority_2027.kmz",
+                 site_ranking_density_kmz = "cots_cull_site_priority_density_2027.kmz")
+stage_kml <- file.path(cfg$dirs$cache, names(kmz_targets), "doc.kml")
+if (!file.exists(stage_kml[1])) stop("Run 20_site_ranking_2027.R first (needs ", stage_kml[1], ")")
+for (k in which(file.exists(stage_kml))) {
+  kml <- paste(readLines(stage_kml[k], encoding = "UTF-8", warn = FALSE), collapse = "\n")
+  kml <- sub("<Style id=", paste0(styles, "\n    <Style id="), kml, fixed = TRUE)
+  kml <- sub("</Document>", paste0(exploration_folder, "\n  </Document>"), kml, fixed = TRUE)
+  combined_dir <- file.path(cfg$dirs$cache, paste0(names(kmz_targets)[k], "_exploration"))
+  dir.create(combined_dir, showWarnings = FALSE)
+  writeLines(kml, file.path(combined_dir, "doc.kml"), useBytes = TRUE)
+  kmz_path <- file.path(out_dir, kmz_targets[[k]])
+  if (file.exists(kmz_path)) file.remove(kmz_path)
+  utils::zip(kmz_path, file.path(combined_dir, "doc.kml"), flags = "-j9Xq")
+  log_message("Wrote ", kmz_path, " (cull-site priority + exploration zones)")
+}
 
-print(summary(area_table[, c("area_ha", "habitat_percentile", "nearest_cull_site_m", "nearest_recent_tow_m")]))
+print(zone_table |>
+        dplyr::group_by(.data$zone) |>
+        dplyr::summarise(reefs = dplyr::n(), total_ha = sum(.data$area_ha), median_ha = stats::median(.data$area_ha),
+                         median_pieces = stats::median(.data$pieces), .groups = "drop"))

@@ -978,11 +978,14 @@ if (file.exists(file.path(tables_dir, "manta_response_cull_matched.csv"))) {
   save_figure(fig16, cfg, "fig16_manta_response_model.png", width = 7.5, height = 3.7)
 }
 
-# --- fig17: 2027 cull-site priority and exploration areas (Batt, Eyrie) -----------
+# --- fig17: 2027 cull-site priority and exploration zones (Batt, Eyrie) -----------
 ranking_dir <- file.path(cfg$dirs$outputs, "site_ranking")
-if (file.exists(file.path(ranking_dir, "cots_exploration_areas_2027.gpkg"))) {
+if (file.exists(file.path(ranking_dir, "cots_exploration_zones_2027.gpkg"))) {
   priority <- utils::read.csv(file.path(ranking_dir, "cots_cull_site_priority_2027.csv"), stringsAsFactors = FALSE)
-  explore <- sf::st_read(file.path(ranking_dir, "cots_exploration_areas_2027.gpkg"), quiet = TRUE)
+  explore <- sf::st_read(file.path(ranking_dir, "cots_exploration_zones_2027.gpkg"), quiet = TRUE)
+  zone_levels <- unique(explore$zone[order(explore$habitat_floor)])
+  explore$zone <- factor(explore$zone, zone_levels)
+  zone_alpha <- 0.28   # per band; the nested bands stack towards the best habitat
   cull_sites <- sf::st_read(file.path(cfg$dirs$cache, "cull_sites_designated.gpkg"), quiet = TRUE)
   cull_sites <- cull_sites[!duplicated(paste(cull_sites$reef_name, cull_sites$site_name)), ] |>
     dplyr::left_join(priority[, c("reef_name", "site_name", "priority")], by = c("reef_name", "site_name"))
@@ -1005,37 +1008,35 @@ if (file.exists(file.path(ranking_dir, "cots_exploration_areas_2027.gpkg"))) {
     sites_r <- sf::st_transform(cull_sites[grepl(paste0("(", label, ")"), cull_sites$reef_name, fixed = TRUE), ], sf::st_crs(p$polygon))
     explore_r <- sf::st_transform(explore[grepl(paste0("(", label, ")"), explore$reef_name, fixed = TRUE), ], sf::st_crs(p$polygon))
     tows_r <- recent[recent$sx > frame[1] & recent$sx < frame[3] & recent$sy > frame[2] & recent$sy < frame[4], ]
-    centres <- suppressWarnings(sf::st_point_on_surface(explore_r))
     ggplot() +
       tidyterra::geom_spatraster_rgb(data = reef_imagery[[i]], maxcell = 2e6) +
       geom_sf(data = p$polygon, fill = NA, colour = "white", linewidth = 0.25) +
       geom_sf(data = sites_r, aes(fill = priority), colour = NA, alpha = 0.75) +
       geom_segment(data = tows_r, aes(x = sx, y = sy, xend = ex, yend = ey, linetype = "Manta tows, last 5 seasons"),
                    colour = "#9ec5f4", linewidth = 0.3, alpha = 0.8) +
-      geom_sf(data = sf::st_buffer(explore_r, 70), fill = NA, colour = "#4a3aa7", linewidth = 0.9) +
-      geom_sf(data = explore_r, aes(colour = "Exploration area"), fill = "#4a3aa7", alpha = 0.9, linewidth = 0.3) +
-      geom_sf_text(data = centres, aes(label = area_rank_on_reef), colour = "white", size = 2.3, fontface = "bold",
-                   nudge_y = 160, check_overlap = TRUE) +
+      geom_sf(data = explore_r[order(explore_r$habitat_floor), ], aes(alpha = zone), fill = "#7b68d9", colour = NA) +
       scale_fill_manual(values = priority_cols, labels = priority_labels, name = "Cull-site priority 2027", na.translate = FALSE) +
-      scale_colour_manual(values = c("Exploration area" = "white"), name = NULL) +
+      scale_alpha_manual(values = stats::setNames(rep(zone_alpha, length(zone_levels)), zone_levels),
+                         name = "Exploration zones", drop = FALSE) +
       scale_linetype_manual(values = c("Manta tows, last 5 seasons" = "solid"), name = NULL) +
       coord_sf(xlim = frame[c(1, 3)], ylim = frame[c(2, 4)], expand = FALSE, datum = NA) +
       labs(title = paste0(sub(" \\(.*", "", p$name), " (", label, ")")) +
       theme_map(8) +
       guides(fill = guide_legend(order = 1, override.aes = list(alpha = 0.9)),
-             colour = guide_legend(order = 2, override.aes = list(fill = "#4a3aa7")),
+             alpha = guide_legend(order = 2, nrow = 1, override.aes = list(
+               fill = "#7b68d9", alpha = 1 - (1 - zone_alpha)^seq_along(zone_levels))),
              linetype = guide_legend(order = 3, override.aes = list(colour = "#3987e5", linewidth = 0.6)))
   }
   fig17 <- (fig17_panel("batt") | fig17_panel("eyrie")) +
     plot_layout(widths = c(1.35, 1), guides = "collect") +
     plot_annotation(
-      title = "Where to search in 2027: ranked cull sites and areas worth a first look",
+      title = "Where to search in 2027: ranked cull sites and rarely searched habitat",
       subtitle = paste(
         "Cull sites coloured by 2027 priority (habitat + last 12 months of dives and manta tows).",
-        "Purple: top-ranked habitat outside the cull sites and > 150 m from any manta tow in the last 5 seasons (numbered by rank).", sep = "\n"),
+        "Purple: habitat outside the cull sites and > 150 m from any manta tow in the last 5 seasons; darker is better-ranked habitat.", sep = "\n"),
       caption = paste(
-        "Exploration areas: reef 0.5-16 m deep in the reef's top 30 % of habitat (primary layer + manta model), > 100 m from cull sites;",
-        "nearby pockets joined, split to ~9 ha and smoothed; up to 10 per reef, >= 350 m apart.",
+        "Exploration zones: reef 0.5-16 m deep, > 100 m from cull sites, in the reef's top 40, 30, 20 and 10 % of habitat",
+        "(primary layer + manta model, 150 m smoothing); nested bands, outlines smoothed, pieces < 0.5 ha dropped.",
         paste("Imagery:", maptiles::get_credit(imagery_provider)), sep = "\n"),
       theme = theme_report()
     ) &
@@ -1054,7 +1055,7 @@ if (file.exists(file.path(ranking_dir, "cots_exploration_areas_2027.gpkg"))) {
     frame <- p$frame
     label <- reef_ids[[slug]]
     sites_r <- sf::st_transform(cull_sites[grepl(paste0("(", label, ")"), cull_sites$reef_name, fixed = TRUE), ], sf::st_crs(p$polygon))
-    zone_r <- sf::st_sf(geometry = sf::st_union(sf::st_buffer(sites_r[sites_r$priority %in% c("A", "B"), ], 100)))
+    zone_r <- sf::st_sf(geometry = sf::st_union(sf::st_buffer(sites_r[sites_r$priority %in% c("A", "B", "C"), ], 100)))
     tows_r <- recent12[recent12$sx > frame[1] & recent12$sx < frame[3] & recent12$sy > frame[2] & recent12$sy < frame[4], ]
     ggplot() +
       tidyterra::geom_spatraster_rgb(data = reef_imagery[[i]], maxcell = 2e6) +
@@ -1076,9 +1077,9 @@ if (file.exists(file.path(ranking_dir, "cots_exploration_areas_2027.gpkg"))) {
   fig22 <- (fig22_panel("batt") | fig22_panel("eyrie")) +
     plot_layout(widths = c(1.35, 1), guides = "collect") +
     plot_annotation(
-      title = "On a follow-up visit: tow the A-B zone, dive strong evidence, and dive other sites only if A-C",
+      title = "On a follow-up visit: tow the A-C zone, dive strong evidence, and dive other sites only if A-C",
       subtitle = paste(
-        "Cull sites coloured by priority (habitat + last 12 months of dives and manta tows). Dashed: A-B sites plus 100 m, the ground",
+        "Cull sites coloured by priority (habitat + last 12 months of dives and manta tows). Dashed: A-C sites plus 100 m, the ground",
         "towed on a follow-up visit (open sites and sites near strong tows earlier that season are added on the day).", sep = "\n"),
       caption = paste(
         paste0("Tows and evidence to ", format(cfg$site_ranking$evidence_end, "%d %B %Y"),
@@ -1096,7 +1097,7 @@ wf_boxes <- tibble::tribble(
   ~id,      ~x,   ~y,  ~w,  ~h,  ~new,  ~label,
   "plan",   2.1,  9.0, 3.8, 1.2, TRUE,  "Before each voyage\nrefresh the ranking to departure;\nissue A–E maps and tow zones",
   "open",   2.1,  7.1, 3.8, 1.0, FALSE, "Dive open sites first\n(last dive > 0.04); cull to < 0.04",
-  "tow",    2.1,  4.9, 3.8, 1.6, TRUE,  "Manta tow\nfirst visit: whole reef\nfollow-up: A–B zone, open sites and\nsites near earlier strong tows",
+  "tow",    2.1,  4.9, 3.8, 1.6, TRUE,  "Manta tow\nfirst visit: whole reef\nfollow-up: A–C zone, open sites and\nsites near earlier strong tows",
   "strong", 6.4,  4.9, 3.2, 1.2, FALSE, "Strong tow within 100 m?\nCOTS seen, >= 2 scars\nor scars 'common'",
   "rank",   6.4,  2.6, 3.2, 1.0, TRUE,  "Site ranked A–C?\n(top two-thirds of the reef)",
   "dive1",  10.1, 4.9, 2.6, 0.8, FALSE, "Dive",

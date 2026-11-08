@@ -37,9 +37,20 @@ of effort.
     year-by-year forward test (script 19).
   - Ensembles with the manta model added nothing.
   - Re-run script 20 each season with an updated `evidence_end`, then 21.
-  - Script 21 adds exploration areas to the same KMZ: high-ranked habitat
-    outside cull sites and away from recent tows. Rankings learned from past
-    effort otherwise keep consolidating search on the same places.
+  - Script 21 adds exploration zones to the same KMZ: all high-ranked
+    habitat outside cull sites and away from recent tows, as nested shaded
+    bands (top 40/30/20/10 %). They replaced the top-10 discrete areas on
+    6 November: nothing set those areas apart from the habitat around them.
+    Rankings learned from past effort otherwise keep consolidating search on
+    the same places.
+- **Density-aware classes (script 20b, 6 November).** Within-reef classes
+  give every reef 20 % A sites whatever its density. 20b keeps each reef's
+  order and scales its class shares by reef density (last-season dives and
+  tows; the GBR-wide forecast for reefs with neither, discounted by the 19 %
+  of such reefs that historically needed culling). Forward test at equal
+  sites: +7.3 points of > 0.04 dives kept (CI 2.7–11.0), 8 points fewer
+  sites for 90 % retention. The gain is mostly between reefs. Separate
+  product (`*_density_2027.*`); not yet adopted.
 - **Deployment-realistic validation (script 33, 30 October).** Forward in
   time, with every reef's own history in training. The combined ranking gains
   little from that, but refreshing the evidence to each voyage's departure
@@ -68,8 +79,9 @@ of effort.
     crew discretion. It avoids 30 % of ghost and 19 % of low-density dives
     for 2.8 % of > 0.04 dives missed (mean CPUE 0.099); 4.4 ghost dives per
     miss against 2.0 at random.
-  - Zone with season memory keeps sites near strong tows from earlier that
-    season; it halves the zone's misses (one Horseshoe Reef site drove them).
+  - The follow-up tow zone is A–C (top 66 %) since 6 November (was A–B).
+    With season memory (sites near strong tows earlier that season) it saves
+    13 % of follow-up tows and misses 13 > 0.04 dives (A–B: 20 %, 22).
   - One voyage cannot test the dive rule (about two flagged dives); about 25
     voyages of shadow records can.
 - **Old SDM_Validation_Report ROC (AUC 0.865)** came from pooling across reefs,

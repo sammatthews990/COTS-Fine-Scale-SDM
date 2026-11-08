@@ -445,131 +445,131 @@
 "all visits","random dive rule A-B","share_deferred_intermediate",0.130447085455574,NA,0.118032392296722,0.142915069587394
 "all visits","random dive rule A-B","share_deferred_high",0.179258630447085,NA,0.155661259743813,0.202511576010691
 "all visits","random dive rule A-B","cpue_missed_high_mean",0.128437510499602,NA,0.0986991637149803,0.164828226352133
-"all visits","zone only","dives_avoided",129,16.125,82,170.525
-"all visits","zone only","dives_avoided_pct",0.00709492905070949,NA,0.00477528950315458,0.00953577547647692
-"all visits","zone only","high_missed",41,5.125,14,66.525
-"all visits","zone only","high_missed_pct",0.00517676767676768,NA,0.00193733271872457,0.00796916387801745
-"all visits","zone only","inter_missed",23,2.875,11,33
-"all visits","zone only","inter_missed_pct",0.00803914715134568,NA,0.00413370720188902,0.0120900139212251
-"all visits","zone only","low_avoided",45,5.625,29,64.525
-"all visits","zone only","low_avoided_pct",0.011037527593819,NA,0.00714197659616193,0.0157443530047977
-"all visits","zone only","ghost_avoided",20,2.5,8,35.525
-"all visits","zone only","ghost_avoided_pct",0.00601684717208183,NA,0.00243905955313362,0.0104072299031952
-"all visits","zone only","ghost_per_high_missed",0.48780487804878,NA,0.186736918604651,1.37592592592593
-"all visits","zone only","share_deferred_ghost",0.155038759689922,NA,0.0766932195711265,0.244718466795424
-"all visits","zone only","share_deferred_low",0.348837209302326,NA,0.260155697098372,0.477635135135135
-"all visits","zone only","share_deferred_intermediate",0.178294573643411,NA,0.099134465043556,0.255292891619131
-"all visits","zone only","share_deferred_high",0.317829457364341,NA,0.143432203389831,0.468488719309887
-"all visits","zone only","bottom_time_saved_pct",0.00721536862404519,NA,0.00489624839896734,0.0094944348175083
-"all visits","zone only","cots_forgone_pct",0.0100365424448074,NA,0.00277415879752646,0.0164597838145062
-"all visits","zone only","cpue_missed_high_mean",0.560975942438698,NA,0.0979106396057437,0.893826855441335
-"all visits","zone only","cpue_missed_high_q25",0.103333333333333,NA,0.0433333333333333,0.246376811594203
-"all visits","zone only","cpue_missed_high_median",0.172323759791123,NA,0.0634722222222222,0.8
-"all visits","zone only","cpue_missed_high_q75",1.02222222222222,NA,0.118143459915612,1.51239669421488
-"all visits","zone only","cpue_kept_high_mean",0.1849939530897,NA,0.147918346606491,0.231513018705137
-"all visits","zone only","tows_saved",11734,1466.75,9465.225,13836.475
-"all visits","zone only","tows_saved_pct",0.111764089571288,NA,0.0944018472518569,0.125107683975463
-"all visits","zone only","tows_saved_follow_up_pct",0.21160643439371,NA,0.188217530895069,0.229543025195812
-"all visits","zone with season memory","dives_avoided",81,10.125,52,110.05
-"all visits","zone with season memory","dives_avoided_pct",0.0044549554504455,NA,0.00287367634799117,0.00641799586365975
-"all visits","zone with season memory","high_missed",22,2.75,7,36
-"all visits","zone with season memory","high_missed_pct",0.00277777777777778,NA,0.000965406769274148,0.00496233905749184
-"all visits","zone with season memory","inter_missed",17,2.125,7,25.525
-"all visits","zone with season memory","inter_missed_pct",0.00594197832925551,NA,0.00245153862446815,0.00921173294615302
-"all visits","zone with season memory","low_avoided",25,3.125,13,38
-"all visits","zone with season memory","low_avoided_pct",0.00613195977434388,NA,0.00319728252320277,0.00966138691939463
-"all visits","zone with season memory","ghost_avoided",17,2.125,7,31
-"all visits","zone with season memory","ghost_avoided_pct",0.00511432009626956,NA,0.00201917244234869,0.00914536681440055
-"all visits","zone with season memory","ghost_per_high_missed",0.772727272727273,NA,0.263995726495727,2.19910714285714
-"all visits","zone with season memory","share_deferred_ghost",0.209876543209877,NA,0.0870658914728682,0.331164383561644
-"all visits","zone with season memory","share_deferred_low",0.308641975308642,NA,0.201283783783784,0.451181281235802
-"all visits","zone with season memory","share_deferred_intermediate",0.209876543209877,NA,0.0993518518518519,0.328003329918033
-"all visits","zone with season memory","share_deferred_high",0.271604938271605,NA,0.107889812889813,0.424382716049382
-"all visits","zone with season memory","bottom_time_saved_pct",0.00539678116430628,NA,0.00346647520319996,0.00759670102752556
-"all visits","zone with season memory","cots_forgone_pct",0.00520350942188842,NA,0.00123833917675496,0.0100499508486766
-"all visits","zone with season memory","cpue_missed_high_mean",0.282019399656056,NA,0.0774629346536274,0.645689605046314
-"all visits","zone with season memory","cpue_missed_high_q25",0.0708333333333333,NA,0.0416666666666667,0.141860465116279
-"all visits","zone with season memory","cpue_missed_high_median",0.118143459915612,NA,0.0541666666666667,0.246376811594203
-"all visits","zone with season memory","cpue_missed_high_q75",0.246376811594203,NA,0.103333333333333,1.74
-"all visits","zone with season memory","cpue_kept_high_mean",0.186675480278716,NA,0.147892524065026,0.235432947270012
-"all visits","zone with season memory","tows_saved",10924,1365.5,8618.8,12945.575
-"all visits","zone with season memory","tows_saved_pct",0.104048995609064,NA,0.0876497852718205,0.116591649334827
-"all visits","zone with season memory","tows_saved_follow_up_pct",0.196999206520955,NA,0.173537183103771,0.214347991063111
-"all visits","protocol: zone with season memory + dive rule A-D","dives_avoided",1414,176.75,1261.95,1584.2
-"all visits","protocol: zone with season memory + dive rule A-D","dives_avoided_pct",0.0777692223077769,NA,0.0663127482733078,0.0903704169106279
-"all visits","protocol: zone with season memory + dive rule A-D","high_missed",133,16.625,98.95,164.525
-"all visits","protocol: zone with season memory + dive rule A-D","high_missed_pct",0.0167929292929293,NA,0.0123664885101451,0.0225890356613668
-"all visits","protocol: zone with season memory + dive rule A-D","inter_missed",153,19.125,122,190.525
-"all visits","protocol: zone with season memory + dive rule A-D","inter_missed_pct",0.0534778049632995,NA,0.0427985873287671,0.0663014670197591
-"all visits","protocol: zone with season memory + dive rule A-D","low_avoided",500,62.5,425,576
-"all visits","protocol: zone with season memory + dive rule A-D","low_avoided_pct",0.122639195486878,NA,0.1071695619683,0.139516413171357
-"all visits","protocol: zone with season memory + dive rule A-D","ghost_avoided",628,78.5,534.9,727
-"all visits","protocol: zone with season memory + dive rule A-D","ghost_avoided_pct",0.188929001203369,NA,0.168624053266971,0.210396966231194
-"all visits","protocol: zone with season memory + dive rule A-D","ghost_per_high_missed",4.7218045112782,NA,3.60890625,6.36323529411765
-"all visits","protocol: zone with season memory + dive rule A-D","share_deferred_ghost",0.444130127298444,NA,0.403108863255321,0.487016066093084
-"all visits","protocol: zone with season memory + dive rule A-D","share_deferred_low",0.353606789250354,NA,0.319920593470937,0.391063433625883
-"all visits","protocol: zone with season memory + dive rule A-D","share_deferred_intermediate",0.108203677510608,NA,0.0887187030489505,0.125668665169617
-"all visits","protocol: zone with season memory + dive rule A-D","share_deferred_high",0.0940594059405941,NA,0.0708578402305224,0.118128287900526
-"all visits","protocol: zone with season memory + dive rule A-D","bottom_time_saved_pct",0.0850348843968188,NA,0.0745559892268596,0.0969515792061308
-"all visits","protocol: zone with season memory + dive rule A-D","cots_forgone_pct",0.018307708715738,NA,0.0131279863060523,0.0243675614794981
-"all visits","protocol: zone with season memory + dive rule A-D","cpue_missed_high_mean",0.127626715162221,NA,0.085275707630982,0.188631917722737
-"all visits","protocol: zone with season memory + dive rule A-D","cpue_missed_high_q25",0.0518518518518519,NA,0.0471311475409836,0.0565217391304348
-"all visits","protocol: zone with season memory + dive rule A-D","cpue_missed_high_median",0.0714285714285714,NA,0.0617021276595745,0.0834639303482587
-"all visits","protocol: zone with season memory + dive rule A-D","cpue_missed_high_q75",0.113432835820896,NA,0.0914285714285714,0.152466367713004
-"all visits","protocol: zone with season memory + dive rule A-D","cpue_kept_high_mean",0.187953386017357,NA,0.148918862749428,0.237260102196628
-"all visits","protocol: zone with season memory + dive rule A-D","tows_saved",10924,1365.5,8618.8,12945.575
-"all visits","protocol: zone with season memory + dive rule A-D","tows_saved_pct",0.104048995609064,NA,0.0876497852718205,0.116591649334827
-"all visits","protocol: zone with season memory + dive rule A-D","tows_saved_follow_up_pct",0.196999206520955,NA,0.173537183103771,0.214347991063111
-"all visits","protocol: zone with season memory + dive rule A-C","dives_avoided",2318,289.75,2094.95,2551.675
-"all visits","protocol: zone with season memory + dive rule A-C","dives_avoided_pct",0.127488725112749,NA,0.110414254134452,0.146260487026698
-"all visits","protocol: zone with season memory + dive rule A-C","high_missed",245,30.625,196.475,290.05
-"all visits","protocol: zone with season memory + dive rule A-C","high_missed_pct",0.0309343434343434,NA,0.0229085371374394,0.0404026510110531
-"all visits","protocol: zone with season memory + dive rule A-C","inter_missed",264,33,214,315.05
-"all visits","protocol: zone with season memory + dive rule A-C","inter_missed_pct",0.0922754281719678,NA,0.0759753849490349,0.111544405014554
-"all visits","protocol: zone with season memory + dive rule A-C","low_avoided",801,100.125,686.95,912.575
-"all visits","protocol: zone with season memory + dive rule A-C","low_avoided_pct",0.196467991169978,NA,0.174526133451396,0.218344222730867
-"all visits","protocol: zone with season memory + dive rule A-C","ghost_avoided",1008,126,884.475,1138
-"all visits","protocol: zone with season memory + dive rule A-C","ghost_avoided_pct",0.303249097472924,NA,0.277941672500776,0.329440773408437
-"all visits","protocol: zone with season memory + dive rule A-C","ghost_per_high_missed",4.11428571428571,NA,3.30482115213596,5.22130172413793
-"all visits","protocol: zone with season memory + dive rule A-C","share_deferred_ghost",0.434857635893011,NA,0.403547341347408,0.470084435705051
-"all visits","protocol: zone with season memory + dive rule A-C","share_deferred_low",0.345556514236411,NA,0.316480876200128,0.37555040334034
-"all visits","protocol: zone with season memory + dive rule A-C","share_deferred_intermediate",0.113891285591027,NA,0.0966447763151294,0.130281310844335
-"all visits","protocol: zone with season memory + dive rule A-C","share_deferred_high",0.105694564279551,NA,0.0859901394373751,0.124448465672677
-"all visits","protocol: zone with season memory + dive rule A-C","bottom_time_saved_pct",0.137787383832651,NA,0.121965072937552,0.155260951971335
-"all visits","protocol: zone with season memory + dive rule A-C","cots_forgone_pct",0.031232283088875,NA,0.0237676593982824,0.0407445325237533
-"all visits","protocol: zone with season memory + dive rule A-C","cpue_missed_high_mean",0.11546667310285,NA,0.0889327192525327,0.148396727531
-"all visits","protocol: zone with season memory + dive rule A-C","cpue_missed_high_q25",0.0530785562632696,NA,0.05,0.0555555555555556
-"all visits","protocol: zone with season memory + dive rule A-C","cpue_missed_high_median",0.0710526315789474,NA,0.0629032258064516,0.0801526717557252
-"all visits","protocol: zone with season memory + dive rule A-C","cpue_missed_high_q75",0.118421052631579,NA,0.0981963927855711,0.152466367713004
-"all visits","protocol: zone with season memory + dive rule A-C","cpue_kept_high_mean",0.189221893827171,NA,0.149756469503103,0.239267191527098
-"all visits","protocol: zone with season memory + dive rule A-C","tows_saved",10924,1365.5,8618.8,12945.575
-"all visits","protocol: zone with season memory + dive rule A-C","tows_saved_pct",0.104048995609064,NA,0.0876497852718205,0.116591649334827
-"all visits","protocol: zone with season memory + dive rule A-C","tows_saved_follow_up_pct",0.196999206520955,NA,0.173537183103771,0.214347991063111
-"all visits","protocol: zone with season memory + dive rule A-B","dives_avoided",3268,408.5,2977.85,3578.575
-"all visits","protocol: zone with season memory + dive rule A-B","dives_avoided_pct",0.179738202617974,NA,0.15530231819062,0.20381358201103
-"all visits","protocol: zone with season memory + dive rule A-B","high_missed",381,47.625,302.475,456.525
-"all visits","protocol: zone with season memory + dive rule A-B","high_missed_pct",0.0481060606060606,NA,0.0363440228005443,0.0614740683509186
-"all visits","protocol: zone with season memory + dive rule A-B","inter_missed",367,45.875,305.9,423.575
-"all visits","protocol: zone with season memory + dive rule A-B","inter_missed_pct",0.128276826284516,NA,0.109769230769231,0.147947348048768
-"all visits","protocol: zone with season memory + dive rule A-B","low_avoided",1133,141.625,984.425,1269.1
-"all visits","protocol: zone with season memory + dive rule A-B","low_avoided_pct",0.277900416973265,NA,0.253385263977737,0.301849621905247
-"all visits","protocol: zone with season memory + dive rule A-B","ghost_avoided",1387,173.375,1225.9,1551.1
-"all visits","protocol: zone with season memory + dive rule A-B","ghost_avoided_pct",0.417268351383875,NA,0.390562574431016,0.444474807329655
-"all visits","protocol: zone with season memory + dive rule A-B","ghost_per_high_missed",3.64041994750656,NA,2.93844435218102,4.70059754469374
-"all visits","protocol: zone with season memory + dive rule A-B","share_deferred_ghost",0.424418604651163,NA,0.396707830927969,0.456606424456223
-"all visits","protocol: zone with season memory + dive rule A-B","share_deferred_low",0.346695226438189,NA,0.320752655760088,0.371167995946873
-"all visits","protocol: zone with season memory + dive rule A-B","share_deferred_intermediate",0.112301101591187,NA,0.0973481334800502,0.127400272599392
-"all visits","protocol: zone with season memory + dive rule A-B","share_deferred_high",0.116585067319461,NA,0.0926620610626369,0.139235588441071
-"all visits","protocol: zone with season memory + dive rule A-B","bottom_time_saved_pct",0.195338945381685,NA,0.174062922867845,0.216584782550053
-"all visits","protocol: zone with season memory + dive rule A-B","cots_forgone_pct",0.0450521754261882,NA,0.0352155568465133,0.0584143442231145
-"all visits","protocol: zone with season memory + dive rule A-B","cpue_missed_high_mean",0.107425988595327,NA,0.0889603906178449,0.128102235860794
-"all visits","protocol: zone with season memory + dive rule A-B","cpue_missed_high_q25",0.0527777777777778,NA,0.05,0.0557888888888889
-"all visits","protocol: zone with season memory + dive rule A-B","cpue_missed_high_median",0.0710526315789474,NA,0.0648970292819543,0.0773717948717949
-"all visits","protocol: zone with season memory + dive rule A-B","cpue_missed_high_q75",0.116417910447761,NA,0.1,0.133333333333333
-"all visits","protocol: zone with season memory + dive rule A-B","cpue_kept_high_mean",0.190958756914566,NA,0.150824772794794,0.242237938896133
-"all visits","protocol: zone with season memory + dive rule A-B","tows_saved",10924,1365.5,8618.8,12945.575
-"all visits","protocol: zone with season memory + dive rule A-B","tows_saved_pct",0.104048995609064,NA,0.0876497852718205,0.116591649334827
-"all visits","protocol: zone with season memory + dive rule A-B","tows_saved_follow_up_pct",0.196999206520955,NA,0.173537183103771,0.214347991063111
+"all visits","zone only","dives_avoided",71,8.875,37.95,102.525
+"all visits","zone only","dives_avoided_pct",0.0039049609503905,NA,0.0021641941963358,0.00576683895929135
+"all visits","zone only","high_missed",29,3.625,6.475,55.525
+"all visits","zone only","high_missed_pct",0.00366161616161616,NA,0.000889639571996634,0.00658932000604449
+"all visits","zone only","inter_missed",11,1.375,5,18.525
+"all visits","zone only","inter_missed_pct",0.00384480950716533,NA,0.00172992015204936,0.0064860361789908
+"all visits","zone only","low_avoided",22,2.75,12,35
+"all visits","zone only","low_avoided_pct",0.00539612460142261,NA,0.00300769410558379,0.00877752390365691
+"all visits","zone only","ghost_avoided",9,1.125,1,20.525
+"all visits","zone only","ghost_avoided_pct",0.00270758122743682,NA,0.000311759821404263,0.00616463232855085
+"all visits","zone only","ghost_per_high_missed",0.310344827586207,NA,0.0363425925925926,1.43868421052631
+"all visits","zone only","share_deferred_ghost",0.126760563380282,NA,0.0210438829787234,0.271995377503852
+"all visits","zone only","share_deferred_low",0.309859154929577,NA,0.182810867293626,0.524909420289855
+"all visits","zone only","share_deferred_intermediate",0.154929577464789,NA,0.0752911931818182,0.270565878378378
+"all visits","zone only","share_deferred_high",0.408450704225352,NA,0.138888888888889,0.602937312312312
+"all visits","zone only","bottom_time_saved_pct",0.00384745577263682,NA,0.00217916090302408,0.00559019789002147
+"all visits","zone only","cots_forgone_pct",0.00865286922744444,NA,0.00150180378209296,0.0151358865658075
+"all visits","zone only","cpue_missed_high_mean",0.753061877561741,NA,0.106434259147145,1.09970863334895
+"all visits","zone only","cpue_missed_high_q25",0.125,NA,0.0409090909090909,0.466666666666667
+"all visits","zone only","cpue_missed_high_median",0.380165289256198,NA,0.096969696969697,1.12108633776091
+"all visits","zone only","cpue_missed_high_q75",1.26666666666667,NA,0.114285714285714,1.74
+"all visits","zone only","cpue_kept_high_mean",0.184859786539658,NA,0.147822907089232,0.231394587961294
+"all visits","zone only","tows_saved",7510,938.75,5943.65,8971.85
+"all visits","zone only","tows_saved_pct",0.0715313032793912,NA,0.0595486411075336,0.0811932559082059
+"all visits","zone only","tows_saved_follow_up_pct",0.135432446079492,NA,0.118892632361254,0.148876407696235
+"all visits","zone with season memory","dives_avoided",41,5.125,19.475,64
+"all visits","zone with season memory","dives_avoided_pct",0.0022549774502255,NA,0.0010879737294592,0.00365729190705936
+"all visits","zone with season memory","high_missed",13,1.625,3,24.525
+"all visits","zone with season memory","high_missed_pct",0.00164141414141414,NA,0.000331410077346757,0.00322627942626972
+"all visits","zone with season memory","inter_missed",8,1,3,14.525
+"all visits","zone with season memory","inter_missed_pct",0.00279622509612024,NA,0.00102845906143943,0.00508635679159866
+"all visits","zone with season memory","low_avoided",12,1.5,5,23
+"all visits","zone with season memory","low_avoided_pct",0.00294334069168506,NA,0.00117667986265186,0.00563633179170046
+"all visits","zone with season memory","ghost_avoided",8,1,0.475000000000001,19
+"all visits","zone with season memory","ghost_avoided_pct",0.00240673886883273,NA,0.00013121546961326,0.00579067340322169
+"all visits","zone with season memory","ghost_per_high_missed",0.615384615384615,NA,0.0197916666666667,2.36833333333333
+"all visits","zone with season memory","share_deferred_ghost",0.195121951219512,NA,0.0101063829787234,0.392119565217391
+"all visits","zone with season memory","share_deferred_low",0.292682926829268,NA,0.130043541364296,0.5
+"all visits","zone with season memory","share_deferred_intermediate",0.195121951219512,NA,0.0844642857142857,0.327678571428571
+"all visits","zone with season memory","share_deferred_high",0.317073170731707,NA,0.111111111111111,0.528809523809524
+"all visits","zone with season memory","bottom_time_saved_pct",0.00276527869906245,NA,0.00133931320497803,0.00435257496544354
+"all visits","zone with season memory","cots_forgone_pct",0.00418189268533643,NA,0.000669427538539843,0.00864462641138217
+"all visits","zone with season memory","cpue_missed_high_mean",0.412969571317995,NA,0.079986013986014,1.06370233170719
+"all visits","zone with season memory","cpue_missed_high_q25",0.103333333333333,NA,0.0409090909090909,0.246376811594203
+"all visits","zone with season memory","cpue_missed_high_median",0.152631578947368,NA,0.0433333333333333,1.74
+"all visits","zone with season memory","cpue_missed_high_q75",0.281578947368421,NA,0.103333333333333,1.8
+"all visits","zone with season memory","cpue_kept_high_mean",0.186568706918755,NA,0.147822907089232,0.235344860284249
+"all visits","zone with season memory","tows_saved",7049,881.125,5549.175,8401.525
+"all visits","zone with season memory","tows_saved_pct",0.0671403670860757,NA,0.055707002883615,0.075845109887307
+"all visits","zone with season memory","tows_saved_follow_up_pct",0.127118949722282,NA,0.110210463365607,0.139280401301609
+"all visits","protocol: zone with season memory + dive rule A-D","dives_avoided",1374,171.75,1226.95,1542.35
+"all visits","protocol: zone with season memory + dive rule A-D","dives_avoided_pct",0.0755692443075569,NA,0.0642443321455451,0.0878280121401946
+"all visits","protocol: zone with season memory + dive rule A-D","high_missed",124,15.5,93.475,153.525
+"all visits","protocol: zone with season memory + dive rule A-D","high_missed_pct",0.0156565656565657,NA,0.0112988362115431,0.0208583407214394
+"all visits","protocol: zone with season memory + dive rule A-D","inter_missed",144,18,117,179.525
+"all visits","protocol: zone with season memory + dive rule A-D","inter_missed_pct",0.0503320517301643,NA,0.0406061434242147,0.062319133854261
+"all visits","protocol: zone with season memory + dive rule A-D","low_avoided",487,60.875,416.425,563.525
+"all visits","protocol: zone with season memory + dive rule A-D","low_avoided_pct",0.119450576404219,NA,0.104432192187896,0.136629443237783
+"all visits","protocol: zone with season memory + dive rule A-D","ghost_avoided",619,77.375,525,718
+"all visits","protocol: zone with season memory + dive rule A-D","ghost_avoided_pct",0.186221419975933,NA,0.166352755937133,0.206465999072271
+"all visits","protocol: zone with season memory + dive rule A-D","ghost_per_high_missed",4.99193548387097,NA,3.79499300699301,6.90558510638297
+"all visits","protocol: zone with season memory + dive rule A-D","share_deferred_ghost",0.450509461426492,NA,0.409118301834851,0.495985112900663
+"all visits","protocol: zone with season memory + dive rule A-D","share_deferred_low",0.354439592430859,NA,0.320541760722348,0.392844441008195
+"all visits","protocol: zone with season memory + dive rule A-D","share_deferred_intermediate",0.104803493449782,NA,0.0852735542830119,0.123168704095041
+"all visits","protocol: zone with season memory + dive rule A-D","share_deferred_high",0.0902474526928675,NA,0.0670609572412658,0.112318811192863
+"all visits","protocol: zone with season memory + dive rule A-D","bottom_time_saved_pct",0.082403381931575,NA,0.0718354441135403,0.0936941391306145
+"all visits","protocol: zone with season memory + dive rule A-D","cots_forgone_pct",0.017286091979186,NA,0.0124136805162628,0.0233200331431491
+"all visits","protocol: zone with season memory + dive rule A-D","cpue_missed_high_mean",0.130149441542549,NA,0.0858738155457359,0.198045464749355
+"all visits","protocol: zone with season memory + dive rule A-D","cpue_missed_high_q25",0.0510204081632653,NA,0.0471311475409836,0.0563750964754309
+"all visits","protocol: zone with season memory + dive rule A-D","cpue_missed_high_median",0.0714285714285714,NA,0.0604803856382979,0.0835820895522388
+"all visits","protocol: zone with season memory + dive rule A-D","cpue_missed_high_q75",0.1125,NA,0.091304347826087,0.152631578947368
+"all visits","protocol: zone with season memory + dive rule A-D","cpue_kept_high_mean",0.18784361714757,NA,0.148846859329634,0.237169714431302
+"all visits","protocol: zone with season memory + dive rule A-D","tows_saved",7049,881.125,5549.175,8401.525
+"all visits","protocol: zone with season memory + dive rule A-D","tows_saved_pct",0.0671403670860757,NA,0.055707002883615,0.075845109887307
+"all visits","protocol: zone with season memory + dive rule A-D","tows_saved_follow_up_pct",0.127118949722282,NA,0.110210463365607,0.139280401301609
+"all visits","protocol: zone with season memory + dive rule A-C","dives_avoided",2278,284.75,2051.9,2510.525
+"all visits","protocol: zone with season memory + dive rule A-C","dives_avoided_pct",0.125288747112529,NA,0.108229370669895,0.143132594042382
+"all visits","protocol: zone with season memory + dive rule A-C","high_missed",236,29.5,191,279.525
+"all visits","protocol: zone with season memory + dive rule A-C","high_missed_pct",0.0297979797979798,NA,0.0221015044596091,0.0388521018813456
+"all visits","protocol: zone with season memory + dive rule A-C","inter_missed",255,31.875,207.475,301
+"all visits","protocol: zone with season memory + dive rule A-C","inter_missed_pct",0.0891296749388326,NA,0.0735061537627413,0.107430725827807
+"all visits","protocol: zone with season memory + dive rule A-C","low_avoided",788,98.5,672.425,897
+"all visits","protocol: zone with season memory + dive rule A-C","low_avoided_pct",0.193279372087319,NA,0.171181472030668,0.21576772946155
+"all visits","protocol: zone with season memory + dive rule A-C","ghost_avoided",999,124.875,878.425,1120.05
+"all visits","protocol: zone with season memory + dive rule A-C","ghost_avoided_pct",0.300541516245487,NA,0.276259036447259,0.325695457210486
+"all visits","protocol: zone with season memory + dive rule A-C","ghost_per_high_missed",4.23305084745763,NA,3.4177825203252,5.37578534031413
+"all visits","protocol: zone with season memory + dive rule A-C","share_deferred_ghost",0.438542581211589,NA,0.407043163970502,0.474950017210982
+"all visits","protocol: zone with season memory + dive rule A-C","share_deferred_low",0.345917471466198,NA,0.314967552190516,0.375634737732124
+"all visits","protocol: zone with season memory + dive rule A-C","share_deferred_intermediate",0.111940298507463,NA,0.0945742662433207,0.128440126462964
+"all visits","protocol: zone with season memory + dive rule A-C","share_deferred_high",0.10359964881475,NA,0.0840574270691919,0.122258237617982
+"all visits","protocol: zone with season memory + dive rule A-C","bottom_time_saved_pct",0.135155881367407,NA,0.11918759765541,0.152397984552708
+"all visits","protocol: zone with season memory + dive rule A-C","cots_forgone_pct",0.0302106663523231,NA,0.0229950044210696,0.0388553688923444
+"all visits","protocol: zone with season memory + dive rule A-C","cpue_missed_high_mean",0.11632844298686,NA,0.0892535834728931,0.149667405873201
+"all visits","protocol: zone with season memory + dive rule A-C","cpue_missed_high_q25",0.0526315789473684,NA,0.05,0.0552916666666667
+"all visits","protocol: zone with season memory + dive rule A-C","cpue_missed_high_median",0.0706521739130435,NA,0.0629032258064516,0.08
+"all visits","protocol: zone with season memory + dive rule A-C","cpue_missed_high_q75",0.117647058823529,NA,0.0990531062124249,0.152553103611046
+"all visits","protocol: zone with season memory + dive rule A-C","cpue_kept_high_mean",0.189109039235923,NA,0.149682357848591,0.239174307149776
+"all visits","protocol: zone with season memory + dive rule A-C","tows_saved",7049,881.125,5549.175,8401.525
+"all visits","protocol: zone with season memory + dive rule A-C","tows_saved_pct",0.0671403670860757,NA,0.055707002883615,0.075845109887307
+"all visits","protocol: zone with season memory + dive rule A-C","tows_saved_follow_up_pct",0.127118949722282,NA,0.110210463365607,0.139280401301609
+"all visits","protocol: zone with season memory + dive rule A-B","dives_avoided",3228,403.5,2945.475,3536.1
+"all visits","protocol: zone with season memory + dive rule A-B","dives_avoided_pct",0.177538224617754,NA,0.153784009306382,0.200877619322628
+"all visits","protocol: zone with season memory + dive rule A-B","high_missed",372,46.5,295.95,445
+"all visits","protocol: zone with season memory + dive rule A-B","high_missed_pct",0.046969696969697,NA,0.0356763686263181,0.0599123006043649
+"all visits","protocol: zone with season memory + dive rule A-B","inter_missed",358,44.75,295.95,415
+"all visits","protocol: zone with season memory + dive rule A-B","inter_missed_pct",0.125131073051381,NA,0.106538815057666,0.145153876579943
+"all visits","protocol: zone with season memory + dive rule A-B","low_avoided",1120,140,972,1258.15
+"all visits","protocol: zone with season memory + dive rule A-B","low_avoided_pct",0.274711797890606,NA,0.249051834202331,0.299630553468932
+"all visits","protocol: zone with season memory + dive rule A-B","ghost_avoided",1378,172.25,1219.275,1536.525
+"all visits","protocol: zone with season memory + dive rule A-B","ghost_avoided_pct",0.414560770156438,NA,0.387713082387987,0.440988014876582
+"all visits","protocol: zone with season memory + dive rule A-B","ghost_per_high_missed",3.70430107526882,NA,3.01662639037886,4.72319853846326
+"all visits","protocol: zone with season memory + dive rule A-B","share_deferred_ghost",0.426889714993804,NA,0.398734985531755,0.459550634846907
+"all visits","protocol: zone with season memory + dive rule A-B","share_deferred_low",0.346964064436183,NA,0.320018538066239,0.372497161418098
+"all visits","protocol: zone with season memory + dive rule A-B","share_deferred_intermediate",0.11090458488228,NA,0.0957910181259426,0.125703033703394
+"all visits","protocol: zone with season memory + dive rule A-B","share_deferred_high",0.115241635687732,NA,0.0926325330870361,0.137236811963093
+"all visits","protocol: zone with season memory + dive rule A-B","bottom_time_saved_pct",0.192707442916442,NA,0.171167417250809,0.213818474824743
+"all visits","protocol: zone with season memory + dive rule A-B","cots_forgone_pct",0.0440305586896362,NA,0.034465491188253,0.0569780671236444
+"all visits","protocol: zone with season memory + dive rule A-B","cpue_missed_high_mean",0.107778170133119,NA,0.0891691007114093,0.128668884759093
+"all visits","protocol: zone with season memory + dive rule A-B","cpue_missed_high_q25",0.0527638190954774,NA,0.05,0.0552916666666667
+"all visits","protocol: zone with season memory + dive rule A-B","cpue_missed_high_median",0.0708661417322835,NA,0.0652173913043478,0.0770585957666494
+"all visits","protocol: zone with season memory + dive rule A-B","cpue_missed_high_q75",0.115384615384615,NA,0.1,0.133333333333333
+"all visits","protocol: zone with season memory + dive rule A-B","cpue_kept_high_mean",0.190841797925836,NA,0.150748100239329,0.2421412644597
+"all visits","protocol: zone with season memory + dive rule A-B","tows_saved",7049,881.125,5549.175,8401.525
+"all visits","protocol: zone with season memory + dive rule A-B","tows_saved_pct",0.0671403670860757,NA,0.055707002883615,0.075845109887307
+"all visits","protocol: zone with season memory + dive rule A-B","tows_saved_follow_up_pct",0.127118949722282,NA,0.110210463365607,0.139280401301609
 "follow-up visits","current practice","dives_avoided",0,0,0,0
 "follow-up visits","current practice","dives_avoided_pct",0,NA,0,0
 "follow-up visits","current practice","high_missed",0,0,0,0
@@ -1016,128 +1016,128 @@
 "follow-up visits","random dive rule A-B","share_deferred_intermediate",0.158536585365854,NA,0.141322070021247,0.17581788167154
 "follow-up visits","random dive rule A-B","share_deferred_high",0.203405430280718,NA,0.173616335169087,0.231575280206795
 "follow-up visits","random dive rule A-B","cpue_missed_high_mean",0.136396837652737,NA,0.0971440336787708,0.18392535065151
-"follow-up visits","zone only","dives_avoided",129,16.125,82,170.525
-"follow-up visits","zone only","dives_avoided_pct",0.00951608143995279,NA,0.00642644473568394,0.0129037001499196
-"follow-up visits","zone only","high_missed",41,5.125,14,66.525
-"follow-up visits","zone only","high_missed_pct",0.00625190606892345,NA,0.00237197263475323,0.00983907306409757
-"follow-up visits","zone only","inter_missed",23,2.875,11,33
-"follow-up visits","zone only","inter_missed_pct",0.00988397077782553,NA,0.00508494721517232,0.0150478565743612
-"follow-up visits","zone only","low_avoided",45,5.625,29,64.525
-"follow-up visits","zone only","low_avoided_pct",0.0155871146518878,NA,0.0101304695304695,0.0226116647145343
-"follow-up visits","zone only","ghost_avoided",20,2.5,8,35.525
-"follow-up visits","zone only","ghost_avoided_pct",0.0112107623318386,NA,0.00475611034459312,0.0194583368946774
-"follow-up visits","zone only","ghost_per_high_missed",0.48780487804878,NA,0.186736918604651,1.37592592592593
-"follow-up visits","zone only","share_deferred_ghost",0.155038759689922,NA,0.0766932195711265,0.244718466795424
-"follow-up visits","zone only","share_deferred_low",0.348837209302326,NA,0.260155697098372,0.477635135135135
-"follow-up visits","zone only","share_deferred_intermediate",0.178294573643411,NA,0.099134465043556,0.255292891619131
-"follow-up visits","zone only","share_deferred_high",0.317829457364341,NA,0.143432203389831,0.468488719309887
-"follow-up visits","zone only","bottom_time_saved_pct",0.00973944307139181,NA,0.00651119951515474,0.0130984000437102
-"follow-up visits","zone only","cots_forgone_pct",0.0125463118895251,NA,0.00359216751806735,0.0195469141874982
-"follow-up visits","zone only","cpue_missed_high_mean",0.560975942438698,NA,0.0979106396057437,0.893826855441335
-"follow-up visits","zone only","cpue_missed_high_q25",0.103333333333333,NA,0.0433333333333333,0.246376811594203
-"follow-up visits","zone only","cpue_missed_high_median",0.172323759791123,NA,0.0634722222222222,0.8
-"follow-up visits","zone only","cpue_missed_high_q75",1.02222222222222,NA,0.118143459915612,1.51239669421488
-"follow-up visits","zone only","cpue_kept_high_mean",0.183571466667726,NA,0.141339238293754,0.23569540595116
-"follow-up visits","zone only","tows_saved",11734,1466.75,9465.225,13836.475
-"follow-up visits","zone only","tows_saved_pct",0.21160643439371,NA,0.188217530895069,0.229543025195812
-"follow-up visits","zone only","tows_saved_follow_up_pct",0.21160643439371,NA,0.188217530895069,0.229543025195812
-"follow-up visits","zone with season memory","dives_avoided",81,10.125,52,110.05
-"follow-up visits","zone with season memory","dives_avoided_pct",0.00597521392741222,NA,0.0038074257868037,0.00880710261993874
-"follow-up visits","zone with season memory","high_missed",22,2.75,7,36
-"follow-up visits","zone with season memory","high_missed_pct",0.003354681305276,NA,0.00117386017972033,0.00609075561055309
-"follow-up visits","zone with season memory","inter_missed",17,2.125,7,25.525
-"follow-up visits","zone with season memory","inter_missed_pct",0.00730554361839278,NA,0.00305669095432735,0.0113431199280721
-"follow-up visits","zone with season memory","low_avoided",25,3.125,13,38
-"follow-up visits","zone with season memory","low_avoided_pct",0.00865950813993765,NA,0.00448954827610657,0.0136089076338157
-"follow-up visits","zone with season memory","ghost_avoided",17,2.125,7,31
-"follow-up visits","zone with season memory","ghost_avoided_pct",0.00952914798206278,NA,0.00378655906697691,0.0174116463452826
-"follow-up visits","zone with season memory","ghost_per_high_missed",0.772727272727273,NA,0.263995726495727,2.19910714285714
-"follow-up visits","zone with season memory","share_deferred_ghost",0.209876543209877,NA,0.0870658914728682,0.331164383561644
-"follow-up visits","zone with season memory","share_deferred_low",0.308641975308642,NA,0.201283783783784,0.451181281235802
-"follow-up visits","zone with season memory","share_deferred_intermediate",0.209876543209877,NA,0.0993518518518519,0.328003329918033
-"follow-up visits","zone with season memory","share_deferred_high",0.271604938271605,NA,0.107889812889813,0.424382716049382
-"follow-up visits","zone with season memory","bottom_time_saved_pct",0.00728467880952875,NA,0.00469230678858625,0.0104095898776696
-"follow-up visits","zone with season memory","cots_forgone_pct",0.00650471539238801,NA,0.00155714787702946,0.0123277306688866
-"follow-up visits","zone with season memory","cpue_missed_high_mean",0.282019399656056,NA,0.0774629346536274,0.645689605046314
-"follow-up visits","zone with season memory","cpue_missed_high_q25",0.0708333333333333,NA,0.0416666666666667,0.141860465116279
-"follow-up visits","zone with season memory","cpue_missed_high_median",0.118143459915612,NA,0.0541666666666667,0.246376811594203
-"follow-up visits","zone with season memory","cpue_missed_high_q75",0.246376811594203,NA,0.103333333333333,1.74
-"follow-up visits","zone with season memory","cpue_kept_high_mean",0.185607532913269,NA,0.141330669497058,0.241226611642655
-"follow-up visits","zone with season memory","tows_saved",10924,1365.5,8618.8,12945.575
-"follow-up visits","zone with season memory","tows_saved_pct",0.196999206520955,NA,0.173537183103771,0.214347991063111
-"follow-up visits","zone with season memory","tows_saved_follow_up_pct",0.196999206520955,NA,0.173537183103771,0.214347991063111
-"follow-up visits","protocol: zone with season memory + dive rule A-D","dives_avoided",886,110.75,751.85,1011.05
-"follow-up visits","protocol: zone with season memory + dive rule A-D","dives_avoided_pct",0.0653585128356447,NA,0.0531854840271156,0.0780807605224542
-"follow-up visits","protocol: zone with season memory + dive rule A-D","high_missed",93,11.625,65,122.05
-"follow-up visits","protocol: zone with season memory + dive rule A-D","high_missed_pct",0.0141811527904849,NA,0.0100220974436817,0.0198044481205054
-"follow-up visits","protocol: zone with season memory + dive rule A-D","inter_missed",112,14,83,141.525
-"follow-up visits","protocol: zone with season memory + dive rule A-D","inter_missed_pct",0.0481306403094113,NA,0.0359721727228867,0.0613821198203465
-"follow-up visits","protocol: zone with season memory + dive rule A-D","low_avoided",337,42.125,269,398.525
-"follow-up visits","protocol: zone with season memory + dive rule A-D","low_avoided_pct",0.11673016972636,NA,0.0997681154396682,0.137082107130909
-"follow-up visits","protocol: zone with season memory + dive rule A-D","ghost_avoided",344,43,272.95,417
-"follow-up visits","protocol: zone with season memory + dive rule A-D","ghost_avoided_pct",0.192825112107623,NA,0.165937816760277,0.219722928393449
-"follow-up visits","protocol: zone with season memory + dive rule A-D","ghost_per_high_missed",3.6989247311828,NA,2.62584057356785,5.51354166666667
-"follow-up visits","protocol: zone with season memory + dive rule A-D","share_deferred_ghost",0.388261851015801,NA,0.343138947841046,0.434730718811449
-"follow-up visits","protocol: zone with season memory + dive rule A-D","share_deferred_low",0.380361173814898,NA,0.338879137109544,0.423683212731872
-"follow-up visits","protocol: zone with season memory + dive rule A-D","share_deferred_intermediate",0.126410835214447,NA,0.09946622842528,0.154250296559905
-"follow-up visits","protocol: zone with season memory + dive rule A-D","share_deferred_high",0.104966139954853,NA,0.0745882625840872,0.137991048506631
-"follow-up visits","protocol: zone with season memory + dive rule A-D","bottom_time_saved_pct",0.0752150154266501,NA,0.0639931815868333,0.0887279872665919
-"follow-up visits","protocol: zone with season memory + dive rule A-D","cots_forgone_pct",0.0171739923655552,NA,0.0118975406647802,0.023921126133764
-"follow-up visits","protocol: zone with season memory + dive rule A-D","cpue_missed_high_mean",0.142153277917789,NA,0.0832555034785084,0.229332642856734
-"follow-up visits","protocol: zone with season memory + dive rule A-D","cpue_missed_high_q25",0.053125,NA,0.0466666666666667,0.0570175438596491
-"follow-up visits","protocol: zone with season memory + dive rule A-D","cpue_missed_high_median",0.0722222222222222,NA,0.059375,0.09075
-"follow-up visits","protocol: zone with season memory + dive rule A-D","cpue_missed_high_q75",0.118143459915612,NA,0.0914285714285714,0.172323759791123
-"follow-up visits","protocol: zone with season memory + dive rule A-D","cpue_kept_high_mean",0.186560712616737,NA,0.142050033617867,0.242423580485494
-"follow-up visits","protocol: zone with season memory + dive rule A-D","tows_saved",10924,1365.5,8618.8,12945.575
-"follow-up visits","protocol: zone with season memory + dive rule A-D","tows_saved_pct",0.196999206520955,NA,0.173537183103771,0.214347991063111
-"follow-up visits","protocol: zone with season memory + dive rule A-D","tows_saved_follow_up_pct",0.196999206520955,NA,0.173537183103771,0.214347991063111
-"follow-up visits","protocol: zone with season memory + dive rule A-C","dives_avoided",1438,179.75,1216.475,1633.675
-"follow-up visits","protocol: zone with season memory + dive rule A-C","dives_avoided_pct",0.106078489229861,NA,0.0880042207760889,0.126238586245303
-"follow-up visits","protocol: zone with season memory + dive rule A-C","high_missed",169,21.125,128,206
-"follow-up visits","protocol: zone with season memory + dive rule A-C","high_missed_pct",0.0257700518450747,NA,0.0189815127214977,0.0363890332345908
-"follow-up visits","protocol: zone with season memory + dive rule A-C","inter_missed",191,23.875,146.9,235.05
-"follow-up visits","protocol: zone with season memory + dive rule A-C","inter_missed_pct",0.0820799312419424,NA,0.0653769252508125,0.101774352760297
-"follow-up visits","protocol: zone with season memory + dive rule A-C","low_avoided",547,68.375,436.8,637
-"follow-up visits","protocol: zone with season memory + dive rule A-C","low_avoided_pct",0.189470038101836,NA,0.164329666297841,0.2184669960275
-"follow-up visits","protocol: zone with season memory + dive rule A-C","ghost_avoided",531,66.375,442.475,623.625
-"follow-up visits","protocol: zone with season memory + dive rule A-C","ghost_avoided_pct",0.297645739910314,NA,0.266578622910395,0.329534185363218
-"follow-up visits","protocol: zone with season memory + dive rule A-C","ghost_per_high_missed",3.14201183431953,NA,2.38857357855266,4.29681271109843
-"follow-up visits","protocol: zone with season memory + dive rule A-C","share_deferred_ghost",0.369262865090403,NA,0.332429088544195,0.407975282013078
-"follow-up visits","protocol: zone with season memory + dive rule A-C","share_deferred_low",0.38038942976356,NA,0.345333262832388,0.414051655138363
-"follow-up visits","protocol: zone with season memory + dive rule A-C","share_deferred_intermediate",0.132823365785814,NA,0.109545295390884,0.156664241097302
-"follow-up visits","protocol: zone with season memory + dive rule A-C","share_deferred_high",0.117524339360223,NA,0.0896977554242318,0.147249678922494
-"follow-up visits","protocol: zone with season memory + dive rule A-C","bottom_time_saved_pct",0.120612577623627,NA,0.103512777326457,0.139981475019405
-"follow-up visits","protocol: zone with season memory + dive rule A-C","cots_forgone_pct",0.027997642303806,NA,0.0202245037551261,0.0377385584666654
-"follow-up visits","protocol: zone with season memory + dive rule A-C","cpue_missed_high_mean",0.120092297915391,NA,0.0854142784765633,0.168068266656593
-"follow-up visits","protocol: zone with season memory + dive rule A-C","cpue_missed_high_q25",0.0535714285714286,NA,0.05,0.0562324334319527
-"follow-up visits","protocol: zone with season memory + dive rule A-C","cpue_missed_high_median",0.0722222222222222,NA,0.0656167979002625,0.0866666666666667
-"follow-up visits","protocol: zone with season memory + dive rule A-C","cpue_missed_high_q75",0.118421052631579,NA,0.1,0.155263157894737
-"follow-up visits","protocol: zone with season memory + dive rule A-C","cpue_kept_high_mean",0.187672509557968,NA,0.142568888494123,0.244182400748496
-"follow-up visits","protocol: zone with season memory + dive rule A-C","tows_saved",10924,1365.5,8618.8,12945.575
-"follow-up visits","protocol: zone with season memory + dive rule A-C","tows_saved_pct",0.196999206520955,NA,0.173537183103771,0.214347991063111
-"follow-up visits","protocol: zone with season memory + dive rule A-C","tows_saved_follow_up_pct",0.196999206520955,NA,0.173537183103771,0.214347991063111
-"follow-up visits","protocol: zone with season memory + dive rule A-B","dives_avoided",2035,254.375,1745.8,2320.625
-"follow-up visits","protocol: zone with season memory + dive rule A-B","dives_avoided_pct",0.150118028917085,NA,0.123956763678848,0.176322449759033
-"follow-up visits","protocol: zone with season memory + dive rule A-B","high_missed",267,33.375,201.475,324.05
-"follow-up visits","protocol: zone with season memory + dive rule A-B","high_missed_pct",0.0407136322049405,NA,0.029861226257066,0.0548179758456918
-"follow-up visits","protocol: zone with season memory + dive rule A-B","inter_missed",274,34.25,216,331.05
-"follow-up visits","protocol: zone with season memory + dive rule A-B","inter_missed_pct",0.117748173614095,NA,0.0970364719912529,0.137208289644735
-"follow-up visits","protocol: zone with season memory + dive rule A-B","low_avoided",765,95.625,622,896
-"follow-up visits","protocol: zone with season memory + dive rule A-B","low_avoided_pct",0.264980949082092,NA,0.235647027466256,0.295437670020329
-"follow-up visits","protocol: zone with season memory + dive rule A-B","ghost_avoided",729,91.125,609.95,864.25
-"follow-up visits","protocol: zone with season memory + dive rule A-B","ghost_avoided_pct",0.408632286995516,NA,0.37493930005079,0.443670567782259
-"follow-up visits","protocol: zone with season memory + dive rule A-B","ghost_per_high_missed",2.73033707865169,NA,2.12396290204678,3.64264931927975
-"follow-up visits","protocol: zone with season memory + dive rule A-B","share_deferred_ghost",0.358230958230958,NA,0.323933500666961,0.397633537413269
-"follow-up visits","protocol: zone with season memory + dive rule A-B","share_deferred_low",0.375921375921376,NA,0.343206692910548,0.404269228792095
-"follow-up visits","protocol: zone with season memory + dive rule A-B","share_deferred_intermediate",0.134643734643735,NA,0.11441316671897,0.155647299122839
-"follow-up visits","protocol: zone with season memory + dive rule A-B","share_deferred_high",0.131203931203931,NA,0.103128176241888,0.159070834405283
-"follow-up visits","protocol: zone with season memory + dive rule A-B","bottom_time_saved_pct",0.170480060737387,NA,0.147491305857617,0.193966880792728
-"follow-up visits","protocol: zone with season memory + dive rule A-B","cots_forgone_pct",0.040764988211519,NA,0.030960990168769,0.055032856779528
-"follow-up visits","protocol: zone with season memory + dive rule A-B","cpue_missed_high_mean",0.109134435775452,NA,0.0864263291027268,0.138756309605997
-"follow-up visits","protocol: zone with season memory + dive rule A-B","cpue_missed_high_q25",0.0534591194968553,NA,0.05,0.05625
-"follow-up visits","protocol: zone with season memory + dive rule A-B","cpue_missed_high_median",0.0714285714285714,NA,0.0652631578947368,0.08
-"follow-up visits","protocol: zone with season memory + dive rule A-B","cpue_missed_high_q75",0.117647058823529,NA,0.1,0.141860465116279
-"follow-up visits","protocol: zone with season memory + dive rule A-B","cpue_kept_high_mean",0.189190330243445,NA,0.143433896093635,0.246427859620115
-"follow-up visits","protocol: zone with season memory + dive rule A-B","tows_saved",10924,1365.5,8618.8,12945.575
-"follow-up visits","protocol: zone with season memory + dive rule A-B","tows_saved_pct",0.196999206520955,NA,0.173537183103771,0.214347991063111
-"follow-up visits","protocol: zone with season memory + dive rule A-B","tows_saved_follow_up_pct",0.196999206520955,NA,0.173537183103771,0.214347991063111
+"follow-up visits","zone only","dives_avoided",71,8.875,37.95,102.525
+"follow-up visits","zone only","dives_avoided_pct",0.00523753319563293,NA,0.00294437653416739,0.00788079966520734
+"follow-up visits","zone only","high_missed",29,3.625,6.475,55.525
+"follow-up visits","zone only","high_missed_pct",0.00442207990240927,NA,0.00107328936164071,0.00797045003200332
+"follow-up visits","zone only","inter_missed",11,1.375,5,18.525
+"follow-up visits","zone only","inter_missed_pct",0.00472711645896003,NA,0.00212551339156592,0.00802582973403046
+"follow-up visits","zone only","low_avoided",22,2.75,12,35
+"follow-up visits","zone only","low_avoided_pct",0.00762036716314513,NA,0.00425594555370555,0.0125565293866588
+"follow-up visits","zone only","ghost_avoided",9,1.125,1,20.525
+"follow-up visits","zone only","ghost_avoided_pct",0.00504484304932735,NA,0.000582047126505053,0.0117769718869647
+"follow-up visits","zone only","ghost_per_high_missed",0.310344827586207,NA,0.0363425925925926,1.43868421052631
+"follow-up visits","zone only","share_deferred_ghost",0.126760563380282,NA,0.0210438829787234,0.271995377503852
+"follow-up visits","zone only","share_deferred_low",0.309859154929577,NA,0.182810867293626,0.524909420289855
+"follow-up visits","zone only","share_deferred_intermediate",0.154929577464789,NA,0.0752911931818182,0.270565878378378
+"follow-up visits","zone only","share_deferred_high",0.408450704225352,NA,0.138888888888889,0.602937312312312
+"follow-up visits","zone only","bottom_time_saved_pct",0.00519336965576763,NA,0.00295681307698429,0.00766023982858923
+"follow-up visits","zone only","cots_forgone_pct",0.0108166329852925,NA,0.00195641992078971,0.0180053129952004
+"follow-up visits","zone only","cpue_missed_high_mean",0.753061877561741,NA,0.106434259147145,1.09970863334895
+"follow-up visits","zone only","cpue_missed_high_q25",0.125,NA,0.0409090909090909,0.466666666666667
+"follow-up visits","zone only","cpue_missed_high_median",0.380165289256198,NA,0.096969696969697,1.12108633776091
+"follow-up visits","zone only","cpue_missed_high_q75",1.26666666666667,NA,0.114285714285714,1.74
+"follow-up visits","zone only","cpue_kept_high_mean",0.183411926399796,NA,0.141256982030036,0.235462892684085
+"follow-up visits","zone only","tows_saved",7510,938.75,5943.65,8971.85
+"follow-up visits","zone only","tows_saved_pct",0.135432446079492,NA,0.118892632361254,0.148876407696235
+"follow-up visits","zone only","tows_saved_follow_up_pct",0.135432446079492,NA,0.118892632361254,0.148876407696235
+"follow-up visits","zone with season memory","dives_avoided",41,5.125,19.475,64
+"follow-up visits","zone with season memory","dives_avoided_pct",0.00302449100029507,NA,0.00149163674728194,0.00497684655493461
+"follow-up visits","zone with season memory","high_missed",13,1.625,3,24.525
+"follow-up visits","zone with season memory","high_missed_pct",0.00198231168039036,NA,0.000402243782499411,0.00401086476880147
+"follow-up visits","zone with season memory","inter_missed",8,1,3,14.525
+"follow-up visits","zone with season memory","inter_missed_pct",0.00343790287924366,NA,0.00127390137234748,0.0062446195966638
+"follow-up visits","zone with season memory","low_avoided",12,1.5,5,23
+"follow-up visits","zone with season memory","low_avoided_pct",0.00415656390717007,NA,0.00165394410394962,0.00808418621572081
+"follow-up visits","zone with season memory","ghost_avoided",8,1,0.475000000000001,19
+"follow-up visits","zone with season memory","ghost_avoided_pct",0.00448430493273543,NA,0.000245478036175711,0.0110901098545694
+"follow-up visits","zone with season memory","ghost_per_high_missed",0.615384615384615,NA,0.0197916666666667,2.36833333333333
+"follow-up visits","zone with season memory","share_deferred_ghost",0.195121951219512,NA,0.0101063829787234,0.392119565217391
+"follow-up visits","zone with season memory","share_deferred_low",0.292682926829268,NA,0.130043541364296,0.5
+"follow-up visits","zone with season memory","share_deferred_intermediate",0.195121951219512,NA,0.0844642857142857,0.327678571428571
+"follow-up visits","zone with season memory","share_deferred_high",0.317073170731707,NA,0.111111111111111,0.528809523809524
+"follow-up visits","zone with season memory","bottom_time_saved_pct",0.00373262626891986,NA,0.00178976847095447,0.0059940484921239
+"follow-up visits","zone with season memory","cots_forgone_pct",0.00522762995396879,NA,0.000870292630444117,0.0110510847359613
+"follow-up visits","zone with season memory","cpue_missed_high_mean",0.412969571317995,NA,0.079986013986014,1.06370233170719
+"follow-up visits","zone with season memory","cpue_missed_high_q25",0.103333333333333,NA,0.0409090909090909,0.246376811594203
+"follow-up visits","zone with season memory","cpue_missed_high_median",0.152631578947368,NA,0.0433333333333333,1.74
+"follow-up visits","zone with season memory","cpue_missed_high_q75",0.281578947368421,NA,0.103333333333333,1.8
+"follow-up visits","zone with season memory","cpue_kept_high_mean",0.185480008783258,NA,0.141256982030036,0.241060369131247
+"follow-up visits","zone with season memory","tows_saved",7049,881.125,5549.175,8401.525
+"follow-up visits","zone with season memory","tows_saved_pct",0.127118949722282,NA,0.110210463365607,0.139280401301609
+"follow-up visits","zone with season memory","tows_saved_follow_up_pct",0.127118949722282,NA,0.110210463365607,0.139280401301609
+"follow-up visits","protocol: zone with season memory + dive rule A-D","dives_avoided",846,105.75,721.95,969.625
+"follow-up visits","protocol: zone with season memory + dive rule A-D","dives_avoided_pct",0.0624077899085276,NA,0.050961927658019,0.0745556478745034
+"follow-up visits","protocol: zone with season memory + dive rule A-D","high_missed",84,10.5,58.475,113.525
+"follow-up visits","protocol: zone with season memory + dive rule A-D","high_missed_pct",0.0128087831655993,NA,0.00881045025182254,0.0179564699771352
+"follow-up visits","protocol: zone with season memory + dive rule A-D","inter_missed",103,12.875,76.95,129
+"follow-up visits","protocol: zone with season memory + dive rule A-D","inter_missed_pct",0.0442629995702621,NA,0.033353452253319,0.0570764856182479
+"follow-up visits","protocol: zone with season memory + dive rule A-D","low_avoided",324,40.5,258.425,388
+"follow-up visits","protocol: zone with season memory + dive rule A-D","low_avoided_pct",0.112227225493592,NA,0.0953885529114241,0.132494285964885
+"follow-up visits","protocol: zone with season memory + dive rule A-D","ghost_avoided",335,41.875,267.475,403.1
+"follow-up visits","protocol: zone with season memory + dive rule A-D","ghost_avoided_pct",0.187780269058296,NA,0.162185811306418,0.213653724505933
+"follow-up visits","protocol: zone with season memory + dive rule A-D","ghost_per_high_missed",3.98809523809524,NA,2.75469628043885,6.05667735042735
+"follow-up visits","protocol: zone with season memory + dive rule A-D","share_deferred_ghost",0.395981087470449,NA,0.346746718729792,0.442460966353719
+"follow-up visits","protocol: zone with season memory + dive rule A-D","share_deferred_low",0.382978723404255,NA,0.337746217691517,0.426528649800849
+"follow-up visits","protocol: zone with season memory + dive rule A-D","share_deferred_intermediate",0.121749408983452,NA,0.0963728710462287,0.148238678924072
+"follow-up visits","protocol: zone with season memory + dive rule A-D","share_deferred_high",0.099290780141844,NA,0.0690322866902335,0.132505405405405
+"follow-up visits","protocol: zone with season memory + dive rule A-D","bottom_time_saved_pct",0.0716629628860413,NA,0.0609223509940493,0.0842637515873585
+"follow-up visits","protocol: zone with season memory + dive rule A-D","cots_forgone_pct",0.015896906927136,NA,0.0108607393718111,0.0223361880725451
+"follow-up visits","protocol: zone with season memory + dive rule A-D","cpue_missed_high_mean",0.14743372001256,NA,0.0828599386390234,0.245110015965475
+"follow-up visits","protocol: zone with season memory + dive rule A-D","cpue_missed_high_q25",0.0530785562632696,NA,0.05,0.056547619047619
+"follow-up visits","protocol: zone with season memory + dive rule A-D","cpue_missed_high_median",0.0716417910447761,NA,0.0576425438596491,0.09
+"follow-up visits","protocol: zone with season memory + dive rule A-D","cpue_missed_high_q75",0.115384615384615,NA,0.0914285714285714,0.196874999999999
+"follow-up visits","protocol: zone with season memory + dive rule A-D","cpue_kept_high_mean",0.186430464849012,NA,0.141971043891236,0.242254011501353
+"follow-up visits","protocol: zone with season memory + dive rule A-D","tows_saved",7049,881.125,5549.175,8401.525
+"follow-up visits","protocol: zone with season memory + dive rule A-D","tows_saved_pct",0.127118949722282,NA,0.110210463365607,0.139280401301609
+"follow-up visits","protocol: zone with season memory + dive rule A-D","tows_saved_follow_up_pct",0.127118949722282,NA,0.110210463365607,0.139280401301609
+"follow-up visits","protocol: zone with season memory + dive rule A-C","dives_avoided",1398,174.75,1180.425,1589.975
+"follow-up visits","protocol: zone with season memory + dive rule A-C","dives_avoided_pct",0.103127766302744,NA,0.0858176782161755,0.121863481462418
+"follow-up visits","protocol: zone with season memory + dive rule A-C","high_missed",160,20,122.425,196.05
+"follow-up visits","protocol: zone with season memory + dive rule A-C","high_missed_pct",0.0243976822201891,NA,0.0179226308810871,0.0340213011790929
+"follow-up visits","protocol: zone with season memory + dive rule A-C","inter_missed",182,22.75,140.475,222.525
+"follow-up visits","protocol: zone with season memory + dive rule A-C","inter_missed_pct",0.0782122905027933,NA,0.0629075004526525,0.0979143037095848
+"follow-up visits","protocol: zone with season memory + dive rule A-C","low_avoided",534,66.75,424.375,623.05
+"follow-up visits","protocol: zone with season memory + dive rule A-C","low_avoided_pct",0.184967093869068,NA,0.159824964192434,0.213928245532519
+"follow-up visits","protocol: zone with season memory + dive rule A-C","ghost_avoided",522,65.25,436.425,613.25
+"follow-up visits","protocol: zone with season memory + dive rule A-C","ghost_avoided_pct",0.292600896860987,NA,0.261747864451328,0.322051874343688
+"follow-up visits","protocol: zone with season memory + dive rule A-C","ghost_per_high_missed",3.2625,NA,2.48844306686195,4.43727532679738
+"follow-up visits","protocol: zone with season memory + dive rule A-C","share_deferred_ghost",0.373390557939914,NA,0.336815352697095,0.413462602503978
+"follow-up visits","protocol: zone with season memory + dive rule A-C","share_deferred_low",0.381974248927039,NA,0.34779508489655,0.416451439155116
+"follow-up visits","protocol: zone with season memory + dive rule A-C","share_deferred_intermediate",0.130185979971388,NA,0.108142346932618,0.153840965623388
+"follow-up visits","protocol: zone with season memory + dive rule A-C","share_deferred_high",0.11444921316166,NA,0.0880488548701518,0.143137139724311
+"follow-up visits","protocol: zone with season memory + dive rule A-C","bottom_time_saved_pct",0.117060525083018,NA,0.0997067900873323,0.135462657043512
+"follow-up visits","protocol: zone with season memory + dive rule A-C","cots_forgone_pct",0.0267205568653868,NA,0.0194327592069006,0.0359864733459796
+"follow-up visits","protocol: zone with season memory + dive rule A-C","cpue_missed_high_mean",0.121623599890011,NA,0.0856484690062831,0.171887366080204
+"follow-up visits","protocol: zone with season memory + dive rule A-C","cpue_missed_high_q25",0.053125,NA,0.05,0.0562130177514793
+"follow-up visits","protocol: zone with season memory + dive rule A-C","cpue_missed_high_median",0.0720338983050847,NA,0.0654311368973615,0.0874901960784313
+"follow-up visits","protocol: zone with season memory + dive rule A-C","cpue_missed_high_q75",0.117647058823529,NA,0.1,0.157894736842105
+"follow-up visits","protocol: zone with season memory + dive rule A-C","cpue_kept_high_mean",0.187539150661325,NA,0.142488405755124,0.244008689258997
+"follow-up visits","protocol: zone with season memory + dive rule A-C","tows_saved",7049,881.125,5549.175,8401.525
+"follow-up visits","protocol: zone with season memory + dive rule A-C","tows_saved_pct",0.127118949722282,NA,0.110210463365607,0.139280401301609
+"follow-up visits","protocol: zone with season memory + dive rule A-C","tows_saved_follow_up_pct",0.127118949722282,NA,0.110210463365607,0.139280401301609
+"follow-up visits","protocol: zone with season memory + dive rule A-B","dives_avoided",1995,249.375,1707.425,2267.15
+"follow-up visits","protocol: zone with season memory + dive rule A-B","dives_avoided_pct",0.147167305989968,NA,0.121611872092515,0.172320665815279
+"follow-up visits","protocol: zone with season memory + dive rule A-B","high_missed",258,32.25,196.95,311.525
+"follow-up visits","protocol: zone with season memory + dive rule A-B","high_missed_pct",0.0393412625800549,NA,0.0289629415874822,0.0523325221819204
+"follow-up visits","protocol: zone with season memory + dive rule A-B","inter_missed",265,33.125,210.475,317
+"follow-up visits","protocol: zone with season memory + dive rule A-B","inter_missed_pct",0.113880532874946,NA,0.0937151524150825,0.132580874928706
+"follow-up visits","protocol: zone with season memory + dive rule A-B","low_avoided",752,94,609.95,881.625
+"follow-up visits","protocol: zone with season memory + dive rule A-B","low_avoided_pct",0.260478004849325,NA,0.230620677433263,0.293075557718636
+"follow-up visits","protocol: zone with season memory + dive rule A-B","ghost_avoided",720,90,603.475,851.3
+"follow-up visits","protocol: zone with season memory + dive rule A-B","ghost_avoided_pct",0.403587443946188,NA,0.370126872370681,0.439338454825226
+"follow-up visits","protocol: zone with season memory + dive rule A-B","ghost_per_high_missed",2.7906976744186,NA,2.14726333317303,3.62883791143737
+"follow-up visits","protocol: zone with season memory + dive rule A-B","share_deferred_ghost",0.360902255639098,NA,0.326177966891739,0.40077693625693
+"follow-up visits","protocol: zone with season memory + dive rule A-B","share_deferred_low",0.376942355889724,NA,0.344048638190429,0.406264304484191
+"follow-up visits","protocol: zone with season memory + dive rule A-B","share_deferred_intermediate",0.132832080200501,NA,0.113791007847041,0.153967525360196
+"follow-up visits","protocol: zone with season memory + dive rule A-B","share_deferred_high",0.129323308270677,NA,0.102789275382851,0.157536215267345
+"follow-up visits","protocol: zone with season memory + dive rule A-B","bottom_time_saved_pct",0.166928008196778,NA,0.143850633169764,0.190295381614073
+"follow-up visits","protocol: zone with season memory + dive rule A-B","cots_forgone_pct",0.0394879027730998,NA,0.029725714545924,0.0531498940749865
+"follow-up visits","protocol: zone with season memory + dive rule A-B","cpue_missed_high_mean",0.109701829405994,NA,0.0862257842497666,0.140270699561691
+"follow-up visits","protocol: zone with season memory + dive rule A-B","cpue_missed_high_q25",0.0534591194968553,NA,0.05,0.0562324334319527
+"follow-up visits","protocol: zone with season memory + dive rule A-B","cpue_missed_high_median",0.0714285714285714,NA,0.0638125,0.08
+"follow-up visits","protocol: zone with season memory + dive rule A-B","cpue_missed_high_q75",0.116417910447761,NA,0.1,0.139508174386921
+"follow-up visits","protocol: zone with season memory + dive rule A-B","cpue_kept_high_mean",0.189052728559811,NA,0.143350893220507,0.246249055843692
+"follow-up visits","protocol: zone with season memory + dive rule A-B","tows_saved",7049,881.125,5549.175,8401.525
+"follow-up visits","protocol: zone with season memory + dive rule A-B","tows_saved_pct",0.127118949722282,NA,0.110210463365607,0.139280401301609
+"follow-up visits","protocol: zone with season memory + dive rule A-B","tows_saved_follow_up_pct",0.127118949722282,NA,0.110210463365607,0.139280401301609

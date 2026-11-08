@@ -175,55 +175,16 @@ classes <- tibble::tibble(
 utils::write.csv(classes, file.path(out_dir, "cots_cull_site_priority_classes_2027.csv"), row.names = FALSE)
 
 # --- KMZ: the EoTR file with priority colours and fields added ------------------------
-kml_path <- list.files(file.path(cfg$dirs$cache, "cull_sites_kmz"), pattern = "\\.kml$", full.names = TRUE)[1]
-kml <- paste(readLines(kml_path, encoding = "UTF-8", warn = FALSE), collapse = "\n")
-parts <- strsplit(kml, "<Placemark>", fixed = TRUE)[[1]]
-head_part <- parts[1]
-pm <- parts[-1]
-data_value <- function(x, name) {
-  r <- regexpr(paste0("<Data name=\"", name, "\">\\s*<value>[^<]*</value>"), x)
-  out <- rep(NA_character_, length(x))
-  out[r > 0] <- sub(".*<value>([^<]*)</value>", "\\1", regmatches(x, r))
-  out
-}
-pm_name <- data_value(pm, "Name")
-pm_reef <- data_value(pm, "Reef")
-pm_id <- data_value(pm, "Cull site ID")
-xml_unescape <- function(x) gsub("&amp;", "&", gsub("&lt;", "<", gsub("&gt;", ">", gsub("&apos;", "'", gsub("&quot;", "\"", x)))))
-pm_key <- paste(xml_unescape(pm_reef), clean_site_name(xml_unescape(pm_name)), sep = "||")
-idx <- match(pm_key, paste(sites$reef_name, clean_site_name(sites$site_name), sep = "||"))
-log_message(sprintf("KMZ: %d placemarks, %.1f%% matched to a ranked site", length(pm), 100 * mean(!is.na(idx))))
-# Priority colours (KML aabbggrr): A red, B orange, C yellow, D pale yellow,
-# E grey (the last class is always grey).
-colours <- stats::setNames(c("cc4849e3", "cc3468eb", "9900a1ed", "8099e6f5", "4d818789")[c(seq_along(breaks), 5L)], labels)
-pri <- ifelse(is.na(idx), NA, sites$priority[idx])
-normal_colour <- "<color>33669900</color>"
-pos <- regexpr(normal_colour, pm, fixed = TRUE)
-has <- pos > 0 & !is.na(pri)
-pm[has] <- paste0(substr(pm[has], 1, pos[has] - 1), "<color>", colours[pri[has]], "</color>",
-                  substr(pm[has], pos[has] + nchar(normal_colour), nchar(pm[has])))
 fmt <- function(x, d) ifelse(is.finite(x), formatC(x, format = "f", digits = d), "")
-new_data <- ifelse(is.na(idx), "", paste0(
-  "  <Data name=\"Priority 2027\">\n            <value>", pri, "</value>\n          </Data>\n",
-  "          <Data name=\"Rank on reef\">\n            <value>", sites$rank_on_reef[idx], " of ", sites$sites_on_reef[idx], "</value>\n          </Data>\n",
-  "          <Data name=\"P(problematic if dived)\">\n            <value>", fmt(sites$p_problematic_if_dived[idx], 2), "</value>\n          </Data>\n",
-  "          <Data name=\"Last season\">\n            <value>", sites$evidence[idx], "</value>\n          </Data>\n        "))
-pos <- regexpr("</ExtendedData>", pm, fixed = TRUE)
-has <- pos > 0 & nzchar(new_data)
-pm[has] <- paste0(substr(pm[has], 1, pos[has] - 1), new_data[has], substr(pm[has], pos[has], nchar(pm[has])))
-out_kml <- paste0(head_part, paste0("<Placemark>", pm, collapse = ""))
-balloon_rows <- paste0(vapply(c("Priority 2027", "Rank on reef", "P(problematic if dived)", "Last season"), function(f)
-  paste0("<tr>\n<td class='property-name'>", f, "</td>\n<td class='property-value'>$[", f, "]</td>\n</tr>\n"), character(1)), collapse = "")
-out_kml <- gsub("</tbody>", paste0(balloon_rows, "</tbody>"), out_kml, fixed = TRUE)
-out_kml <- sub("<name>Eotr_CotsCullSites_[^<]*</name>",
-               paste0("<name>COTS cull site priority ", sr$target_season, " (A red, B orange, C yellow, D pale yellow, E grey)</name>"), out_kml)
-stage <- file.path(cfg$dirs$cache, "site_ranking_kmz")
-dir.create(stage, showWarnings = FALSE)
-writeLines(out_kml, file.path(stage, "doc.kml"), useBytes = TRUE)
-kmz_path <- file.path(out_dir, "cots_cull_site_priority_2027.kmz")
-if (file.exists(kmz_path)) file.remove(kmz_path)
-utils::zip(kmz_path, file.path(stage, "doc.kml"), flags = "-j9Xq")
-log_message("Wrote ", kmz_path)
+k <- priority_kml(cfg, sites, sites$priority,
+                  fields = list(`Priority 2027` = sites$priority,
+                                `Rank on reef` = paste(sites$rank_on_reef, "of", sites$sites_on_reef),
+                                `P(problematic if dived)` = fmt(sites$p_problematic_if_dived, 2),
+                                `Last season` = sites$evidence),
+                  title = paste0("COTS cull site priority ", sr$target_season, " (A red, B orange, C yellow, D pale yellow, E grey)"))
+pm_id <- k$pm_id
+pm_key <- k$pm_key
+write_staged_kmz(cfg, k$kml, "site_ranking_kmz", file.path(out_dir, "cots_cull_site_priority_2027.kmz"))
 
 # Add the EoTR "Cull site ID" to the table (first placemark per site).
 table_key <- paste(table_out$reef_name, clean_site_name(table_out$site_name), sep = "||")
