@@ -50,7 +50,51 @@ of effort.
   of such reefs that historically needed culling). Forward test at equal
   sites: +7.3 points of > 0.04 dives kept (CI 2.7–11.0), 8 points fewer
   sites for 90 % retention. The gain is mostly between reefs. Separate
-  product (`*_density_2027.*`); not yet adopted.
+  product (`*_density_2027.*`); not yet adopted. Helpers in
+  `R/density_classes.R`.
+- **Protocol under density-aware classes (script 36, 9 November).** 2020–2026
+  replay with voyage-start density. Follow-up reefs are usually dense, so
+  density-aware zones are larger: the density-aware A–B zone saves about as
+  many follow-up tows as within-reef A–C (14 % vs 13 %) with 4 misses instead
+  of 11. The A–C dive rule avoids 3.4 points more ghost dives at the same dive
+  share; misses fall 206 → 166 (paired CI crosses zero alone, not with the
+  zone). Requiring at least a weak scar for every dive misses at near-random
+  rates. Candidate: density-aware A–B zone + A–C dive rule. In the report
+  (Appendix N, fig33; fig22 now shows density-aware classes on four reefs).
+- **Density-aware v2 (scripts 36–37, 9 November).** Chosen by the user as
+  the density-aware product.
+  - *Why v1 failed.* Its 12-month density, fitted on dived reef-years, kept
+    culled-down reefs (Big Broadhurst 0.44) and towed-clean reefs (John Brewer
+    0.26) high.
+  - *Reef density in v2.* Each dive and tow is weighted by a 90-day half-life.
+    The density is two-part: P(survey occasion needs culling) × the share of
+    problematic dives if dived. Big Broadhurst falls to 0.14 and John Brewer
+    to 0.05.
+  - *Site classes.* On reefs with recent evidence: site model + 0.5 × site
+    visit model, using each site's own dives within 300 m and tows, recent
+    and from 1–6 years before. Elsewhere: the density quota. Cut-offs are
+    calibrated to the within-reef classes' pooled effort.
+  - *Matched effort against v1.* Ghost avoided at 3 % missed: 40.1 % vs
+    33.7 % (+6.4, CI 0.7–12.3). Missed at 14 % skipped: 2.43 % vs 3.02 %
+    (borderline).
+  - *Operating points.* v2 is stricter, so the report shows two. A–D: 2.2 %
+    missed, 34 % ghost avoided, 8.2 ghost per miss. A–C: 4.1 % missed, 49 %
+    ghost avoided.
+  - *Caveats.* The weight was chosen on the test seasons. The visit model
+    encodes crew choice. Long-clean flanks (Batt NE) still lift: sites with
+    years of clean tows on dense reefs were 51 % problematic when dived. John Brewer keeps
+    B/C lagoon sites through its 2024 culls.
+  - *Untowed sites neutral (10 November).* With no tow data a site entered
+    the models with a 50 % strong-tow rate, so untowed lagoon patches outranked
+    towed ground with strong scars (Tongue, John Brewer). Untowed sites now
+    get the mean recent strong-tow rate of the reef's towed sites; this layer
+    is "density-aware v2, untowed neutral" in 36 and is the product. Shifting
+    untowed scores to the towed median was rejected: it put Batt's
+    (untowed) NE flank in A. Cost: tow-zone misses rose from 9 to 16 over
+    2020–2026; the dive rule was unchanged.
+  - *Product and report.* `*_density_v2_2027.*`. Report: Appendix N
+    (#sec-density-v2), fig22 (v2), fig33, fig34 (ghost per miss). Run order:
+    36 → 37 → 21.
 - **Deployment-realistic validation (script 33, 30 October).** Forward in
   time, with every reef's own history in training. The combined ranking gains
   little from that, but refreshing the evidence to each voyage's departure
@@ -67,8 +111,9 @@ of effort.
     30-day window had double-counted the earlier visit's sweep).
   - On follow-up visits (after an earlier visit that season), the top-50 %
     zone saves 21 % of tows and misses 41 > 0.04 dives, against 82 for random
-    placement and 68 for 9-on-3-off blocks. On first visits blocks are
-    better. The zone avoids few ghost dives.
+    placement and 68 for 9-on-3-off blocks. The A–C (top 66 %) zone, scored
+    since 9 November, saves 13.5 % and misses 29 (random 49). On first
+    visits blocks are better. The zone avoids few ghost dives.
   - Reusing tows from the last 12 months saves about 40 % with little loss of
     > 0.04 dives, but adds ghost dives and stale triggers. It needs a field
     trial.

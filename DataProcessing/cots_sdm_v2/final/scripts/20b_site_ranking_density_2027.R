@@ -67,6 +67,7 @@ source(file.path(dirname(sub("^--file=", "", grep("^--file=", commandArgs(FALSE)
 cfg <- initialise_final()
 source(file.path(cfg$final_dir, "R", "cull_sites.R"))
 source(file.path(cfg$final_dir, "R", "site_selection.R"))
+source(file.path(cfg$final_dir, "R", "density_classes.R"))
 sr <- cfg$site_ranking
 set.seed(cfg$hmsc$seed + 200L)
 strong_classes <- c("direct_cots", "multiple_counted_scars", "legacy_common_scars")
@@ -81,11 +82,7 @@ ac_share <- breaks[["C"]]
 out_dir <- file.path(cfg$dirs$outputs, "site_ranking")
 
 # --- Inputs ---------------------------------------------------------------------------
-reef_id <- function(x) sub(".*[(]([0-9]+-[0-9]+[a-z]?)[)][[:space:]]*$", "\\1", x)
-forecast <- dplyr::bind_rows(utils::read.csv(checked_input(cfg, "reef_forecast_2026")),
-                             utils::read.csv(checked_input(cfg, "reef_forecast_hindcast"))) |>
-  dplyr::transmute(reef_id = reef_id(.data$reefName), year = as.integer(.data$year), forecast = .data$outbrProb) |>
-  dplyr::distinct(.data$reef_id, .data$year, .keep_all = TRUE)   # the 2026 forecast wins any overlap
+forecast <- read_reef_forecast(cfg)
 
 sites_sf <- read_designated_sites(cfg)
 site_counts <- dplyr::count(sf::st_drop_geometry(sites_sf), .data$reef_name, name = "sites_on_reef")
@@ -95,32 +92,7 @@ tows <- readRDS(checked_input(cfg, "manta_tows")) |>
   dplyr::select("visit_id", "year", "survey_date", "reef_name", "manta_evidence_class") |>
   dplyr::mutate(strong = .data$manta_evidence_class %in% strong_classes)
 
-# Reef-level evidence from dives `d` and tows `t` (one window), with the forecast.
-reef_evidence <- function(reefs, d, t, forecast_year) {
-  dv <- d |>
-    dplyr::group_by(.data$reef_name) |>
-    dplyr::summarise(dives = dplyr::n(), problematic = sum(.data$outcome == "problematic"), .groups = "drop")
-  tw <- t |>
-    dplyr::group_by(.data$reef_name) |>
-    dplyr::summarise(tows = dplyr::n(), strong = sum(.data$strong), .groups = "drop")
-  fc <- forecast[forecast$year == forecast_year, ]
-  tibble::tibble(reef_name = reefs) |>
-    dplyr::left_join(dv, by = "reef_name") |>
-    dplyr::left_join(tw, by = "reef_name") |>
-    dplyr::mutate(dplyr::across(c("dives", "problematic", "tows", "strong"), ~ dplyr::coalesce(.x, 0L)),
-                  forecast_prob = fc$forecast[match(reef_id(.data$reef_name), fc$reef_id)])
-}
-reef_terms <- function(e, forecast_fill) {
-  logit_share <- function(k, n) ifelse(n > 0, stats::qlogis((k + 0.5) / (n + 1)), 0)
-  f <- dplyr::coalesce(e$forecast_prob, forecast_fill)
-  data.frame(has_dives = as.numeric(e$dives > 0), dive_rate = logit_share(e$problematic, e$dives),
-             log_dives = log1p(e$dives), has_tows = as.numeric(e$tows > 0),
-             tow_rate = logit_share(e$strong, e$tows), forecast = stats::qlogis(pmin(pmax(f, 1e-3), 1 - 1e-3)))
-}
-variants <- list(
-  evidence_forecast = problematic ~ pct + has_dives + dive_rate + log_dives + has_tows + tow_rate + forecast,
-  evidence = problematic ~ pct + has_dives + dive_rate + log_dives + has_tows + tow_rate,
-  forecast = problematic ~ pct + forecast)
+variants <- density_variants
 forecast_median <- stats::median(forecast$forecast[forecast$year >= 2018], na.rm = TRUE)
 
 # Previous-season evidence for every reef-year 2019-2026 (calendar T - 1, as in
@@ -133,7 +105,7 @@ dived <- dives[!is.na(dives$site_row), c(key, "outcome", "high")] |>
 years <- sort(unique(dived$year))
 reef_years <- dplyr::bind_rows(lapply(years, function(T) {
   reefs <- unique(dived$reef_name[dived$year == T])
-  e <- reef_evidence(reefs, dives[dives$year == T - 1, ], tows[tows$year == T - 1, ], T - sr$density_forecast_lag)
+  e <- reef_evidence(reefs, dives[dives$year == T - 1, ], tows[tows$year == T - 1, ], T - sr$density_forecast_lag, forecast)
   dplyr::bind_cols(e, reef_terms(e, forecast_median)) |> dplyr::mutate(year = T)
 })) |>
   dplyr::left_join(site_counts, by = "reef_name") |>
@@ -143,14 +115,6 @@ dived <- dplyr::inner_join(dived, reef_years, by = c("reef_name", "year")) |>
   dplyr::mutate(problematic = as.numeric(.data$outcome == "problematic"))
 log_message(format(nrow(dived), big.mark = ","), " dives on ", nrow(reef_years), " reef-years ", min(years), "-", max(years))
 
-# Every designated site of a reef-year, at its within-reef percentile.
-site_grid <- function(ry) {
-  n <- ry$sites_on_reef
-  idx <- rep(seq_len(nrow(ry)), n)
-  out <- ry[idx, ]
-  out$pct <- unlist(lapply(n, function(k) (seq_len(k) - 1) / max(k - 1, 1)))
-  out
-}
 # Cut-offs on P giving the cumulative class shares over a set of sites.
 class_cutoffs <- function(p, shares) {
   s <- sort(p, decreasing = TRUE)
@@ -168,20 +132,19 @@ surveyed <- dplyr::bind_rows(lapply(sort(unique(tows$year)), function(T) {
   prev <- union(tows$reef_name[tows$year == T - 1], dives$reef_name[dives$year == T - 1])
   r <- setdiff(intersect(unique(tows$reef_name[tows$year == T]), cull_reefs), prev)
   if (!length(r)) return(NULL)
-  e <- reef_evidence(r, dives[0, ], tows[0, ], T - sr$density_forecast_lag)
+  e <- reef_evidence(r, dives[0, ], tows[0, ], T - sr$density_forecast_lag, forecast)
   data.frame(year = T, reef_name = r, forecast = reef_terms(e, forecast_median)$forecast,
              needed = as.numeric(r %in% dives$reef_name[dives$year == T & dives$outcome == "problematic"]))
 }))
 unknown_fit <- function(max_year) stats::glm(needed ~ forecast, family = stats::binomial(),
                                              data = surveyed[surveyed$year <= max_year, ])
-discount <- function(lp, d, um) {
-  unknown <- d$has_dives == 0 & d$has_tows == 0
-  w <- stats::predict(um, data.frame(forecast = d$forecast[unknown]), type = "response")
-  lp[unknown] <- stats::qlogis(w * stats::plogis(lp[unknown]))
-  lp
-}
 log_message(nrow(surveyed), " unknown-reef surveys ", min(surveyed$year), "-", max(surveyed$year), "; ",
             round(100 * mean(surveyed$needed)), " % needed culling")
+# Training inputs for the protocol under these classes (36).
+saveRDS(list(dived = dived, reef_years = reef_years, surveyed = surveyed, forecast_median = forecast_median,
+             dives = dives[, c("reef_name", "year", "survey_date", "outcome")],
+             tows = tows[, c("reef_name", "year", "survey_date", "strong")]),
+        file.path(cfg$dirs$cache, "site_ranking_density_inputs.rds"))
 # Scaled quotas (deployed): absolute cut-offs on P let reef density swamp the
 # within-reef order (dense reefs all A, sparse reefs none), so the product
 # instead keeps every reef's own order and shifts its class shares with its
@@ -193,9 +156,6 @@ log_message(nrow(surveyed), " unknown-reef surveys ", min(surveyed$year), "-", m
 # reef-years. A typical reef keeps 20/50/66/80 %. As one score: a site at top
 # fraction t of its reef (rank - 0.5) / n scores delta - qlogis(t), and is in
 # class k or better when the score >= -qlogis(break_k).
-scaled_score <- function(delta, rank, n) delta - stats::qlogis((rank - 0.5) / n)
-reef_density <- function(lp, reef) tapply(stats::plogis(lp), reef, mean)
-rank_of <- function(pct, n) n - pct * (n - 1)
 # Scores compared: each model variant; "absolute" (evidence + forecast,
 # unknown reefs scaled, absolute cut-offs on P); "scaled" (deployed).
 model_scores <- c(names(variants), "absolute")
@@ -214,7 +174,7 @@ for (T in test_years) {
   um <- unknown_fit(T - 1)
   for (vn in model_scores) {
     m <- stats::glm(variants[[if (vn == "absolute") "evidence_forecast" else vn]], family = stats::binomial(), data = tr)
-    adjust <- if (vn == "absolute") function(lp, d) discount(lp, d, um) else function(lp, d) lp
+    adjust <- if (vn == "absolute") function(lp, d) discount_unknown(lp, d, um) else function(lp, d) lp
     grid[[vn]] <- adjust(stats::predict(m, grid), grid)
     dv[[vn]] <- adjust(stats::predict(m, dv), dv)
     tr_lp <- adjust(stats::predict(m, tr_grid), tr_grid)
@@ -328,7 +288,7 @@ model <- stats::glm(variants[[deployed]], family = stats::binomial(), data = cal
 um <- unknown_fit(sr$density_calibration_years[2])
 saveRDS(list(site = model, unknown_reef = um), file.path(cfg$dirs$models, "site_ranking_density_2027_glm.rds"))
 cal_grid <- site_grid(reef_years[reef_years$reef_year %in% cal$reef_year, ])
-typical <- stats::median(reef_density(discount(stats::predict(model, cal_grid), cal_grid, um), cal_grid$reef_year))
+typical <- stats::median(reef_density(discount_unknown(stats::predict(model, cal_grid), cal_grid, um), cal_grid$reef_year))
 coef_term <- function(m, prefix) tibble::tibble(term = paste0(prefix, names(stats::coef(m))), estimate = unname(stats::coef(m)),
                                                 std_error = unname(sqrt(diag(stats::vcov(m)))))
 coef_table <- dplyr::bind_rows(
@@ -345,7 +305,7 @@ ranking <- utils::read.csv(file.path(out_dir, "cots_cull_site_priority_2027.csv"
 e27 <- reef_evidence(unique(ranking$reef_name),
                      dives[dives$survey_date >= evidence_start & dives$survey_date <= sr$evidence_end, ],
                      tows[tows$survey_date >= evidence_start & tows$survey_date <= sr$evidence_end, ],
-                     sr$target_season - sr$density_forecast_lag)
+                     sr$target_season - sr$density_forecast_lag, forecast)
 e27 <- dplyr::bind_cols(e27, reef_terms(e27, forecast_median)) |>
   dplyr::mutate(density_source = dplyr::case_when(
     .data$dives > 0 & .data$tows > 0 ~ "dives and manta tows",
@@ -356,7 +316,7 @@ e27 <- dplyr::bind_cols(e27, reef_terms(e27, forecast_median)) |>
 sites <- ranking |>
   dplyr::mutate(pct = (.data$sites_on_reef - .data$rank_on_reef) / pmax(.data$sites_on_reef - 1, 1)) |>
   dplyr::left_join(e27, by = "reef_name")
-sites$lp <- discount(stats::predict(model, sites), sites, um)
+sites$lp <- discount_unknown(stats::predict(model, sites), sites, um)
 sites$p_problematic_density <- stats::plogis(sites$lp)
 sites <- sites |>
   dplyr::group_by(.data$reef_name) |>

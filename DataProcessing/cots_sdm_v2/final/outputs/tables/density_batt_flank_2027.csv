@@ -1,0 +1,37 @@
+"layer","flank","sites","a","a_to_c","tows_since_2019","strong_share"
+"within-reef","NE",49,0,24,1337,0.00448765893792072
+"within-reef","SW",43,18,36,1376,0.0625
+"density-aware","NE",49,12,43,1337,0.00448765893792072
+"density-aware","SW",43,35,39,1376,0.0625
+"12 m","NE",49,3,45,1337,0.00448765893792072
+"12 m","SW",43,34,39,1376,0.0625
+"recent","NE",49,4,46,1337,0.00448765893792072
+"recent","SW",43,34,39,1376,0.0625
+"recent, no forecast","NE",49,10,46,1337,0.00448765893792072
+"recent, no forecast","SW",43,35,40,1376,0.0625
+"recent, two-part","NE",49,8,47,1337,0.00448765893792072
+"recent, two-part","SW",43,35,41,1376,0.0625
+"recent, two-part, no forecast","NE",49,15,47,1337,0.00448765893792072
+"recent, two-part, no forecast","SW",43,35,42,1376,0.0625
+"two-part, damped lift","NE",49,2,44,1337,0.00448765893792072
+"two-part, damped lift","SW",43,33,39,1376,0.0625
+"two-part, no lift where searched clean","NE",49,12,43,1337,0.00448765893792072
+"two-part, no lift where searched clean","SW",43,35,37,1376,0.0625
+"two-part, site model","NE",49,23,48,1337,0.00448765893792072
+"two-part, site model","SW",43,32,43,1376,0.0625
+"two-part, site visit model","NE",49,1,13,1337,0.00448765893792072
+"two-part, site visit model","SW",43,30,36,1376,0.0625
+"two-part, site + visit model","NE",49,2,47,1337,0.00448765893792072
+"two-part, site + visit model","SW",43,31,41,1376,0.0625
+"two-part quota, site + visit order","NE",49,9,47,1337,0.00448765893792072
+"two-part quota, site + visit order","SW",43,34,41,1376,0.0625
+"density-aware v2","NE",49,2,47,1337,0.00448765893792072
+"density-aware v2","SW",43,31,41,1376,0.0625
+"density-aware v2, untowed neutral","NE",49,1,48,1337,0.00448765893792072
+"density-aware v2, untowed neutral","SW",43,32,42,1376,0.0625
+"density-aware v2, untowed neutral + habitat","NE",49,1,48,1337,0.00448765893792072
+"density-aware v2, untowed neutral + habitat","SW",43,32,42,1376,0.0625
+"density-aware v3, local tow density","NE",49,1,47,1337,0.00448765893792072
+"density-aware v3, local tow density","SW",43,32,41,1376,0.0625
+"density-aware v3, local tow density + aspect","NE",49,1,47,1337,0.00448765893792072
+"density-aware v3, local tow density + aspect","SW",43,33,42,1376,0.0625

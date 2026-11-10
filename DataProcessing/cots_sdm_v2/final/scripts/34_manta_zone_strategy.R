@@ -64,7 +64,7 @@ site_buffer_m <- 100
 min_skip <- 3L
 segment_break_m <- 1000
 link_distance_m <- 500
-zone_cuts <- c(1, 0.9, 0.8, 0.7, 0.6, 0.5)
+zone_cuts <- c(1, 0.9, 0.8, 0.7, 0.66, 0.6, 0.5)   # 0.66 = A-C, 0.5 = A-B
 n_shifts <- 20L
 blocks <- list(c(9, 3), c(6, 3), c(3, 3), c(3, 6))
 strong_classes <- c("direct_cots", "multiple_counted_scars", "legacy_common_scars")

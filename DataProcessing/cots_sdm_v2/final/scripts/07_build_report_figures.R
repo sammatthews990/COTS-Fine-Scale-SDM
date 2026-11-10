@@ -1049,47 +1049,94 @@ if (file.exists(file.path(ranking_dir, "cots_exploration_zones_2027.gpkg"))) {
   recent12 <- recent[recent$survey_date > cfg$site_ranking$evidence_end - 365, ]
   recent12$evidence <- ifelse(recent12$manta_evidence_class %in% strong_classes, "Strong evidence", "Weak or none")
   recent12 <- recent12[order(recent12$evidence == "Strong evidence"), ]   # strong tows drawn on top
+  # Density-aware v2 classes (37) on two dense reefs, a culled-down reef (Big
+  # Broadhurst) and a southern reef (Lady Musgrave).
+  density_sites <- utils::read.csv(file.path(ranking_dir, "cots_cull_site_priority_density_v2_2027.csv"), stringsAsFactors = FALSE)
+  density_reefs <- utils::read.csv(file.path(ranking_dir, "cots_cull_site_priority_density_v2_2027_reefs.csv"), stringsAsFactors = FALSE)
+  cull_sites$priority_density <- density_sites$priority_density_v2[match(paste(cull_sites$reef_name, cull_sites$site_name),
+                                                                         paste(density_sites$reef_name, density_sites$site_name))]
+  # Replay numbers for the two zones (36), v2 product layer.
+  pzs <- read_table("protocol_density_statistics.csv")
+  pz <- function(zone, metric) pzs$value[pzs$scope == "all visits" & !pzs$random & pzs$layer %in% "density-aware v2, untowed neutral" &
+                                           pzs$zone == zone & pzs$rule == "none" & pzs$memory %in% TRUE & pzs$metric == metric]
+  fig22_reefs <- c(batt = "16-029", eyrie = "14-118", broadhurst = "18-100a", lady_musgrave = "23-082a")
+  fig22_geo <- lapply(fig22_reefs, function(label) {
+    i <- match(label, reef_ids)
+    if (!is.na(i)) return(list(name = reef_panels[[i]]$name, polygon = reef_panels[[i]]$polygon,
+                               frame = reef_panels[[i]]$frame, imagery = reef_imagery[[i]]))
+    polygon <- features[features$LABEL_ID == label, ]
+    frame <- sf::st_bbox(sf::st_buffer(polygon, 300))
+    list(name = polygon$GBR_NAME[1], polygon = polygon, frame = frame,
+         imagery = maptiles::get_tiles(sf::st_as_sfc(frame), provider = imagery_provider, zoom = 14, crop = TRUE,
+                                       project = TRUE, cachedir = tile_dir))
+  })
   fig22_panel <- function(slug) {
-    i <- match(slug, names(reef_ids))
-    p <- reef_panels[[i]]
-    frame <- p$frame
-    label <- reef_ids[[slug]]
-    sites_r <- sf::st_transform(cull_sites[grepl(paste0("(", label, ")"), cull_sites$reef_name, fixed = TRUE), ], sf::st_crs(p$polygon))
-    zone_r <- sf::st_sf(geometry = sf::st_union(sf::st_buffer(sites_r[sites_r$priority %in% c("A", "B", "C"), ], 100)))
+    g <- fig22_geo[[slug]]
+    frame <- g$frame
+    label <- fig22_reefs[[slug]]
+    in_reef <- function(x) grepl(paste0("(", label, ")"), x, fixed = TRUE)
+    sites_r <- sf::st_transform(cull_sites[in_reef(cull_sites$reef_name), ], sf::st_crs(g$polygon))
+    zone_r <- sf::st_sf(geometry = sf::st_union(sf::st_buffer(sites_r[sites_r$priority_density %in% c("A", "B"), ], 100)))
+    zone_c <- sf::st_sf(geometry = sf::st_union(sf::st_buffer(sites_r[sites_r$priority_density %in% c("A", "B", "C"), ], 100)))
+    explore_r <- sf::st_transform(explore[in_reef(explore$reef_name), ], sf::st_crs(g$polygon))
     tows_r <- recent12[recent12$sx > frame[1] & recent12$sx < frame[3] & recent12$sy > frame[2] & recent12$sy < frame[4], ]
+    rd <- density_reefs[in_reef(density_reefs$reef_name), ]
     ggplot() +
-      tidyterra::geom_spatraster_rgb(data = reef_imagery[[i]], maxcell = 2e6) +
-      geom_sf(data = p$polygon, fill = NA, colour = "white", linewidth = 0.25) +
-      geom_sf(data = sites_r, aes(fill = priority), colour = NA, alpha = 0.8) +
+      tidyterra::geom_spatraster_rgb(data = g$imagery, maxcell = 2e6) +
+      geom_sf(data = g$polygon, fill = NA, colour = "white", linewidth = 0.25) +
+      geom_sf(data = explore_r[order(explore_r$habitat_floor), ], aes(alpha = zone), fill = "#7b68d9", colour = NA) +
+      geom_sf(data = sites_r, aes(fill = priority_density), colour = NA, alpha = 0.8) +
       geom_segment(data = tows_r, aes(x = sx, y = sy, xend = ex, yend = ey, colour = evidence, linewidth = evidence)) +
-      geom_sf(data = zone_r, aes(linetype = "Tow zone on follow-up visits"), fill = NA, colour = "white", linewidth = 0.7) +
-      scale_fill_manual(values = priority_cols, labels = priority_labels, name = "Site priority", na.translate = FALSE) +
-      scale_colour_manual(values = c("Strong evidence" = "#2ee6ff", "Weak or none" = "#cde2fb"), name = "Manta tows, last 12 months") +
-      scale_linewidth_manual(values = c("Strong evidence" = 0.9, "Weak or none" = 0.25), guide = "none") +
-      scale_linetype_manual(values = c("Tow zone on follow-up visits" = "22"), name = NULL) +
+      geom_sf(data = zone_c, aes(linetype = "Extended to A-C + 100 m (fewer misses)"), fill = NA, colour = "#f2b705", linewidth = 0.6) +
+      geom_sf(data = zone_r, aes(linetype = "Follow-up tow zone: A-B + 100 m"), fill = NA, colour = "white", linewidth = 0.7) +
+      scale_fill_manual(values = priority_cols, limits = names(priority_cols), name = "Site priority (density-aware v2)",
+                        na.translate = FALSE) +
+      scale_colour_manual(values = c("Strong evidence" = "#2ee6ff", "Weak or none" = "#cde2fb"),
+                          limits = c("Strong evidence", "Weak or none"), name = "Manta tows, last 12 months") +
+      scale_linewidth_manual(values = c("Strong evidence" = 0.9, "Weak or none" = 0.25),
+                             limits = c("Strong evidence", "Weak or none"), guide = "none") +
+      scale_linetype_manual(values = c(`Follow-up tow zone: A-B + 100 m` = "22", `Extended to A-C + 100 m (fewer misses)` = "42"), limits = c("Follow-up tow zone: A-B + 100 m", "Extended to A-C + 100 m (fewer misses)"), name = NULL) +
+      scale_alpha_manual(values = stats::setNames(rep(zone_alpha, length(zone_levels)), zone_levels),
+                         name = "Exploration zones", drop = FALSE) +
       coord_sf(xlim = frame[c(1, 3)], ylim = frame[c(2, 4)], expand = FALSE, datum = NA) +
-      labs(title = paste0(sub(" \\(.*", "", p$name), " (", label, ")")) +
+      labs(title = paste0(sub(" \\(.*", "", sub("^\\((Big|Little)\\) ", "\\1 ", g$name)), " (", label, ")"),
+           subtitle = sprintf("Expected problematic dives %.0f %%\nA %d, A-B %d, A-C %d, A-D %d of %d sites",
+                              100 * rd$reef_density_v2, rd$priority_a, rd$priority_a + rd$priority_b,
+                              rd$priority_a + rd$priority_b + rd$priority_c, rd$sites - rd$priority_e, rd$sites)) +
       theme_map(8) +
+      theme(plot.subtitle = element_text(size = 7, colour = ink$secondary)) +
       guides(fill = guide_legend(order = 1, nrow = 1, override.aes = list(alpha = 0.9)),
              colour = guide_legend(order = 2, override.aes = list(linewidth = c(0.9, 0.4))),
-             linetype = guide_legend(order = 3, override.aes = list(colour = "#52514e")))
+             linetype = guide_legend(order = 3, override.aes = list(colour = c("#52514e", "#d99a00"))),
+             alpha = guide_legend(order = 4, nrow = 1, override.aes = list(
+               fill = "#7b68d9", alpha = 1 - (1 - zone_alpha)^seq_along(zone_levels))))
   }
-  fig22 <- (fig22_panel("batt") | fig22_panel("eyrie")) +
-    plot_layout(widths = c(1.35, 1), guides = "collect") +
+  # One legend, from Batt (every key present); other reefs may lack strong tows
+  # or a band, which would make patchwork collect a second, partial legend.
+  no_legend <- guides(fill = "none", colour = "none", linetype = "none", alpha = "none")
+  fig22 <- ((fig22_panel("batt") | fig22_panel("eyrie") + no_legend) + plot_layout(widths = c(1.35, 1))) /
+    ((fig22_panel("broadhurst") + no_legend | fig22_panel("lady_musgrave") + no_legend) + plot_layout(widths = c(1, 1))) +
+    plot_layout(guides = "collect") +
     plot_annotation(
-      title = "On a follow-up visit: tow the A-C zone, dive strong evidence, and dive other sites only if A-C",
+      title = "On a follow-up visit: tow the A-B zone (or A-C), dive strong evidence, and dive other sites only if A-D",
       subtitle = paste(
-        "Cull sites coloured by priority (habitat + last 12 months of dives and manta tows). Dashed: A-C sites plus 100 m, the ground",
-        "towed on a follow-up visit (open sites and sites near strong tows earlier that season are added on the day).", sep = "\n"),
+        "Cull sites coloured by density-aware v2 priority: each site's chance of a problematic dive, from the reef's recent density and the",
+        "site's own record of dives and tows. Expected problematic dives: the reef's dives and tows weighted to the last 90 days.",
+        "White dashed: A-B sites plus 100 m, the ground towed on a follow-up visit (open sites and sites near strong tows earlier that",
+        sprintf("season are added on the day). Amber dashed: the zone extended to A-C; in the 2020-2026 replay it saved %.0f %% rather than %.0f %%",
+                100 * pz("A-C", "tows_saved_follow_up_pct"), 100 * pz("A-B", "tows_saved_follow_up_pct")),
+        sprintf("of follow-up tows and missed %d rather than %d dives above 0.04. Purple: exploration zones (rarely searched habitat).",
+                as.integer(pz("A-C", "high_missed")), as.integer(pz("A-B", "high_missed"))), sep = "\n"),
       caption = paste(
         paste0("Tows and evidence to ", format(cfg$site_ranking$evidence_end, "%d %B %Y"),
                "; strong evidence = COTS seen, >= 2 feeding scars, or scars recorded as common."),
+        "Exploration zones as in fig17: top 40, 30, 20 and 10 % of the reef's habitat, > 150 m from tows in the last 5 seasons (darker is better habitat).",
         paste("Imagery:", maptiles::get_credit(imagery_provider)), sep = "\n"),
       theme = theme_report()
     ) &
     theme(legend.position = "bottom", legend.box = "vertical", legend.text = element_text(size = 7),
           legend.spacing.y = grid::unit(0.05, "cm"), legend.margin = margin(0, 0, 0, 0))
-  save_figure(fig22, cfg, "fig22_protocol_batt_eyrie.png", width = 7.5, height = 5.6)
+  save_figure(fig22, cfg, "fig22_protocol_batt_eyrie.png", width = 7.5, height = 10)
 }
 
 # --- fig23: proposed on-water workflow for a reef visit (35) ----------------------
@@ -1131,6 +1178,138 @@ fig23 <- ggplot() +
   theme_void() +
   theme(plot.background = element_rect(fill = ink$surface, colour = NA))
 save_figure(fig23, cfg, "fig23_workflow_decision.png", width = 7.5, height = 4.6)
+
+# --- fig33: tow zone and dive rule trade-offs, within-reef vs density-aware v1, v2 (36) --
+if (file.exists(file.path(tables_dir, "protocol_density_tradeoff.csv"))) {
+  pdt <- read_table("protocol_density_tradeoff.csv")
+  v2_layer <- "density-aware v2, untowed neutral"   # the v2 product (37)
+  layer_cols <- c(`within-reef` = "#3987e5", `density-aware` = "#eb6834", `density-aware v2, untowed neutral` = "#1baf7a")
+  layer_labels <- c(`within-reef` = "Within-reef", `density-aware` = "Density-aware v1", `density-aware v2, untowed neutral` = "Density-aware v2")
+  pdt <- pdt[is.na(pdt$layer) | pdt$layer %in% c("none", names(layer_cols)), ]
+  zr <- pdt[!pdt$random & pdt$rule %in% "none" & pdt$zone %in% c("A-B", "A-C") & pdt$memory %in% TRUE, ]
+  zr$layer <- factor(zr$layer, names(layer_cols))
+  zr$label <- paste0(sub("-", "–", zr$zone), " zone")
+  p_zone <- ggplot(zr, aes(tows_saved_follow_up_pct, high_missed, colour = layer)) +
+    geom_line(aes(group = layer), linewidth = 0.5) +
+    geom_point(size = 2.6) +
+    geom_text(aes(label = label), nudge_y = 1.1, size = 2.6, show.legend = FALSE, family = report_font) +
+    scale_colour_manual(values = layer_cols, guide = "none") +
+    scale_x_continuous(labels = scales::label_percent(accuracy = 1), limits = c(0.06, 0.27)) +
+    scale_y_continuous(limits = c(-1, 24)) +
+    labs(title = "Tow zone on follow-up visits (season memory)", x = "Follow-up tows saved",
+         y = "Dives > 0.04 missed (2020–2026)") +
+    theme_report() + theme(plot.title = element_text(size = 9, face = "bold"))
+  evidence_labels <- c(`discretion at A-x` = "Weak or no evidence: dive A–x at discretion",
+                       `weak-scar dives only` = "Rank filters weak-scar dives only",
+                       `weak evidence at A-x` = "At least a weak scar needed, at A–x only")
+  dr <- pdt[!pdt$random & pdt$zone %in% "none" & pdt$rule %in% c("A-B", "A-C", "A-D"), ]
+  dr$layer <- factor(dr$layer, names(layer_cols))
+  dr$evidence <- factor(evidence_labels[dr$evidence], evidence_labels)
+  dr <- dr[order(dr$layer, dr$evidence, dr$rule), ]
+  rnd <- pdt[pdt$random & grepl("within-reef", pdt$variant) & pdt$evidence %in% "discretion at A-x", ]
+  slope <- stats::median(rnd$ghost_avoided_pct / rnd$high_missed_pct)
+  p_rule <- ggplot(dr, aes(high_missed_pct, ghost_avoided_pct, colour = layer)) +
+    geom_abline(slope = slope, intercept = 0, linetype = "22", colour = ink$muted) +
+    annotate("text", x = 0.04, y = 0.04 * slope - 0.03, label = "random", size = 2.6, colour = ink$secondary,
+             hjust = 0, family = report_font) +
+    geom_path(aes(group = interaction(layer, evidence), linetype = evidence), linewidth = 0.5) +
+    geom_point(aes(shape = evidence), size = 2.3) +
+    geom_text(data = dr[dr$evidence == evidence_labels[["discretion at A-x"]], ], aes(label = sub("-", "–", rule)),
+              nudge_x = -0.004, nudge_y = 0.018, size = 2.5, show.legend = FALSE, family = report_font) +
+    scale_colour_manual(values = layer_cols, labels = layer_labels, name = "Classes") +
+    scale_linetype_manual(values = stats::setNames(c("solid", "42", "12"), evidence_labels), name = "Dive rule") +
+    scale_shape_manual(values = stats::setNames(c(16, 17, 1), evidence_labels), name = "Dive rule") +
+    scale_x_continuous(labels = scales::label_percent(accuracy = 1), breaks = seq(0, 0.1, 0.02), limits = c(0, 0.105)) +
+    scale_y_continuous(labels = scales::label_percent(accuracy = 1), limits = c(0, 0.68)) +
+    labs(title = "Dive rule for dives without strong evidence", x = "Dives > 0.04 missed", y = "Ghost dives avoided") +
+    theme_report() + theme(plot.title = element_text(size = 9, face = "bold"))
+  fig33 <- (p_zone | p_rule) +
+    plot_layout(widths = c(1, 1.25), guides = "collect") +
+    plot_annotation(
+      title = "Density-aware v2 saves the most tows for few misses and avoids the most ghost dives",
+      subtitle = paste(
+        "Replay of 2020–2026 reef visits (1,683 visits, 14,755 dives at designated sites), refitted on earlier seasons only. v1: a reef's share of",
+        "sites in each class grows with its 12-month density. v2: each site's chance of a problematic dive from the reef's recent density and the",
+        "site's own record of dives and tows (reefs with no recent dives or tows: recent density quota).", sep = "\n"),
+      caption = paste(
+        "Left: tows saved on follow-up visits and dives > 0.04 whose only strong tow the zone skipped. Right: the dive rule alone (towing as recorded);",
+        "dashed line: the same number of dives skipped at random among dives without strong evidence. Labels give the class cut-off (A–B 50 %, A–C 66 %, A–D 80 %).",
+        sep = "\n"),
+      theme = theme_report()) &
+    theme(legend.position = "bottom", legend.box = "vertical", legend.text = element_text(size = 7),
+          legend.spacing.y = grid::unit(0.05, "cm"), legend.margin = margin(0, 0, 0, 0))
+  save_figure(fig33, cfg, "fig33_protocol_density_tradeoff.png", width = 7.5, height = 4.6)
+}
+
+# --- fig34: ghost dives avoided per dive above 0.04 missed, by dive rule (36) -----
+if (file.exists(file.path(tables_dir, "protocol_density_statistics.csv"))) {
+  pds <- read_table("protocol_density_statistics.csv")
+  v2_layer <- "density-aware v2, untowed neutral"
+  pds <- pds[pds$scope == "all visits", ]
+  rule_id <- function(layer, zone, rule, memory = zone != "none")
+    paste(layer, paste("zone", zone), if (memory) "memory" else "no memory", paste("rule", rule), "discretion at A-x", sep = " / ")
+  opts <- tibble::tribble(
+    ~group, ~label, ~variant,
+    "Evidence alone", "Skip weak-scar dives", "evidence only: skip weak-scar dives",
+    "Evidence alone", "Skip dives with no tow or negative tows", "evidence only: skip no-evidence dives (negative-only or no tow)",
+    "Evidence alone", "Dive only on strong evidence", "evidence only: skip all non-strong dives",
+    "Random", "Same number skipped at random", paste("random:", rule_id("within-reef", "none", "A-C")),
+    "Within-reef", "Dive rule A–D", rule_id("within-reef", "none", "A-D"),
+    "Within-reef", "Dive rule A–C", rule_id("within-reef", "none", "A-C"),
+    "Within-reef", "Dive rule A–B", rule_id("within-reef", "none", "A-B"),
+    "Density-aware v1", "Dive rule A–D", rule_id("density-aware", "none", "A-D"),
+    "Density-aware v1", "Dive rule A–C", rule_id("density-aware", "none", "A-C"),
+    "Density-aware v1", "Dive rule A–B", rule_id("density-aware", "none", "A-B"),
+    "Density-aware v2", "Dive rule A–D", rule_id(v2_layer, "none", "A-D"),
+    "Density-aware v2", "Dive rule A–C", rule_id(v2_layer, "none", "A-C"),
+    "Density-aware v2", "Dive rule A–B", rule_id(v2_layer, "none", "A-B"),
+    "With the tow zone", "Within-reef: zone A–C + rule A–C", rule_id("within-reef", "A-C", "A-C"),
+    "With the tow zone", "v1: zone A–B + rule A–C", rule_id("density-aware", "A-B", "A-C"),
+    "With the tow zone", "v2: zone A–C + rule A–D", rule_id(v2_layer, "A-C", "A-D"),
+    "With the tow zone", "v2: zone A–B + rule A–D", rule_id(v2_layer, "A-B", "A-D"),
+    "With the tow zone", "v2: zone A–B + rule A–C", rule_id(v2_layer, "A-B", "A-C"))
+  val <- function(v, m, col = "value") vapply(v, function(x) pds[[col]][pds$variant == x & pds$metric == m][1], numeric(1))
+  opts$ratio <- val(opts$variant, "ghost_per_high_missed")
+  opts$low <- val(opts$variant, "ghost_per_high_missed", "low")
+  opts$high <- val(opts$variant, "ghost_per_high_missed", "high")
+  opts$missed <- val(opts$variant, "high_missed")
+  opts$missed_pct <- val(opts$variant, "high_missed_pct")
+  stopifnot(!anyNA(opts$ratio))
+  opts$tone <- dplyr::case_when(opts$group %in% c("Evidence alone", "Random") ~ opts$group,
+                                startsWith(opts$label, "Within") ~ "Within-reef", startsWith(opts$label, "v1") ~ "Density-aware v1",
+                                startsWith(opts$label, "v2") ~ "Density-aware v2", TRUE ~ opts$group)
+  tone_cols <- c(`Evidence alone` = ink$muted, Random = ink$axis, `Within-reef` = "#3987e5",
+                 `Density-aware v1` = "#eb6834", `Density-aware v2` = "#1baf7a")
+  # The three options with the most ghost dives avoided per dive above 0.04 missed.
+  opts$best <- rank(-opts$ratio, ties.method = "first") <= 3
+  opts$group <- factor(opts$group, unique(opts$group))
+  opts$key <- factor(paste(opts$group, opts$label), rev(paste(opts$group, opts$label)))
+  opts$text <- sprintf("%.1f  (%s missed, %.1f%%)", opts$ratio, scales::comma(round(opts$missed)), 100 * opts$missed_pct)
+  random_ratio <- opts$ratio[opts$group == "Random"]
+  fig34 <- ggplot(opts, aes(ratio, key)) +
+    geom_vline(xintercept = random_ratio, linetype = "22", colour = ink$muted, linewidth = 0.4) +
+    geom_col(aes(fill = tone), width = 0.68) +
+    geom_col(data = opts[opts$best, ], fill = NA, colour = ink$primary, linewidth = 0.6, width = 0.68) +
+    geom_errorbar(aes(xmin = low, xmax = high), orientation = "y", width = 0.25, linewidth = 0.35, colour = ink$secondary) +
+    geom_text(aes(x = 13.4, label = text, fontface = ifelse(best, "bold", "plain")), hjust = 0, size = 2.5,
+              colour = ink$primary, family = report_font) +
+    scale_y_discrete(labels = function(k) opts$label[match(k, paste(opts$group, opts$label))]) +
+    scale_x_continuous(limits = c(0, 18.2), breaks = seq(0, 12, 2), expand = expansion(mult = c(0, 0))) +
+    scale_fill_manual(values = tone_cols, guide = "none") +
+    facet_grid(group ~ ., scales = "free_y", space = "free_y", switch = "y") +
+    labs(title = "Ghost dives avoided per dive above 0.04 missed",
+         subtitle = paste("Replay of 2020–2026 reef visits; dive rules apply to dives without a strong tow within 100 m (crew discretion",
+                          "within the classes). Whiskers: 95% interval over 300 reef-year resamples. Dashed: random skipping.", sep = "\n"),
+         x = "Ghost dives avoided per dive above 0.04 missed", y = NULL,
+         caption = paste("Outlined and bold: the three options with the most ghost dives avoided per dive above 0.04 missed.",
+                         "Labels: ratio, then dives above 0.04 missed (share of all such dives). With the tow zone: follow-up visits tow the zone with season memory.",
+                         sep = "\n")) +
+    theme_report() +
+    theme(strip.placement = "outside", strip.text.y.left = element_text(angle = 0, hjust = 1, face = "bold", size = 7.5),
+          panel.grid.major.y = element_blank(), panel.spacing.y = grid::unit(0.25, "lines"),
+          axis.text.y = element_text(size = 7.5))
+  save_figure(fig34, cfg, "fig34_ghost_per_miss.png", width = 7.5, height = 5.5)
+}
 
 if (file.exists(file.path(tables_dir, "metacommunity_candidates.csv"))) build_metacommunity_figures(cfg)
 if (file.exists(file.path(tables_dir, "calibration_20261021_summary.csv"))) build_calibration_report_figures(cfg)

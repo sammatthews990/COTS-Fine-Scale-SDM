@@ -932,7 +932,9 @@ All in `outputs/figures/`, 7.5 in wide at 300 dpi, built by `07` from the tables
 | `fig15_cull_search_area_evidence.png` | Habitat vs habitat + last season's dives and manta tows, at matched problematic-dive retention: sites searched, low-density and ghost dives avoided |
 | `fig16_manta_response_model.png` | Cull-trained vs manta-trained habitat models on both goals: tow ranking, aggregations found at 60 % of tows, low-density dives avoided |
 | `fig17_search_2027_exploration.png` | Batt and Eyrie: 2027 cull-site priority, manta tows of the last 5 seasons and exploration zones (nested habitat bands) over imagery |
-| `fig22_protocol_batt_eyrie.png` | Batt and Eyrie: the proposed protocol (35): five priority classes, the follow-up tow zone (A-C + 100 m) and the last 12 months of strong vs other tows |
+| `fig22_protocol_batt_eyrie.png` | Batt, Eyrie, Big Broadhurst and Lady Musgrave: the proposed protocol (35) under the density-aware v2 classes (37): classes, the follow-up tow zone (A-C + 100 m), exploration zones and the last 12 months of strong vs other tows |
+| `fig33_protocol_density_tradeoff.png` | Tow zone (A-B vs A-C) and dive rule (A-B/A-C/A-D, three evidence requirements) trade-offs, within-reef vs density-aware v1 and v2 classes (36) |
+| `fig34_ghost_per_miss.png` | Ghost dives avoided per dive above 0.04 missed: evidence-only rules, random, dive rules A-B/A-C/A-D under within-reef, v1 and v2 classes, and zone + rule protocols, with 95 % intervals (36) |
 | `fig23_workflow_decision.png` | Decision diagram for a reef visit under the proposed workflow (35): open sites, tow zone, strong-evidence trigger, A–C dive rule |
 | `fig18_metacommunity_candidates.png` | W, C3a and C6 historical trajectories: five-seed means and SD, with LTMP observations |
 | `fig21_manta_surveillance_highlight.png` | Plain-language surveillance summary of the same aggregation retention results: habitat-priority, evenly spaced and random tows; detailed figure 13 retained |
@@ -989,7 +991,7 @@ Rscript DataProcessing/cots_sdm_v2/final/scripts/18_layer_manta_within.R        
 Rscript DataProcessing/cots_sdm_v2/final/scripts/19_site_ranking_forward.R      # year-by-year forward test of the site ranking (~6 min; needs 16-17)
 Rscript DataProcessing/cots_sdm_v2/final/scripts/20_site_ranking_2027.R         # 2027 cull-site priority: CSV + KMZ (~5 min; needs 18-19)
 Rscript DataProcessing/cots_sdm_v2/final/scripts/20b_site_ranking_density_2027.R # density-aware classes: forward test, CSV + KMZ (~15 min; needs 19, 20)
-Rscript DataProcessing/cots_sdm_v2/final/scripts/21_exploration_areas.R         # exploration layer + zones, added to both 2027 KMZs (needs 17, 20, 20b)
+Rscript DataProcessing/cots_sdm_v2/final/scripts/21_exploration_areas.R         # exploration layer + zones, added to the 2027 KMZs (needs 17, 20, 20b; rerun after 37 for the v2 KMZ)
 Rscript DataProcessing/cots_sdm_v2/final/scripts/22_metacommunity_results.R      # frozen ADRIA calibration reporting snapshot
 Rscript DataProcessing/cots_sdm_v2/final/scripts/23_cull_high_density_evaluation.R # fixed rankings at >0.04; no refits
 Rscript DataProcessing/cots_sdm_v2/final/scripts/24_threshold_coral_refit.R       # coral terms + full refit at >0.04, forward test (~5 min; needs 15-17)
@@ -999,6 +1001,8 @@ Rscript DataProcessing/cots_sdm_v2/final/scripts/26_larval_concentration_report.
 Rscript DataProcessing/cots_sdm_v2/final/scripts/33_deployment_validation.R      # deployment-realistic forward test (~25 min; needs 14-17)
 Rscript DataProcessing/cots_sdm_v2/final/scripts/34_manta_zone_strategy.R        # option A: tow the zone, tows guide dives (~10 min; needs 33)
 Rscript DataProcessing/cots_sdm_v2/final/scripts/35_protocol_statistics.R        # proposed protocol: dive rule, zone, trial planning (~3 min; needs 34)
+Rscript DataProcessing/cots_sdm_v2/final/scripts/36_protocol_density.R           # protocol under density-aware classes; alternative densities and site-level layers, v2 (~30 min; needs 20b, 33, 34)
+Rscript DataProcessing/cots_sdm_v2/final/scripts/37_site_ranking_density_v2_2027.R # density-aware v2 product: CSV + KMZ (needs 36); then rerun 21 to add exploration zones to its KMZ
 Rscript DataProcessing/cots_sdm_v2/final/scripts/07_build_report_figures.R      # last: uses outputs of 06-21
 ```
 
@@ -1018,7 +1022,7 @@ final/
     layers/       delivered GeoTIFFs + layer_manifest.csv   (tifs git-ignored)
     tables/       every number quoted in the report            (tracked)
     figures/      fig01-fig19 PNGs                              (tracked)
-    site_ranking/ 2027 cull-site priority, within-reef (20) and density-aware (20b) (CSV, KMZ incl. exploration zones), exploration zones (CSV, GPKG)
+    site_ranking/ 2027 cull-site priority, within-reef (20), density-aware (20b) and density-aware v2 (37) (CSV, KMZ incl. exploration zones), exploration zones (CSV, GPKG)
   report/         results.qmd: Results section for the technical report
                   (quarto render report/results.qmd -> .docx and .html)
   models/         Hmsc production posteriors                    (git-ignored)
@@ -1722,6 +1726,277 @@ savings to halve the zone's misses again.
   recording with the ranking frozen before each voyage.
 - **Caveats:** scored on dives crews made; missed counted cautiously; COTS
   not culled remain until the next visit; tows, not boat time.
+
+34 now also scores a 0.66 zone cut (A–C), so the report's random-position and
+block baselines exist for it: on follow-up visits the A–C zone (no memory)
+saves 13.5 % of tows and misses 29 > 0.04 dives; the same tows skipped at
+random positions miss 49; 9-on-3-off blocks save 25 % and miss 68.
+
+## Protocol under density-aware classes; A–B vs A–C zone (36) — 9 November 2026
+
+`scripts/36_protocol_density.R` replays 35's protocol with the zone and dive
+rule taken from either the within-reef classes (20) or the density-aware
+classes (20b), for 2020–2026 (20b's forward test starts in 2020; 1,683 visits,
+1,119 follow-up, 14,755 dives). Each visit keeps its voyage-start order
+(33, `fwd_voyage`); density-aware class shares are
+`plogis(qlogis(break) + delta)`, with delta from the reef's dives and tows in
+the 365 days before the visit's planning date (earlier visits that season
+count) and the forecast for the year before, using 20b's model and
+unknown-reef discount refitted on seasons before T. Dive-rule evidence
+variants: **discretion** (35's rule: weak, negative-only and no-tow dives only
+at A–x), **weak-scar only** (only weak-scar dives filtered), **weak scar
+needed** (negative-only and no-tow dives skipped everywhere, weak-scar dives
+only at A–x). 300 reef-year bootstraps; paired density − within differences.
+20b's helpers moved to `R/density_classes.R`; 20b caches its training inputs
+for 36 (outputs unchanged, verified byte-identical).
+
+Outputs: `protocol_density_statistics.csv` (every rule set, both scopes, CIs),
+`_differences.csv` (paired), `_tradeoff.csv` (compact), `_zone_size.csv`,
+`_totals.csv`; fig33.
+
+| Classes | Setting | Follow-up tows saved | > 0.04 missed | Ghost avoided | Low avoided | Ghost per miss |
+|---|---|---:|---:|---:|---:|---:|
+| within-reef | Zone A–B (memory) | 19.7 % | 20 | 0.6 % | 0.6 % | 0.9 |
+| within-reef | Zone A–C (memory) | 12.7 % | 11 | 0.3 % | 0.3 % | 0.7 |
+| density-aware | Zone A–B (memory) | 14.3 % | 4 | 0.3 % | 0.2 % | 2.5 |
+| density-aware | Zone A–C (memory) | 8.5 % | 0 | 0.1 % | 0.0 % | — |
+| within-reef | Dive rule A–C, discretion | 0 | 206 (3.7 %) | 30.1 % | 19.5 % | 4.3 |
+| density-aware | Dive rule A–C, discretion | 0 | 166 (3.0 %) | 33.5 % | 19.1 % | 6.0 |
+| within-reef | Dive rule A–B, discretion | 0 | 321 (5.8 %) | 41.6 % | 27.8 % | 3.9 |
+| density-aware | Dive rule A–B, discretion | 0 | 232 (4.2 %) | 44.4 % | 25.8 % | 5.7 |
+| within-reef | Dive rule A–C, weak scar needed | 0 | 455 (8.2 %) | 40.6 % | 28.5 % | 2.7 |
+| density-aware | Dive rule A–C, weak scar needed | 0 | 423 (7.6 %) | 44.6 % | 28.7 % | 3.1 |
+| within-reef | Zone A–C + dive rule A–C | 12.7 % | 217 (3.9 %) | 30.3 % | 19.8 % | 4.2 |
+| density-aware | Zone A–B + dive rule A–C | 14.3 % | 170 (3.1 %) | 33.8 % | 19.4 % | 5.9 |
+
+Random skipping within the same pool gives about 2.1 ghost per miss.
+
+- **Zone.** Reefs revisited within a season are usually dense (median delta
+  0.69 on follow-ups), so density-aware zones are larger: the A–B zone holds a
+  median 68 % of a follow-up reef's sites (within-reef A–C 66 %). The
+  density-aware A–B zone saves about as many follow-up tows as within-reef A–C
+  (14.3 % vs 12.7 %) and misses 4 > 0.04 dives instead of 11. Paired
+  differences at the same cut: tows saved −4 to −5 points, misses −0.2 to
+  −0.4 points (CIs exclude zero). With density-aware classes, A–B is the zone
+  to use; A–C saves only 8.5 %.
+- **Dive rule.** At A–C, density-aware classes skip the same share of dives
+  (13.9 %) and avoid more ghost dives (+3.4 points, CI 0.9–5.5), with fewer
+  misses (−0.7 points, CI −1.4 to +0.2, not significant alone; −0.9, CI −1.6
+  to −0.0, with the zone). Low-density avoidance is unchanged.
+- **Requiring at least a weak scar** (skipping no-evidence dives) adds misses
+  almost at the random rate (about 3 ghost per miss): no-tow dives are
+  productive (as in 35). Filtering weak-scar dives only is a milder version of
+  the discretion rule with a similar ghost-per-miss ratio.
+- **Candidate protocol:** density-aware A–B zone with season memory plus the
+  A–C dive rule at discretion: 14.3 % of follow-up tows saved, 170 > 0.04
+  dives missed (3.1 %), 33.8 % ghost and 19.4 % low-density dives avoided.
+  The within-reef A–C version: 12.7 %, 217 (3.9 %), 30.3 %, 19.8 %.
+- **Caveats:** 2020's typical density came from one training season; the
+  density at planning uses earlier visits' dives, which encode where crews
+  chose to dive; hindcast forecasts are probably in-sample.
+
+## Density-aware v2: recent density and each site's own record (36, 37) — 9 November 2026
+
+**Why.** Field checks of the 20b classes:
+- Big Broadhurst scored 0.44. Its 12-month window held 42 problematic dives
+  out of 108, nearly all from June–October 2025; since January 2026 there
+  were 2 problematic out of 36.
+- John Brewer had 4 ghost dives and 91 tows without a strong scar, yet scored
+  0.26. 20b's model is fitted on dived reef-years only, so it predicts
+  P(problematic | crews dive).
+- The outbreak forecast was not the cause: both reefs' 2026 forecasts are
+  below 0.03.
+- Batt Reef's north-eastern flank went from 24 A–C sites (within-reef) to 43,
+  because the scaled quota lifts a dense reef's whole order.
+
+**Alternatives tested in 36.** All use the same replay (2020–2026, 1,683
+visits), with each layer's class cut-offs calibrated on the training seasons
+to the within-reef classes' pooled effort.
+- *Densities* (fitted on cull visits at their planning dates):
+  - 12 m reef-level model (control);
+  - recent, each dive and tow weighted 0.5^(age / 90 d);
+  - recent without the forecast;
+  - **recent two-part**: P(a survey occasion needs culling | evidence) ×
+    share problematic if dived. Survey occasions are a cull-site reef's dive
+    and tow dates split at gaps of more than 10 days, so tow-only surveys
+    count.
+- *Ways to keep a dense reef's sparse parts low* (each on the recent two-part
+  density):
+  - lift halved;
+  - no lift where the site was searched clean in the last year;
+  - site model: P(dive problematic) on reef density, logit rank and the
+    site's own record of dives within 300 m and linked tows, recent and from
+    1–6 years before;
+  - site visit model: the same terms, fitted on every designated site with the
+    outcome "problematic dive here on this visit", so never-dived sites count;
+  - site + 0.5 × visit model;
+  - quota version: two-part quota, with sites ordered by the site + visit
+    score;
+  - **density-aware v2**: site + visit on reefs with dives or tows in the year
+    before planning, the quota version elsewhere.
+- *Outputs:*
+  - `density_methods_accuracy.csv`: between-visit AUC, with a half-life
+    sensitivity;
+  - `density_layers_matched.csv`: matched effort with paired CIs;
+  - `protocol_density_*.csv` (all layers), `density_layer_thresholds.csv`,
+    `density_site_model_coefficients.csv`;
+  - `density_layers_2027_sites.csv` and `_totals.csv`,
+    `density_methods_2027_reefs.csv`;
+  - `density_clean_tow_sites.csv`, `density_batt_flank_2027.csv`,
+    `density_site_suppression.csv`.
+
+**Between-visit ranking of dives (pooled AUC):**
+- 20b density: 0.699; 12 m: 0.734; recent two-part: 0.740.
+- Half-lives from 60 to 180 days: 0.737–0.740. The forecast adds nothing.
+
+**Matched effort** (`density_layers_matched.csv`; bootstrap intervals in the
+CSV):
+
+| Layer | Ghost avoided at 3 % missed | Low avoided at 3 % missed | > 0.04 missed at 14 % skipped | Zone misses at 12 % tows saved |
+|---|---:|---:|---:|---:|
+| within-reef | 25.7 % | 16.6 % | 3.73 % | 10.4 |
+| density-aware v1 (20b) | 33.7 % | 19.3 % | 3.02 % | 2.4 |
+| recent two-part | 38.3 % | 19.2 % | 2.71 % | 2.9 |
+| site visit model | 29.1 % | 18.0 % | 3.44 % | 6.8 |
+| site + 0.5 × visit | 38.6 % | 22.4 % | 2.53 % | 1.5 |
+| quota, site + visit order | 37.6 % | 18.5 % | 2.85 % | 3.5 |
+| **density-aware v2** | **40.1 %** | **22.3 %** | **2.43 %** | **1.5** |
+
+v2 minus v1 (paired):
+
+| Measure | Difference | 95 % CI |
+|---|---:|---|
+| Ghost avoided | +6.4 points | +0.7 to +12.3 |
+| Low-density avoided | +3.0 points | −0.3 to +6.9 |
+| > 0.04 missed | −0.58 points | −1.13 to +0.01 |
+| Zone misses | −0.9 | −7.0 to +3.9 |
+
+**Operating points** (v2 classes are stricter, so the same cut skips more):
+
+| Rule | > 0.04 missed | Ghost avoided | Low avoided | Ghost per miss |
+|---|---:|---:|---:|---:|
+| v2 dive rule A–D | 123 (2.2 %) | 33.9 % | 18.0 % | 8.2 |
+| v2 dive rule A–C | 230 (4.1 %) | 49.0 % | 28.3 % | 6.3 |
+| v1 dive rule A–C (reference) | 166 (3.0 %) | 33.5 % | 19.1 % | 6.0 |
+
+- The v2 A–B zone saves 24.1 % of follow-up tows with 9 misses; v1 A–B saves
+  14.3 % with 4.
+- v2 zone A–B with rule A–D: 132 missed, 34.7 % ghost avoided.
+
+**Findings that shaped v2:**
+- **Weight 0.5 was chosen on the test seasons.** The exploratory grid ran from
+  0.5 to 5. Larger weights pushed long-clean flanks down (Batt NE flank: 23
+  A–C at w = 5) but lost misses and tow-zone performance. The margin is
+  therefore optimistic.
+- **Long-clean ground is not safe ground.** On dense reefs, sites with at
+  least 5 tows and no strong scar or dive in the previous 1–6 years were dived
+  405 times; 51 % of those dives were problematic and 132 were above 0.04
+  (`density_clean_tow_sites.csv`). Every layer lifts Batt's NE flank; the
+  flank had 0.4 % strong tows among its 1,337 tows since 2019, against 6.2 %
+  on the SW flank (`density_batt_flank_2027.csv`).
+- **The site models over-allocate where there is no evidence.** On reefs with
+  no recent dives or tows (forecast only), they gave about 60 % A–C against 27
+  % under the two-part quota, and about 1 in 5 such reefs needed culling.
+  Hence the hybrid.
+
+**Untowed sites neutral (10 November).**
+- *Problem.* Tongue showed it clearly: 155 of its 173 A–B sites had no tow or
+  dive within 100 m in the year (lagoon patches). The 74 towed sites, including
+  11 near last season's strong tows, sat in C–E. With no tow data, a site
+  entered the models with a strong-tow rate of 50 % (logit 0), far above a
+  typical towed site. John Brewer's lagoon showed the same effect.
+- *Fix.* An untowed site gets the mean recent strong-tow rate of the
+  visit's / reef's towed sites (as if towed with the reef's average result);
+  its 1–6 year record still counts.
+- *Rejected first:* shifting untowed scores to the towed sites' median. On
+  dense reefs it lifted ground crews skip because it is usually clean: Batt's
+  NE flank, 38 of its 49 sites untowed, went to 39 A.
+- *Replay cost* (`density-aware v2, untowed neutral` vs `density-aware v2`):
+
+| Measure | v2 | Untowed neutral |
+|---|---:|---:|
+| Dive rule A–D: missed / ghost per miss | 123 / 8.2 | 123 / 8.2 |
+| Ghost avoided at 3 % missed (matched) | 40.1 % | 40.3 % |
+| Zone A–B: follow-up tows saved | 24.1 % | 25.0 % |
+| Zone A–B: > 0.04 missed | 9 | 16 (+7, CI 0 to +17) |
+| Zone A–B + rule A–D: missed / ghost per miss | 132 / 7.8 | 139 / 7.5 |
+
+  Some untowed ground did hold aggregations. Adopted as the v2 product.
+
+**Habitat entered directly (10 November; tested, not adopted).**
+- *Method.* The untowed-neutral v2 with the site's habitat percentile on its
+  reef (33's forward cull layer per season; 2027: 20's deployed rank) and
+  habitat × untowed in both site models.
+- *Fitted effect (2026 fit).* Habitat is +0.35 across the full range in the
+  dive model and about 0 in the visit model. Habitat × untowed is −0.51:
+  where there are no tows the slope is slightly negative.
+- *Untowed sites* (`density_untowed_auc.csv`). Within-visit AUC among 1,969
+  dives on 314 visits:
+
+| Score | AUC (problematic) | AUC (> 0.04) |
+|---|---:|---:|
+| Habitat alone | 0.546 | 0.558 |
+| Voyage-start rank | 0.554 | 0.532 |
+| v2 untowed neutral | 0.609 | 0.599 |
+| v2 untowed neutral + habitat | 0.607 | 0.605 |
+
+- *Replay.* Matched-effort results are unchanged. Zone A–B misses 14 against
+  16.
+- *Batt.* Batt's NE flank is unchanged at 43 B, although its habitat
+  percentile averages 0.31 against 0.72 on the SW flank: the reef's density
+  dominates.
+- *Conclusion.* Habitat is already reflected through the rank, and the sites'
+  older records separate untowed sites better than habitat does.
+
+**Where on the reef density comes from: v3 and v3b (10 November; tested, not
+adopted).** The question was whether a site's density could come from nearby
+evidence rather than the whole reef, so that a dense flank (Batt's SW) stops
+lifting a quiet one (the NE).
+- *Quick check.* Tow evidence pooled over designated sites with a Gaussian
+  kernel ranks dives within a visit better than a site's own 100 m tows:
+  within-visit AUC 0.62 vs 0.58 in 2020–23, 0.63 vs 0.58 in 2024–26 (500 m
+  kernel, older tows included).
+- *Aspect.* Weighting the kernel by aspect similarity, the direction the nearest
+  reef edge faces from the GBR outlines, gave no consistent gain. It handled
+  opposite flanks correctly: Batt NE 60°, SW −122°.
+- *v3 (in 36).* The untowed-neutral v2 plus a local tow-density term, with and
+  without aspect. The term was small: 0.09–0.12 in the dive model and 0.21 in
+  the visit model. 2027 results:
+  - Batt's NE flank: 47 A–C against 48;
+  - Tongue: A–C rose from 148 to 172–177;
+  - John Brewer: A–C rose from 20 to 29–30.
+  - Not run through the full replay.
+- *v3b (quick test, scratch).* Each site's density from the recent two-part
+  model applied to kernel-weighted local dives and tows (500 m), shrunk to the
+  reef with 2 pseudo-dives and 5 pseudo-tows, refitted strictly forward.
+  - Within-visit AUC was almost the same as v2: 0.707 vs 0.704 (2020–23) and
+    0.683 vs 0.678 (2024–26); no gain at untowed sites.
+  - Batt: local density put the NE flank at 0.47 against 0.64 on the SW, yet
+    the NE flank kept 44 of 49 sites in A–C (v2 48).
+  - Tongue fell to 94 A–C, but John Brewer rose to 47 and the total to 6,425.
+- *Conclusion.* Stopped. Local density separates Batt's flanks only modestly,
+  and the dives do not reward pulling the NE flank down. The season's first
+  full tow and re-ranking before each voyage remain the way to drop clean
+  ground.
+
+**2027 product (37, untowed-neutral v2).**
+- Writes `cots_cull_site_priority_density_v2_2027.csv`, `.kmz` (21 adds
+  exploration zones) and `_reefs.csv`.
+- 676 A and 6,110 A–C sites, against 6,206 A–C for v1 and 10,170 within-reef.
+
+| Reef | v2 density | v1 density | v2 A–C | v1 A–C |
+|---|---:|---:|---:|---:|
+| Batt | 0.78 | 0.69 | 90 of 92 | 82 |
+| Tongue | 0.37 | 0.47 | 148 of 270 (A–B 28) | 206 |
+| Big Broadhurst | 0.14 | 0.44 | 43 of 145 | 107 |
+| John Brewer | 0.05 | 0.26 | 20 of 101 | 57 |
+
+**Caveats:**
+- The weight was chosen on the test seasons.
+- The visit model encodes where crews chose to dive.
+- Reefs with tows but no dives get 64 % A–C under v2, and the
+  replay scores them only where crews later dived.
+- Never-dived reefs cannot be tested.
 
 ## Why the old SDM validation ROC looked better (2 November 2026)
 

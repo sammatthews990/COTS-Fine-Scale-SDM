@@ -1,0 +1,73 @@
+"source","layer","reefs","sites","a","a_to_c","share_a_to_c","reefs_without_a_to_c"
+"GBR outbreak forecast only","within-reef",394,10679,1985,6831,0.639666635452758,7
+"dives","within-reef",13,264,48,168,0.636363636363636,0
+"dives and manta tows","within-reef",123,4060,762,2616,0.644334975369458,1
+"manta tows","within-reef",46,881,156,555,0.629965947786606,0
+"GBR outbreak forecast only","density-aware",394,10679,362,2319,0.21715516434123,12
+"dives","density-aware",13,264,71,179,0.678030303030303,0
+"dives and manta tows","density-aware",123,4060,1251,3024,0.744827586206897,0
+"manta tows","density-aware",46,881,272,684,0.77639046538025,0
+"GBR outbreak forecast only","12 m",394,10679,74,1746,0.163498454911509,16
+"dives","12 m",13,264,43,166,0.628787878787879,0
+"dives and manta tows","12 m",123,4060,628,2661,0.655418719211823,0
+"manta tows","12 m",46,881,90,565,0.641316685584563,0
+"GBR outbreak forecast only","recent",394,10679,73,1717,0.160782844835659,16
+"dives","recent",13,264,24,152,0.575757575757576,0
+"dives and manta tows","recent",123,4060,559,2620,0.645320197044335,0
+"manta tows","recent",46,881,89,559,0.634506242905789,0
+"GBR outbreak forecast only","recent, no forecast",394,10679,100,1948,0.182414083715704,13
+"dives","recent, no forecast",13,264,23,151,0.571969696969697,0
+"dives and manta tows","recent, no forecast",123,4060,609,2657,0.654433497536946,0
+"manta tows","recent, no forecast",46,881,99,584,0.662883087400681,0
+"GBR outbreak forecast only","recent, two-part",394,10679,107,2900,0.27156100758498,7
+"dives","recent, two-part",13,264,9,115,0.435606060606061,3
+"dives and manta tows","recent, two-part",123,4060,460,2505,0.616995073891626,0
+"manta tows","recent, two-part",46,881,14,307,0.348467650397276,0
+"GBR outbreak forecast only","recent, two-part, no forecast",394,10679,139,3124,0.292536754377751,7
+"dives","recent, two-part, no forecast",13,264,9,116,0.439393939393939,2
+"dives and manta tows","recent, two-part, no forecast",123,4060,507,2541,0.625862068965517,0
+"manta tows","recent, two-part, no forecast",46,881,17,327,0.37116912599319,0
+"GBR outbreak forecast only","two-part, damped lift",394,10679,276,3285,0.307613072385055,7
+"dives","two-part, damped lift",13,264,19,124,0.46969696969697,2
+"dives and manta tows","two-part, damped lift",123,4060,590,2585,0.636699507389163,0
+"manta tows","two-part, damped lift",46,881,34,339,0.384790011350738,0
+"GBR outbreak forecast only","two-part, no lift where searched clean",394,10679,155,3602,0.337297499765896,7
+"dives","two-part, no lift where searched clean",13,264,12,131,0.496212121212121,2
+"dives and manta tows","two-part, no lift where searched clean",123,4060,538,2657,0.654433497536946,0
+"manta tows","two-part, no lift where searched clean",46,881,17,366,0.415437003405221,0
+"GBR outbreak forecast only","two-part, site model",394,10679,1,5921,0.554452664107126,2
+"dives","two-part, site model",13,264,7,174,0.659090909090909,6
+"dives and manta tows","two-part, site model",123,4060,420,2445,0.602216748768473,7
+"manta tows","two-part, site model",46,881,3,565,0.641316685584563,1
+"GBR outbreak forecast only","two-part, site visit model",394,10679,15,7899,0.739675999625433,0
+"dives","two-part, site visit model",13,264,22,167,0.632575757575758,0
+"dives and manta tows","two-part, site visit model",123,4060,875,2737,0.674137931034483,0
+"manta tows","two-part, site visit model",46,881,0,516,0.585698070374574,0
+"GBR outbreak forecast only","two-part, site + visit model",394,10679,5,6448,0.60380185410619,1
+"dives","two-part, site + visit model",13,264,10,174,0.659090909090909,4
+"dives and manta tows","two-part, site + visit model",123,4060,526,2571,0.633251231527094,1
+"manta tows","two-part, site + visit model",46,881,3,527,0.598183881952327,0
+"GBR outbreak forecast only","two-part quota, site + visit order",394,10679,107,2900,0.27156100758498,7
+"dives","two-part quota, site + visit order",13,264,9,115,0.435606060606061,3
+"dives and manta tows","two-part quota, site + visit order",123,4060,460,2505,0.616995073891626,0
+"manta tows","two-part quota, site + visit order",46,881,14,307,0.348467650397276,0
+"GBR outbreak forecast only","density-aware v2",394,10679,107,2900,0.27156100758498,7
+"dives","density-aware v2",13,264,10,174,0.659090909090909,4
+"dives and manta tows","density-aware v2",123,4060,526,2571,0.633251231527094,1
+"manta tows","density-aware v2",46,881,3,527,0.598183881952327,0
+"GBR outbreak forecast only","density-aware v2, untowed neutral",394,10679,107,2900,0.27156100758498,7
+"dives","density-aware v2, untowed neutral",13,264,12,177,0.670454545454545,4
+"dives and manta tows","density-aware v2, untowed neutral",123,4060,553,2465,0.607142857142857,3
+"manta tows","density-aware v2, untowed neutral",46,881,4,568,0.64472190692395,0
+"GBR outbreak forecast only","density-aware v2, untowed neutral + habitat",394,10679,107,2900,0.27156100758498,7
+"dives","density-aware v2, untowed neutral + habitat",13,264,12,177,0.670454545454545,4
+"dives and manta tows","density-aware v2, untowed neutral + habitat",123,4060,548,2471,0.608620689655172,3
+"manta tows","density-aware v2, untowed neutral + habitat",46,881,4,572,0.649262202043133,0
+"GBR outbreak forecast only","density-aware v3, local tow density",394,10679,107,2900,0.27156100758498,7
+"dives","density-aware v3, local tow density",13,264,10,177,0.670454545454545,4
+"dives and manta tows","density-aware v3, local tow density",123,4060,539,2449,0.60320197044335,4
+"manta tows","density-aware v3, local tow density",46,881,3,569,0.645856980703746,0
+"GBR outbreak forecast only","density-aware v3, local tow density + aspect",394,10679,107,2900,0.27156100758498,7
+"dives","density-aware v3, local tow density + aspect",13,264,10,178,0.674242424242424,4
+"dives and manta tows","density-aware v3, local tow density + aspect",123,4060,540,2474,0.60935960591133,4
+"manta tows","density-aware v3, local tow density + aspect",46,881,3,574,0.651532349602724,0

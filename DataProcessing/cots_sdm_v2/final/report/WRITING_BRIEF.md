@@ -32,6 +32,31 @@ out with the existing temporal limitation. The new matched-retention comparison
 uses 1% integer-site steps rather than the older 5% percentile steps, and common
 new paired bootstrap draws. Exact incumbent A–C point estimates replay unchanged.
 
+## Exploration zones, A–C tow zone and density-aware classes (9 November 2026)
+
+Author requests: update the report for the shaded exploration zones (which
+replaced the ten discrete areas per reef), the A–C follow-up tow zone, and
+explain how the density-aware classes and zones are calculated.
+
+- **Exploration zones** are nested bands (top 40/30/20/10% of habitat) of
+  rarely searched ground, not targets: the discrete areas did not differ from
+  the surrounding habitat. Say "exploration zones", never "areas".
+- **Tow zone** is A–C (top 66%) throughout; script 34 now scores the 0.66 cut,
+  so its random and block baselines in Results are for A–C.
+- **Density-aware classes** (20b, 36): method and equations in Appendix N
+  (`#sec-density-classes`), with the workflow comparison table and fig33;
+  Methods and Results carry one paragraph each. They are an option alongside
+  the within-reef default, not an adopted replacement. Report the dive-rule
+  miss reduction with its paired interval (it crosses zero alone); the ghost
+  gain and the zone trade-off are clear. Their numbers cover 2020–2026, not
+  the 2019–2026 replay.
+- fig22 (Appendix N) now shows density-aware classes on Batt, Eyrie, Big
+  Broadhurst and John Brewer. Big Broadhurst is above typical density in the
+  model; John Brewer is below.
+- Appendix G's seasonal-product classes were corrected to the five classes.
+- Export passed (summary 349 words, four Results displays, template hash
+  unchanged; Discussion still 5 pages). No new review copy was created.
+
 ## On-water workflow integration (2 November 2026)
 
 The technical report now integrates the proposed manta tow and cull dive workflow

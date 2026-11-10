@@ -30,7 +30,7 @@
 #             these large bands; Chaikin takes a few seconds. Each band lies inside the one
 #             below it, so stacked semi-transparent fills darken towards the
 #             best habitat. Added as an "Exploration zones" folder to the 2027
-#             cull-site KMZs (20, 20b) and written to a GeoPackage and a
+#             cull-site KMZs (20, 20b, 37) and written to a GeoPackage and a
 #             per-reef CSV.
 # Zones replace the earlier top-10 discrete areas per reef: nothing separated
 # those areas from the surrounding unsearched habitat, so the whole of it is
@@ -303,9 +303,10 @@ exploration_folder <- paste0(
   " (purple, darker = better habitat): rarely searched ground outside cull sites</name>",
   "<open>0</open><visibility>1</visibility>", paste0(folders, collapse = ""), "</Folder>")
 
-# Add the zones to each cull-site KMZ staged by 20 and 20b.
+# Add the zones to each cull-site KMZ staged by 20, 20b and 37.
 kmz_targets <- c(site_ranking_kmz = "cots_cull_site_priority_2027.kmz",
-                 site_ranking_density_kmz = "cots_cull_site_priority_density_2027.kmz")
+                 site_ranking_density_kmz = "cots_cull_site_priority_density_2027.kmz",
+                 site_ranking_density_v2_kmz = "cots_cull_site_priority_density_v2_2027.kmz")
 stage_kml <- file.path(cfg$dirs$cache, names(kmz_targets), "doc.kml")
 if (!file.exists(stage_kml[1])) stop("Run 20_site_ranking_2027.R first (needs ", stage_kml[1], ")")
 for (k in which(file.exists(stage_kml))) {
