@@ -1,7 +1,0 @@
-export( "COTS_calibrate")
-importFrom( "methods", "as", "hasArg")
-importFrom( "stats", "rnbinom", "quantile","rbeta","rbinom")
-importFrom( "readxl", "read_excel")
-importFrom( "utils", "head")
-
-

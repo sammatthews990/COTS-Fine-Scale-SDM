@@ -1,0 +1,631 @@
+"layer","zone","rule","metric","value","low","high"
+"within-reef","A-B","none","dives_avoided_pct",0.0050152490681125,0.00323252537692193,0.0073226414534717
+"within-reef","A-B","none","high_missed",20,7.475,35.05
+"within-reef","A-B","none","high_missed_pct",0.00359066427289048,0.00128275368025042,0.00672454050523381
+"within-reef","A-B","none","low_avoided_pct",0.00589970501474926,0.00292651428303387,0.00962183929454531
+"within-reef","A-B","none","ghost_avoided_pct",0.00572390572390572,0.00242939430294933,0.0102362399228263
+"within-reef","A-B","none","ghost_per_high_missed",0.85,0.296911764705882,2.47361111111111
+"within-reef","A-B","none","tows_saved_follow_up_pct",0.196704407185135,0.175356615436411,0.219678097509188
+"within-reef","A-C","none","dives_avoided_pct",0.00250762453405625,0.00111172608338978,0.00398967621824803
+"within-reef","A-C","none","high_missed",11,2,25.525
+"within-reef","A-C","none","high_missed_pct",0.00197486535008977,0.000310498304814625,0.0045022454177104
+"within-reef","A-C","none","low_avoided_pct",0.00321802091713596,0.00115872746673451,0.0063368776582915
+"within-reef","A-C","none","ghost_avoided_pct",0.00269360269360269,0.000326466790272613,0.00598879177619448
+"within-reef","A-C","none","ghost_per_high_missed",0.727272727272727,0.0625,5.52499999999998
+"within-reef","A-C","none","tows_saved_follow_up_pct",0.126874136402071,0.111948563160247,0.142336448049951
+"within-reef","none","A-C","dives_avoided_pct",0.13920704845815,0.119277190113942,0.157478577367103
+"within-reef","none","A-C","high_missed",206,162,255.525
+"within-reef","none","A-C","high_missed_pct",0.036983842010772,0.0269413979328186,0.0483284875444562
+"within-reef","none","A-C","low_avoided_pct",0.194958433896487,0.171716094474718,0.219279016446887
+"within-reef","none","A-C","ghost_avoided_pct",0.300673400673401,0.272409096692608,0.328604962046802
+"within-reef","none","A-C","ghost_per_high_missed",4.33495145631068,3.39959520502999,5.77047482782035
+"within-reef","none","A-C","tows_saved_follow_up_pct",0,0,0
+"within-reef","A-B","A-C","dives_avoided_pct",0.144222297526262,0.124232879811784,0.163506287195807
+"within-reef","A-B","A-C","high_missed",226,182,276.1
+"within-reef","A-B","A-C","high_missed_pct",0.0405745062836625,0.0298128142089733,0.0526435855599259
+"within-reef","A-B","A-C","low_avoided_pct",0.200858138911236,0.177641306925996,0.224080572102436
+"within-reef","A-B","A-C","ghost_avoided_pct",0.306397306397306,0.278652305025229,0.333832403780368
+"within-reef","A-B","A-C","ghost_per_high_missed",4.02654867256637,3.17244722297726,5.25508962563452
+"within-reef","A-B","A-C","tows_saved_follow_up_pct",0.196704407185135,0.175356615436411,0.219678097509188
+"within-reef","A-C","A-C","dives_avoided_pct",0.141714672992206,0.12175927252,0.160637773160305
+"within-reef","A-C","A-C","high_missed",217,175.475,266
+"within-reef","A-C","A-C","high_missed_pct",0.0389587073608618,0.0289446177827116,0.0509166474566592
+"within-reef","A-C","A-C","low_avoided_pct",0.198176454813623,0.175443699249363,0.22217757294308
+"within-reef","A-C","A-C","ghost_avoided_pct",0.303367003367003,0.276386605609084,0.33072209342756
+"within-reef","A-C","A-C","ghost_per_high_missed",4.15207373271889,3.24280333153455,5.45518274214175
+"within-reef","A-C","A-C","tows_saved_follow_up_pct",0.126874136402071,0.111948563160247,0.142336448049951
+"density-aware","A-B","none","dives_avoided_pct",0.00203320908166723,0.00096468431842355,0.00335709780615628
+"density-aware","A-B","none","high_missed",4,0,11.05
+"density-aware","A-B","none","high_missed_pct",0.000718132854578097,0,0.0019583389421723
+"density-aware","A-B","none","low_avoided_pct",0.00214534727809064,0.000770160732434781,0.00350807207278474
+"density-aware","A-B","none","ghost_avoided_pct",0.00336700336700337,0.00101758835167958,0.00726021080368906
+"density-aware","A-B","none","ghost_per_high_missed",2.5,0.533928571428572,Inf
+"density-aware","A-B","none","tows_saved_follow_up_pct",0.142692156984058,0.121414963112674,0.167032278235388
+"density-aware","A-C","none","dives_avoided_pct",0.000338868180277872,6.03855258196239e-05,0.000706359075638452
+"density-aware","A-C","none","high_missed",0,0,0
+"density-aware","A-C","none","high_missed_pct",0,0,0
+"density-aware","A-C","none","low_avoided_pct",0.00026816840976133,0,0.000875796726959517
+"density-aware","A-C","none","ghost_avoided_pct",0.000673400673400673,0,0.00214041476905581
+"density-aware","A-C","none","ghost_per_high_missed",Inf,Inf,Inf
+"density-aware","A-C","none","tows_saved_follow_up_pct",0.0846583761265442,0.0703186731852923,0.0990776236783434
+"density-aware","none","A-C","dives_avoided_pct",0.138529312097594,0.117643510041057,0.161019132930232
+"density-aware","none","A-C","high_missed",166,130,206
+"density-aware","none","A-C","high_missed_pct",0.029802513464991,0.0223467782138417,0.0411957971060561
+"density-aware","none","A-C","low_avoided_pct",0.19147224456959,0.162097851905544,0.220720057937251
+"density-aware","none","A-C","ghost_avoided_pct",0.335016835016835,0.302561546352757,0.366173723427247
+"density-aware","none","A-C","ghost_per_high_missed",5.99397590361446,4.6125036047294,7.97282388663967
+"density-aware","none","A-C","tows_saved_follow_up_pct",0,0,0
+"density-aware","A-B","A-C","dives_avoided_pct",0.140562521179261,0.119150092061167,0.16330886125399
+"density-aware","A-B","A-C","high_missed",170,134.95,212
+"density-aware","A-B","A-C","high_missed_pct",0.0305206463195691,0.0229948417900046,0.0423705479555185
+"density-aware","A-B","A-C","low_avoided_pct",0.19361759184768,0.163678672332518,0.222786342257076
+"density-aware","A-B","A-C","ghost_avoided_pct",0.338383838383838,0.306675803246494,0.369451639101259
+"density-aware","A-B","A-C","ghost_per_high_missed",5.91176470588235,4.53158246225319,7.71125060709082
+"density-aware","A-B","A-C","tows_saved_follow_up_pct",0.142692156984058,0.121414963112674,0.167032278235388
+"density-aware","A-C","A-C","dives_avoided_pct",0.138868180277872,0.1179745523256,0.161522475690888
+"density-aware","A-C","A-C","high_missed",166,130,206
+"density-aware","A-C","A-C","high_missed_pct",0.029802513464991,0.0223467782138417,0.0411957971060561
+"density-aware","A-C","A-C","low_avoided_pct",0.191740412979351,0.162380261803339,0.221111727623571
+"density-aware","A-C","A-C","ghost_avoided_pct",0.335690235690236,0.303882844841978,0.366514385808086
+"density-aware","A-C","A-C","ghost_per_high_missed",6.00602409638554,4.62230366240508,7.98389588100686
+"density-aware","A-C","A-C","tows_saved_follow_up_pct",0.0846583761265442,0.0703186731852923,0.0990776236783434
+"12 m","A-B","none","dives_avoided_pct",0.00623517451711284,0.00433386182861563,0.00862304944340263
+"12 m","A-B","none","high_missed",14,4,27.525
+"12 m","A-B","none","high_missed_pct",0.00251346499102334,0.000739729623795853,0.00533787532363813
+"12 m","A-B","none","low_avoided_pct",0.00884955752212389,0.00506785847395546,0.0140519150183686
+"12 m","A-B","none","ghost_avoided_pct",0.00942760942760943,0.00457529361776527,0.0173381885504682
+"12 m","A-B","none","ghost_per_high_missed",2,0.731987179487179,7.48611111111107
+"12 m","A-B","none","tows_saved_follow_up_pct",0.264884819237353,0.229168971720403,0.308231237601857
+"12 m","A-C","none","dives_avoided_pct",0.00230430362588953,0.00121508755580482,0.00379258012438677
+"12 m","A-C","none","high_missed",4,0,10
+"12 m","A-C","none","high_missed_pct",0.000718132854578097,0,0.0019072856404103
+"12 m","A-C","none","low_avoided_pct",0.0026816840976133,0.000799958243508046,0.00611769971797066
+"12 m","A-C","none","ghost_avoided_pct",0.00404040404040404,0.00128397916321298,0.00813037274792687
+"12 m","A-C","none","ghost_per_high_missed",3,0.666666666666667,Inf
+"12 m","A-C","none","tows_saved_follow_up_pct",0.15811833611747,0.134335312215784,0.189122629220883
+"12 m","none","A-C","dives_avoided_pct",0.203592002710945,0.175482168815114,0.236432046214655
+"12 m","none","A-C","high_missed",262,210.475,333.575
+"12 m","none","A-C","high_missed_pct",0.0470377019748653,0.0357372876359927,0.0633808973157943
+"12 m","none","A-C","low_avoided_pct",0.278626977742022,0.246158645474006,0.31219661407732
+"12 m","none","A-C","ghost_avoided_pct",0.487878787878788,0.451265069739351,0.522979126461368
+"12 m","none","A-C","ghost_per_high_missed",5.53053435114504,4.18185896170549,6.882373018692
+"12 m","none","A-C","tows_saved_follow_up_pct",0,0,0
+"12 m","A-B","A-C","dives_avoided_pct",0.209827177228058,0.181673863977778,0.244150546988115
+"12 m","A-B","A-C","high_missed",276,228,346.525
+"12 m","A-B","A-C","high_missed_pct",0.0495511669658887,0.0375379843541658,0.0658641124586549
+"12 m","A-B","A-C","low_avoided_pct",0.287476535264146,0.254426995208336,0.321775871248996
+"12 m","A-B","A-C","ghost_avoided_pct",0.497306397306397,0.462080729268654,0.532049700309065
+"12 m","A-B","A-C","ghost_per_high_missed",5.35144927536232,4.08779561862086,6.51602049910873
+"12 m","A-B","A-C","tows_saved_follow_up_pct",0.264884819237353,0.229168971720403,0.308231237601857
+"12 m","A-C","A-C","dives_avoided_pct",0.205896306336835,0.178308668522266,0.23959925502937
+"12 m","A-C","A-C","high_missed",266,215.425,338.525
+"12 m","A-C","A-C","high_missed_pct",0.0477558348294434,0.0359100938366249,0.0640659831426598
+"12 m","A-C","A-C","low_avoided_pct",0.281308661839635,0.249338129776591,0.315243254589177
+"12 m","A-C","A-C","ghost_avoided_pct",0.491919191919192,0.4565081376845,0.52621869343304
+"12 m","A-C","A-C","ghost_per_high_missed",5.49248120300752,4.18012867647059,6.78637048192771
+"12 m","A-C","A-C","tows_saved_follow_up_pct",0.15811833611747,0.134335312215784,0.189122629220883
+"recent","A-B","none","dives_avoided_pct",0.00670958996950186,0.00460970336749328,0.00950735363187604
+"recent","A-B","none","high_missed",18,6,35
+"recent","A-B","none","high_missed_pct",0.00323159784560144,0.000994449798808175,0.00655009478550076
+"recent","A-B","none","low_avoided_pct",0.00992223116116921,0.00598857108289471,0.0155731336637374
+"recent","A-B","none","ghost_avoided_pct",0.00875420875420875,0.00383077558996861,0.016013162829616
+"recent","A-B","none","ghost_per_high_missed",1.44444444444444,0.471190476190476,5.52583333333332
+"recent","A-B","none","tows_saved_follow_up_pct",0.268184536699045,0.233693019271464,0.312161798561147
+"recent","A-C","none","dives_avoided_pct",0.00277871907827855,0.00149683617836434,0.00441881718136832
+"recent","A-C","none","high_missed",6,0,14
+"recent","A-C","none","high_missed_pct",0.00107719928186715,0,0.00258433648865869
+"recent","A-C","none","low_avoided_pct",0.00375435773665862,0.0014175660028686,0.00678725108461175
+"recent","A-C","none","ghost_avoided_pct",0.00471380471380471,0.00168999250822467,0.00913663706737516
+"recent","A-C","none","ghost_per_high_missed",2.33333333333333,0.6825,Inf
+"recent","A-C","none","tows_saved_follow_up_pct",0.16170677885706,0.138043224696178,0.192762389776661
+"recent","none","A-C","dives_avoided_pct",0.201558793629278,0.174310835356956,0.233194477677265
+"recent","none","A-C","high_missed",264,213.9,335.525
+"recent","none","A-C","high_missed_pct",0.0473967684021544,0.0353405415005446,0.0636121751890926
+"recent","none","A-C","low_avoided_pct",0.277017967283454,0.245804505451929,0.309416107977357
+"recent","none","A-C","ghost_avoided_pct",0.478451178451178,0.442906651993452,0.514388911478076
+"recent","none","A-C","ghost_per_high_missed",5.38257575757576,4.05199581522614,6.71627089493694
+"recent","none","A-C","tows_saved_follow_up_pct",0,0,0
+"recent","A-B","A-C","dives_avoided_pct",0.20826838359878,0.180435720513043,0.240047247829186
+"recent","A-B","A-C","high_missed",282,232.475,351.05
+"recent","A-B","A-C","high_missed_pct",0.0506283662477558,0.0379549635308138,0.067446948205592
+"recent","A-B","A-C","low_avoided_pct",0.286940198444623,0.254100334724861,0.320161580187445
+"recent","A-B","A-C","ghost_avoided_pct",0.487205387205387,0.452731064138559,0.521460920496735
+"recent","A-B","A-C","ghost_per_high_missed",5.13120567375887,3.91009887707443,6.32148784825133
+"recent","A-B","A-C","tows_saved_follow_up_pct",0.268184536699045,0.233693019271464,0.312161798561147
+"recent","A-C","A-C","dives_avoided_pct",0.204337512707557,0.176559765325027,0.235725881134957
+"recent","A-C","A-C","high_missed",270,218.475,341.525
+"recent","A-C","A-C","high_missed_pct",0.0484739676840215,0.0362045448930424,0.0648026977286901
+"recent","A-C","A-C","low_avoided_pct",0.280772325020113,0.250120436105477,0.313930578958641
+"recent","A-C","A-C","ghost_avoided_pct",0.483164983164983,0.44748540968261,0.518339063606027
+"recent","A-C","A-C","ghost_per_high_missed",5.31481481481481,4.03301933158585,6.56920920842864
+"recent","A-C","A-C","tows_saved_follow_up_pct",0.16170677885706,0.138043224696178,0.192762389776661
+"recent, no forecast","A-B","none","dives_avoided_pct",0.00596407997289055,0.00400594337928953,0.00850520410063233
+"recent, no forecast","A-B","none","high_missed",17,5,33.525
+"recent, no forecast","A-B","none","high_missed_pct",0.00305206463195691,0.000857465098952748,0.00655009478550076
+"recent, no forecast","A-B","none","low_avoided_pct",0.00724054706355591,0.00377457586447803,0.012309679331466
+"recent, no forecast","A-B","none","ghost_avoided_pct",0.00875420875420875,0.00383077558996861,0.016013162829616
+"recent, no forecast","A-B","none","ghost_per_high_missed",1.52941176470588,0.479838709677419,5.96249999999999
+"recent, no forecast","A-B","none","tows_saved_follow_up_pct",0.261956319990101,0.22707964991701,0.302389611937067
+"recent, no forecast","A-C","none","dives_avoided_pct",0.00230430362588953,0.00109044576325409,0.00378597874282365
+"recent, no forecast","A-C","none","high_missed",2,0,6
+"recent, no forecast","A-C","none","high_missed_pct",0.000359066427289048,0,0.00124333360457909
+"recent, no forecast","A-C","none","low_avoided_pct",0.00294985250737463,0.000784058833258154,0.00586888828616434
+"recent, no forecast","A-C","none","ghost_avoided_pct",0.00471380471380471,0.00168999250822467,0.00913663706737516
+"recent, no forecast","A-C","none","ghost_per_high_missed",7,1.57916666666667,Inf
+"recent, no forecast","A-C","none","tows_saved_follow_up_pct",0.157128420878962,0.133191625895142,0.186650164934184
+"recent, no forecast","none","A-C","dives_avoided_pct",0.194849203659776,0.167373885721107,0.224509294370002
+"recent, no forecast","none","A-C","high_missed",244,196.425,309
+"recent, no forecast","none","A-C","high_missed_pct",0.0438061041292639,0.032905945957897,0.0592007371454826
+"recent, no forecast","none","A-C","low_avoided_pct",0.265754894073478,0.234847564599502,0.298327929740786
+"recent, no forecast","none","A-C","ghost_avoided_pct",0.468350168350168,0.431644451326191,0.506807273205938
+"recent, no forecast","none","A-C","ghost_per_high_missed",5.70081967213115,4.35851549712234,7.15814102564103
+"recent, no forecast","none","A-C","tows_saved_follow_up_pct",0,0,0
+"recent, no forecast","A-B","A-C","dives_avoided_pct",0.200813283632667,0.173179127254245,0.23116817448004
+"recent, no forecast","A-B","A-C","high_missed",261,215.475,323
+"recent, no forecast","A-B","A-C","high_missed_pct",0.0468581687612208,0.0354435087330723,0.0634197873426617
+"recent, no forecast","A-B","A-C","low_avoided_pct",0.272995441137034,0.24139798565839,0.305042502925699
+"recent, no forecast","A-B","A-C","ghost_avoided_pct",0.477104377104377,0.441701658880423,0.514525556021913
+"recent, no forecast","A-B","A-C","ghost_per_high_missed",5.42911877394636,4.12660931724288,6.71971986862148
+"recent, no forecast","A-B","A-C","tows_saved_follow_up_pct",0.261956319990101,0.22707964991701,0.302389611937067
+"recent, no forecast","A-C","A-C","dives_avoided_pct",0.197153507285666,0.169793478340385,0.226507318888145
+"recent, no forecast","A-C","A-C","high_missed",246,198.425,309.525
+"recent, no forecast","A-C","A-C","high_missed_pct",0.044165170556553,0.0333107175070656,0.0595419582197423
+"recent, no forecast","A-C","A-C","low_avoided_pct",0.268704746580853,0.237257075097892,0.300985807336368
+"recent, no forecast","A-C","A-C","ghost_avoided_pct",0.473063973063973,0.435945760263452,0.511457862599834
+"recent, no forecast","A-C","A-C","ghost_per_high_missed",5.71138211382114,4.3497196969697,7.15081750485646
+"recent, no forecast","A-C","A-C","tows_saved_follow_up_pct",0.157128420878962,0.133191625895142,0.186650164934184
+"recent, two-part","A-B","none","dives_avoided_pct",0.00840393087089122,0.00579410330230762,0.0117925240027329
+"recent, two-part","A-B","none","high_missed",30,15,51
+"recent, two-part","A-B","none","high_missed_pct",0.00538599640933573,0.00248009461566038,0.00997967670148349
+"recent, two-part","A-B","none","low_avoided_pct",0.0107267363904532,0.00633951308207026,0.0163840327749359
+"recent, two-part","A-B","none","ghost_avoided_pct",0.00942760942760943,0.00426442106103868,0.0171129458373701
+"recent, two-part","A-B","none","ghost_per_high_missed",0.933333333333333,0.333333333333333,2.18089668615984
+"recent, two-part","A-B","none","tows_saved_follow_up_pct",0.280187258965951,0.241562324142368,0.329984075676456
+"recent, two-part","A-C","none","dives_avoided_pct",0.0026431718061674,0.00126799635531303,0.00416415819533375
+"recent, two-part","A-C","none","high_missed",4,0,10
+"recent, two-part","A-C","none","high_missed_pct",0.000718132854578097,0,0.0019072856404103
+"recent, two-part","A-C","none","low_avoided_pct",0.00348618932689729,0.0011146538388737,0.0063940774952996
+"recent, two-part","A-C","none","ghost_avoided_pct",0.00471380471380471,0.00174883286762223,0.00857271960895945
+"recent, two-part","A-C","none","ghost_per_high_missed",3.5,1,Inf
+"recent, two-part","A-C","none","tows_saved_follow_up_pct",0.16739879147848,0.136766920550726,0.202648360687326
+"recent, two-part","none","A-C","dives_avoided_pct",0.215723483564893,0.185253398451581,0.249996543093605
+"recent, two-part","none","A-C","high_missed",290,231.475,371.05
+"recent, two-part","none","A-C","high_missed_pct",0.052064631956912,0.039769953443926,0.0705871178705435
+"recent, two-part","none","A-C","low_avoided_pct",0.286135693215339,0.25376762552673,0.320802769319812
+"recent, two-part","none","A-C","ghost_avoided_pct",0.523905723905724,0.484179153702751,0.567579966661864
+"recent, two-part","none","A-C","ghost_per_high_missed",5.36551724137931,4.13500749625187,6.72698535936114
+"recent, two-part","none","A-C","tows_saved_follow_up_pct",0,0,0
+"recent, two-part","A-B","A-C","dives_avoided_pct",0.224127414435784,0.192294768556803,0.260361738174043
+"recent, two-part","A-B","A-C","high_missed",320,266.475,404.625
+"recent, two-part","A-B","A-C","high_missed_pct",0.0574506283662478,0.0439888054276714,0.0773347134258095
+"recent, two-part","A-B","A-C","low_avoided_pct",0.296862429605792,0.264110448019374,0.333384074254913
+"recent, two-part","A-B","A-C","ghost_avoided_pct",0.533333333333333,0.493456691705417,0.574819452674821
+"recent, two-part","A-B","A-C","ghost_per_high_missed",4.95,3.76828898318528,6.12663752222881
+"recent, two-part","A-B","A-C","tows_saved_follow_up_pct",0.280187258965951,0.241562324142368,0.329984075676456
+"recent, two-part","A-C","A-C","dives_avoided_pct",0.218366655371061,0.187425154566196,0.253407269194432
+"recent, two-part","A-C","A-C","high_missed",294,235,373.05
+"recent, two-part","A-C","A-C","high_missed_pct",0.0527827648114901,0.0405828174537724,0.0705871178705435
+"recent, two-part","A-C","A-C","low_avoided_pct",0.289621882542237,0.256992707286623,0.324545107017337
+"recent, two-part","A-C","A-C","ghost_avoided_pct",0.528619528619529,0.489778076697512,0.571100173736106
+"recent, two-part","A-C","A-C","ghost_per_high_missed",5.34013605442177,4.09637822070977,6.61554479418886
+"recent, two-part","A-C","A-C","tows_saved_follow_up_pct",0.16739879147848,0.136766920550726,0.202648360687326
+"recent, two-part, no forecast","A-B","none","dives_avoided_pct",0.00711623178583531,0.00475247615647287,0.0100691609226015
+"recent, two-part, no forecast","A-B","none","high_missed",29,14,49
+"recent, two-part, no forecast","A-B","none","high_missed_pct",0.0052064631956912,0.00248009461566038,0.00981429774200238
+"recent, two-part, no forecast","A-B","none","low_avoided_pct",0.00750871547331724,0.00370026674369263,0.0124991524690824
+"recent, two-part, no forecast","A-B","none","ghost_avoided_pct",0.00909090909090909,0.00411315899154702,0.0166528244235033
+"recent, two-part, no forecast","A-B","none","ghost_per_high_missed",0.931034482758621,0.332556818181818,2.13665158371041
+"recent, two-part, no forecast","A-B","none","tows_saved_follow_up_pct",0.273546577574295,0.236521484480789,0.320294838376282
+"recent, two-part, no forecast","A-C","none","dives_avoided_pct",0.00257539817011183,0.00120106100211151,0.00410614875471332
+"recent, two-part, no forecast","A-C","none","high_missed",3,0,8
+"recent, two-part, no forecast","A-C","none","high_missed_pct",0.000538599640933573,0,0.0015330720909137
+"recent, two-part, no forecast","A-C","none","low_avoided_pct",0.00348618932689729,0.0011146538388737,0.0063940774952996
+"recent, two-part, no forecast","A-C","none","ghost_avoided_pct",0.00471380471380471,0.00174883286762223,0.00857271960895945
+"recent, two-part, no forecast","A-C","none","ghost_per_high_missed",4.66666666666667,1.365,Inf
+"recent, two-part, no forecast","A-C","none","tows_saved_follow_up_pct",0.163913464909567,0.135129029567039,0.196888426482646
+"recent, two-part, no forecast","none","A-C","dives_avoided_pct",0.21057268722467,0.180535261727064,0.245303053605717
+"recent, two-part, no forecast","none","A-C","high_missed",274,219.95,347.25
+"recent, two-part, no forecast","none","A-C","high_missed_pct",0.0491921005385996,0.0366884918974702,0.0673603545801688
+"recent, two-part, no forecast","none","A-C","low_avoided_pct",0.280504156610351,0.248115355053306,0.315100258559784
+"recent, two-part, no forecast","none","A-C","ghost_avoided_pct",0.513468013468014,0.474942589978196,0.557443626333396
+"recent, two-part, no forecast","none","A-C","ghost_per_high_missed",5.56569343065693,4.29913194444444,6.9162180918472
+"recent, two-part, no forecast","none","A-C","tows_saved_follow_up_pct",0,0,0
+"recent, two-part, no forecast","A-B","A-C","dives_avoided_pct",0.217688919010505,0.186949597041596,0.251899594374295
+"recent, two-part, no forecast","A-B","A-C","high_missed",303,247.425,383.525
+"recent, two-part, no forecast","A-B","A-C","high_missed_pct",0.0543985637342908,0.0417612138002334,0.0736619037202765
+"recent, two-part, no forecast","A-B","A-C","low_avoided_pct",0.288012872083669,0.255916899921277,0.32322253023418
+"recent, two-part, no forecast","A-B","A-C","ghost_avoided_pct",0.522558922558923,0.484682975624711,0.565064077053757
+"recent, two-part, no forecast","A-B","A-C","ghost_per_high_missed",5.12211221122112,3.90580049745651,6.33689093714471
+"recent, two-part, no forecast","A-B","A-C","tows_saved_follow_up_pct",0.273546577574295,0.236521484480789,0.320294838376282
+"recent, two-part, no forecast","A-C","A-C","dives_avoided_pct",0.213148085394781,0.182521210136642,0.247754403946089
+"recent, two-part, no forecast","A-C","A-C","high_missed",277,224,349.25
+"recent, two-part, no forecast","A-C","A-C","high_missed_pct",0.0497307001795332,0.0376923411436451,0.0681186533564366
+"recent, two-part, no forecast","A-C","A-C","low_avoided_pct",0.283990345937249,0.251084441529012,0.318478113987581
+"recent, two-part, no forecast","A-C","A-C","ghost_avoided_pct",0.518181818181818,0.480693544770829,0.561865073492183
+"recent, two-part, no forecast","A-C","A-C","ghost_per_high_missed",5.55595667870036,4.26881729290266,6.88953764320785
+"recent, two-part, no forecast","A-C","A-C","tows_saved_follow_up_pct",0.163913464909567,0.135129029567039,0.196888426482646
+"two-part, damped lift","A-B","none","dives_avoided_pct",0.00609962724500169,0.00390823075081877,0.00878226532190692
+"two-part, damped lift","A-B","none","high_missed",19,7.475,38
+"two-part, damped lift","A-B","none","high_missed_pct",0.00341113105924596,0.00130556774338765,0.00711262317977926
+"two-part, damped lift","A-B","none","low_avoided_pct",0.00724054706355591,0.00378002619597591,0.0120380276210854
+"two-part, damped lift","A-B","none","ghost_avoided_pct",0.00841750841750842,0.00358725669235223,0.015873003490578
+"two-part, damped lift","A-B","none","ghost_per_high_missed",1.31578947368421,0.392656449553001,4.55208333333332
+"two-part, damped lift","A-B","none","tows_saved_follow_up_pct",0.256449916475902,0.21905636780763,0.301540556330997
+"two-part, damped lift","A-C","none","dives_avoided_pct",0.00210098271772281,0.000911589586803966,0.00357223799436857
+"two-part, damped lift","A-C","none","high_missed",2,0,6
+"two-part, damped lift","A-C","none","high_missed_pct",0.000359066427289048,0,0.00124333360457909
+"two-part, damped lift","A-C","none","low_avoided_pct",0.0026816840976133,0.000780967897068473,0.0056886408077119
+"two-part, damped lift","A-C","none","ghost_avoided_pct",0.0037037037037037,0.00102811235067628,0.00743676661693822
+"two-part, damped lift","A-C","none","ghost_per_high_missed",5.5,1.24583333333333,Inf
+"two-part, damped lift","A-C","none","tows_saved_follow_up_pct",0.154303037802388,0.126496545923362,0.188268390888476
+"two-part, damped lift","none","A-C","dives_avoided_pct",0.206506269061335,0.177159252762867,0.239499503273431
+"two-part, damped lift","none","A-C","high_missed",264,212.475,334.25
+"two-part, damped lift","none","A-C","high_missed_pct",0.0473967684021544,0.0358474320217733,0.0635674372571175
+"two-part, damped lift","none","A-C","low_avoided_pct",0.275945293644409,0.244011320537007,0.310808598721936
+"two-part, damped lift","none","A-C","ghost_avoided_pct",0.506397306397306,0.467577026274611,0.548571346286768
+"two-part, damped lift","none","A-C","ghost_per_high_missed",5.6969696969697,4.36796554552912,7.14208967503085
+"two-part, damped lift","none","A-C","tows_saved_follow_up_pct",0,0,0
+"two-part, damped lift","A-B","A-C","dives_avoided_pct",0.212605896306337,0.182687715802175,0.246217404848744
+"two-part, damped lift","A-B","A-C","high_missed",283,233,355.525
+"two-part, damped lift","A-B","A-C","high_missed_pct",0.0508078994614004,0.0390370630619027,0.0688532232598654
+"two-part, damped lift","A-B","A-C","low_avoided_pct",0.283185840707965,0.252647893864692,0.318029716544613
+"two-part, damped lift","A-B","A-C","ghost_avoided_pct",0.514814814814815,0.477234883357581,0.556323945798362
+"two-part, damped lift","A-B","A-C","ghost_per_high_missed",5.40282685512368,4.12011292021197,6.71548507462686
+"two-part, damped lift","A-B","A-C","tows_saved_follow_up_pct",0.256449916475902,0.21905636780763,0.301540556330997
+"two-part, damped lift","A-C","A-C","dives_avoided_pct",0.208607251779058,0.17885575774977,0.241735169210646
+"two-part, damped lift","A-C","A-C","high_missed",266,215.475,336.25
+"two-part, damped lift","A-C","A-C","high_missed_pct",0.0477558348294434,0.0363916756739689,0.0637202331471148
+"two-part, damped lift","A-C","A-C","low_avoided_pct",0.278626977742022,0.247315353712156,0.313712501930814
+"two-part, damped lift","A-C","A-C","ghost_avoided_pct",0.51010101010101,0.473562736142262,0.549997501538474
+"two-part, damped lift","A-C","A-C","ghost_per_high_missed",5.69548872180451,4.32523148148148,7.0374777265745
+"two-part, damped lift","A-C","A-C","tows_saved_follow_up_pct",0.154303037802388,0.126496545923362,0.188268390888476
+"two-part, no lift where searched clean","A-B","none","dives_avoided_pct",0.00623517451711284,0.00401336260203691,0.00891048144794154
+"two-part, no lift where searched clean","A-B","none","high_missed",20,7.475,39.525
+"two-part, no lift where searched clean","A-B","none","high_missed_pct",0.00359066427289048,0.00138600285906101,0.00744310405205093
+"two-part, no lift where searched clean","A-B","none","low_avoided_pct",0.00697237865379458,0.00360384735656212,0.0121276887334238
+"two-part, no lift where searched clean","A-B","none","ghost_avoided_pct",0.00841750841750842,0.00358725669235223,0.015873003490578
+"two-part, no lift where searched clean","A-B","none","ghost_per_high_missed",1.25,0.38546875,4.07999999999999
+"two-part, no lift where searched clean","A-B","none","tows_saved_follow_up_pct",0.255026913320547,0.217394586738467,0.298409327122929
+"two-part, no lift where searched clean","A-C","none","dives_avoided_pct",0.00216875635377838,0.000956643955557173,0.00364485458875699
+"two-part, no lift where searched clean","A-C","none","high_missed",2,0,6
+"two-part, no lift where searched clean","A-C","none","high_missed_pct",0.000359066427289048,0,0.00124333360457909
+"two-part, no lift where searched clean","A-C","none","low_avoided_pct",0.00294985250737463,0.00101671067046273,0.00595276043279147
+"two-part, no lift where searched clean","A-C","none","ghost_avoided_pct",0.0037037037037037,0.00102811235067628,0.00743676661693822
+"two-part, no lift where searched clean","A-C","none","ghost_per_high_missed",5.5,1.24583333333333,Inf
+"two-part, no lift where searched clean","A-C","none","tows_saved_follow_up_pct",0.147909835220359,0.121029034512689,0.180806761039806
+"two-part, no lift where searched clean","none","A-C","dives_avoided_pct",0.200474415452389,0.171793388666016,0.23343891501892
+"two-part, no lift where searched clean","none","A-C","high_missed",253,201,320
+"two-part, no lift where searched clean","none","A-C","high_missed_pct",0.0454219030520646,0.0341230151726328,0.0617695909600019
+"two-part, no lift where searched clean","none","A-C","low_avoided_pct",0.267900241351569,0.23665452348902,0.303424565848455
+"two-part, no lift where searched clean","none","A-C","ghost_avoided_pct",0.491582491582492,0.455193555335593,0.5329493615209
+"two-part, no lift where searched clean","none","A-C","ghost_per_high_missed",5.77075098814229,4.42696353511573,7.24771027929876
+"two-part, no lift where searched clean","none","A-C","tows_saved_follow_up_pct",0,0,0
+"two-part, no lift where searched clean","A-B","A-C","dives_avoided_pct",0.206709589969502,0.177899709349211,0.240192836443741
+"two-part, no lift where searched clean","A-B","A-C","high_missed",273,222.9,342.525
+"two-part, no lift where searched clean","A-B","A-C","high_missed_pct",0.0490125673249551,0.0377200801885868,0.0672746879089284
+"two-part, no lift where searched clean","A-B","A-C","low_avoided_pct",0.274872620005363,0.24433735552989,0.310899517707484
+"two-part, no lift where searched clean","A-B","A-C","ghost_avoided_pct",0.5,0.463901094488294,0.540574571484933
+"two-part, no lift where searched clean","A-B","A-C","ghost_per_high_missed",5.43956043956044,4.18677976741113,6.8678161620031
+"two-part, no lift where searched clean","A-B","A-C","tows_saved_follow_up_pct",0.255026913320547,0.217394586738467,0.298409327122929
+"two-part, no lift where searched clean","A-C","A-C","dives_avoided_pct",0.202643171806167,0.173716294328121,0.235766109658954
+"two-part, no lift where searched clean","A-C","A-C","high_missed",255,202.475,320
+"two-part, no lift where searched clean","A-C","A-C","high_missed_pct",0.0457809694793537,0.0346389459631179,0.0624194957429558
+"two-part, no lift where searched clean","A-C","A-C","low_avoided_pct",0.270850093858943,0.239510866822514,0.307116861725184
+"two-part, no lift where searched clean","A-C","A-C","ghost_avoided_pct",0.495286195286195,0.460384351844414,0.535493971628164
+"two-part, no lift where searched clean","A-C","A-C","ghost_per_high_missed",5.76862745098039,4.40640097397362,7.17136574074074
+"two-part, no lift where searched clean","A-C","A-C","tows_saved_follow_up_pct",0.147909835220359,0.121029034512689,0.180806761039806
+"two-part, site model","A-B","none","dives_avoided_pct",0.00752287360216876,0.0048788621671968,0.0105309759348944
+"two-part, site model","A-B","none","high_missed",24,11.475,39
+"two-part, site model","A-B","none","high_missed_pct",0.00430879712746858,0.0021329957380982,0.00733511749626148
+"two-part, site model","A-B","none","low_avoided_pct",0.0112630732099759,0.00670648788682928,0.0165669684424597
+"two-part, site model","A-B","none","ghost_avoided_pct",0.00942760942760943,0.00412939798511805,0.0170408064631007
+"two-part, site model","A-B","none","ghost_per_high_missed",1.16666666666667,0.46482683982684,2.547
+"two-part, site model","A-B","none","tows_saved_follow_up_pct",0.273443461403617,0.235755191235033,0.322482236406092
+"two-part, site model","A-C","none","dives_avoided_pct",0.00325313453066757,0.00176957678764623,0.00568284557333036
+"two-part, site model","A-C","none","high_missed",4,0,9
+"two-part, site model","A-C","none","high_missed_pct",0.000718132854578097,0,0.0017376447680859
+"two-part, site model","A-C","none","low_avoided_pct",0.00482703137570394,0.00199934000472713,0.00973428995050773
+"two-part, site model","A-C","none","ghost_avoided_pct",0.00404040404040404,0.00139017624572917,0.00774956085696699
+"two-part, site model","A-C","none","ghost_per_high_missed",3,0.844642857142857,Inf
+"two-part, site model","A-C","none","tows_saved_follow_up_pct",0.1847429313865,0.150418602810132,0.224491646510367
+"two-part, site model","none","A-C","dives_avoided_pct",0.223856319891562,0.189430261593703,0.261135411389824
+"two-part, site model","none","A-C","high_missed",280,218.475,351.575
+"two-part, site model","none","A-C","high_missed_pct",0.0502692998204668,0.0361713230455151,0.069096099216377
+"two-part, site model","none","A-C","low_avoided_pct",0.315902386698847,0.279549515501634,0.350406821891046
+"two-part, site model","none","A-C","ghost_avoided_pct",0.523569023569024,0.483561634923586,0.568942811931175
+"two-part, site model","none","A-C","ghost_per_high_missed",5.55357142857143,4.26720081640781,7.22345592614652
+"two-part, site model","none","A-C","tows_saved_follow_up_pct",0,0,0
+"two-part, site model","A-B","A-C","dives_avoided_pct",0.231379193493731,0.197210109915502,0.270382377989418
+"two-part, site model","A-B","A-C","high_missed",304,242.475,380
+"two-part, site model","A-B","A-C","high_missed_pct",0.0545780969479354,0.0395342223395828,0.0748474804252592
+"two-part, site model","A-B","A-C","low_avoided_pct",0.327165459908823,0.293006191612222,0.364759525401959
+"two-part, site model","A-B","A-C","ghost_avoided_pct",0.532996632996633,0.4898546180267,0.57822457576685
+"two-part, site model","A-B","A-C","ghost_per_high_missed",5.20723684210526,3.98862379661224,6.69068650647598
+"two-part, site model","A-B","A-C","tows_saved_follow_up_pct",0.273443461403617,0.235755191235033,0.322482236406092
+"two-part, site model","A-C","A-C","dives_avoided_pct",0.22710945442223,0.192968221155847,0.265215363533391
+"two-part, site model","A-C","A-C","high_missed",284,222.475,355.05
+"two-part, site model","A-C","A-C","high_missed_pct",0.0509874326750449,0.0368718669594321,0.0693387233730679
+"two-part, site model","A-C","A-C","low_avoided_pct",0.320729418074551,0.285956453950317,0.356329620834462
+"two-part, site model","A-C","A-C","ghost_avoided_pct",0.527609427609428,0.486997269968385,0.572204566948872
+"two-part, site model","A-C","A-C","ghost_per_high_missed",5.51760563380282,4.27073105215307,7.18793185119687
+"two-part, site model","A-C","A-C","tows_saved_follow_up_pct",0.1847429313865,0.150418602810132,0.224491646510367
+"two-part, site visit model","A-B","none","dives_avoided_pct",0.00420196543544561,0.00235010950314888,0.00653963975763648
+"two-part, site visit model","A-B","none","high_missed",11,2,21
+"two-part, site visit model","A-B","none","high_missed_pct",0.00197486535008977,0.000366010787728732,0.00389253895114153
+"two-part, site visit model","A-B","none","low_avoided_pct",0.00563153660498793,0.00239958480903072,0.0102501526492222
+"two-part, site visit model","A-B","none","ghost_avoided_pct",0.0063973063973064,0.00226425016674363,0.0122852032757998
+"two-part, site visit model","A-B","none","ghost_per_high_missed",1.72727272727273,0.529411764705882,6.76249999999999
+"two-part, site visit model","A-B","none","tows_saved_follow_up_pct",0.165295221596651,0.138112680181798,0.194576494607195
+"two-part, site visit model","A-C","none","dives_avoided_pct",0.00257539817011183,0.00111697443164546,0.0043358010513398
+"two-part, site visit model","A-C","none","high_missed",5,0,13
+"two-part, site visit model","A-C","none","high_missed_pct",0.000897666068222621,0,0.00232892152125333
+"two-part, site visit model","A-C","none","low_avoided_pct",0.00294985250737463,0.000905158457214349,0.00601728902748614
+"two-part, site visit model","A-C","none","ghost_avoided_pct",0.00505050505050505,0.00132345759828906,0.0108975050219982
+"two-part, site visit model","A-C","none","ghost_per_high_missed",3,0.617272727272727,Inf
+"two-part, site visit model","A-C","none","tows_saved_follow_up_pct",0.100146424962363,0.0823215934649228,0.118673793124757
+"two-part, site visit model","none","A-C","dives_avoided_pct",0.121653676719756,0.102757007309431,0.142740424733955
+"two-part, site visit model","none","A-C","high_missed",152,109.475,205.1
+"two-part, site visit model","none","A-C","high_missed_pct",0.0272890484739677,0.0187862704404126,0.0382500505752455
+"two-part, site visit model","none","A-C","low_avoided_pct",0.171091445427729,0.14951831689237,0.196696098940666
+"two-part, site visit model","none","A-C","ghost_avoided_pct",0.275084175084175,0.240127781370111,0.308753594484459
+"two-part, site visit model","none","A-C","ghost_per_high_missed",5.375,3.87665030596634,7.65690947436729
+"two-part, site visit model","none","A-C","tows_saved_follow_up_pct",0,0,0
+"two-part, site visit model","A-B","A-C","dives_avoided_pct",0.125855642155202,0.106644544153216,0.147494503893447
+"two-part, site visit model","A-B","A-C","high_missed",163,118.425,216.525
+"two-part, site visit model","A-B","A-C","high_missed_pct",0.0292639138240574,0.0199652463935789,0.0413865036423773
+"two-part, site visit model","A-B","A-C","low_avoided_pct",0.176722982032717,0.155390560726219,0.204173219852571
+"two-part, site visit model","A-B","A-C","ghost_avoided_pct",0.281481481481481,0.244585773875217,0.315163148715388
+"two-part, site visit model","A-B","A-C","ghost_per_high_missed",5.12883435582822,3.69482954812069,7.35040207739989
+"two-part, site visit model","A-B","A-C","tows_saved_follow_up_pct",0.165295221596651,0.138112680181798,0.194576494607195
+"two-part, site visit model","A-C","A-C","dives_avoided_pct",0.124229074889868,0.10473697412051,0.145576781835513
+"two-part, site visit model","A-C","A-C","high_missed",157,112.475,210
+"two-part, site visit model","A-C","A-C","high_missed_pct",0.0281867145421903,0.0194089100788526,0.0403486066787972
+"two-part, site visit model","A-C","A-C","low_avoided_pct",0.174041297935103,0.1531451228877,0.200430327868852
+"two-part, site visit model","A-C","A-C","ghost_avoided_pct",0.28013468013468,0.243573192356772,0.313977323489181
+"two-part, site visit model","A-C","A-C","ghost_per_high_missed",5.29936305732484,3.79699310883774,7.70781094527362
+"two-part, site visit model","A-C","A-C","tows_saved_follow_up_pct",0.100146424962363,0.0823215934649228,0.118673793124757
+"two-part, site + visit model","A-B","none","dives_avoided_pct",0.00542189088444595,0.00337231037143538,0.00810022900020014
+"two-part, site + visit model","A-B","none","high_missed",9,2,18
+"two-part, site + visit model","A-B","none","high_missed_pct",0.00161579892280072,0.00036141106637501,0.00348479294155874
+"two-part, site + visit model","A-B","none","low_avoided_pct",0.00777688388307857,0.00431719502765717,0.0120666018749255
+"two-part, site + visit model","A-B","none","ghost_avoided_pct",0.00875420875420875,0.00367595090383885,0.0161263220690282
+"two-part, site + visit model","A-B","none","ghost_per_high_missed",2.88888888888889,1,11.5875
+"two-part, site + visit model","A-B","none","tows_saved_follow_up_pct",0.241456825259337,0.209527782489097,0.282816359329686
+"two-part, site + visit model","A-C","none","dives_avoided_pct",0.00277871907827855,0.0014336169248098,0.00499908022151173
+"two-part, site + visit model","A-C","none","high_missed",2,0,6
+"two-part, site + visit model","A-C","none","high_missed_pct",0.000359066427289048,0,0.00122314138953105
+"two-part, site + visit model","A-C","none","low_avoided_pct",0.00482703137570394,0.00199934000472713,0.00973428995050773
+"two-part, site + visit model","A-C","none","ghost_avoided_pct",0.00404040404040404,0.00139017624572917,0.00774956085696699
+"two-part, site + visit model","A-C","none","ghost_per_high_missed",6,1.4125,Inf
+"two-part, site + visit model","A-C","none","tows_saved_follow_up_pct",0.157458392625131,0.127518689397222,0.191683751559915
+"two-part, site + visit model","none","A-C","dives_avoided_pct",0.19708573364961,0.165564494359531,0.229622404981084
+"two-part, site + visit model","none","A-C","high_missed",223,169.95,294.1
+"two-part, site + visit model","none","A-C","high_missed_pct",0.0400359066427289,0.028119786168174,0.0563412236281098
+"two-part, site + visit model","none","A-C","low_avoided_pct",0.279431482971306,0.246690064313609,0.313853400648857
+"two-part, site + visit model","none","A-C","ghost_avoided_pct",0.472390572390572,0.43342916886124,0.515106021515995
+"two-part, site + visit model","none","A-C","ghost_per_high_missed",6.2914798206278,4.69384175755034,8.22281401642404
+"two-part, site + visit model","none","A-C","tows_saved_follow_up_pct",0,0,0
+"two-part, site + visit model","A-B","A-C","dives_avoided_pct",0.202507624534056,0.17091629332662,0.235847322276617
+"two-part, site + visit model","A-B","A-C","high_missed",232,177.475,304.1
+"two-part, site + visit model","A-B","A-C","high_missed_pct",0.0416517055655296,0.0297028959338795,0.058291519058334
+"two-part, site + visit model","A-B","A-C","low_avoided_pct",0.287208366854385,0.254428639507123,0.322563178243358
+"two-part, site + visit model","A-B","A-C","ghost_avoided_pct",0.481144781144781,0.441466875635378,0.52412840954959
+"two-part, site + visit model","A-B","A-C","ghost_per_high_missed",6.15948275862069,4.65597926267281,7.99942277716438
+"two-part, site + visit model","A-B","A-C","tows_saved_follow_up_pct",0.241456825259337,0.209527782489097,0.282816359329686
+"two-part, site + visit model","A-C","A-C","dives_avoided_pct",0.199864452727889,0.168808871434871,0.232301121582628
+"two-part, site + visit model","A-C","A-C","high_missed",225,171,296
+"two-part, site + visit model","A-C","A-C","high_missed_pct",0.040394973070018,0.0285568722161632,0.0565693807425864
+"two-part, site + visit model","A-C","A-C","low_avoided_pct",0.28425851434701,0.251254262422185,0.319905234713954
+"two-part, site + visit model","A-C","A-C","ghost_avoided_pct",0.476430976430976,0.438089151051887,0.519055671898497
+"two-part, site + visit model","A-C","A-C","ghost_per_high_missed",6.28888888888889,4.70567572218662,8.25668651711378
+"two-part, site + visit model","A-C","A-C","tows_saved_follow_up_pct",0.157458392625131,0.127518689397222,0.191683751559915
+"two-part quota, site + visit order","A-B","none","dives_avoided_pct",0.00779396814639105,0.00516689859010717,0.0105949476323765
+"two-part quota, site + visit order","A-B","none","high_missed",26,12,43
+"two-part quota, site + visit order","A-B","none","high_missed_pct",0.00466786355475763,0.00219510874916404,0.00828105879408165
+"two-part quota, site + visit order","A-B","none","low_avoided_pct",0.00938589434164655,0.00536579335763551,0.0141842768216581
+"two-part quota, site + visit order","A-B","none","ghost_avoided_pct",0.00909090909090909,0.0038330519127076,0.0165896831581027
+"two-part quota, site + visit order","A-B","none","ghost_per_high_missed",1.03846153846154,0.430833333333333,2.72916666666666
+"two-part quota, site + visit order","A-B","none","tows_saved_follow_up_pct",0.276268844480191,0.239446352187028,0.324326599402753
+"two-part quota, site + visit order","A-C","none","dives_avoided_pct",0.00345645543883429,0.00205548579542488,0.00541048232221321
+"two-part quota, site + visit order","A-C","none","high_missed",5,0,13
+"two-part quota, site + visit order","A-C","none","high_missed_pct",0.000897666068222621,0,0.00256177809191594
+"two-part quota, site + visit order","A-C","none","low_avoided_pct",0.0053633681952266,0.00221223292635266,0.00995399293839558
+"two-part quota, site + visit order","A-C","none","ghost_avoided_pct",0.00606060606060606,0.00203735144312394,0.0126983569409789
+"two-part quota, site + visit order","A-C","none","ghost_per_high_missed",3.6,0.882692307692308,Inf
+"two-part quota, site + visit order","A-C","none","tows_saved_follow_up_pct",0.169337375487224,0.14002155911616,0.205278646279847
+"two-part quota, site + visit order","none","A-C","dives_avoided_pct",0.209556082683836,0.178369584297376,0.243146898130772
+"two-part quota, site + visit order","none","A-C","high_missed",285,219.475,359.05
+"two-part quota, site + visit order","none","A-C","high_missed_pct",0.0511669658886894,0.0379568271015169,0.0701285002761338
+"two-part quota, site + visit order","none","A-C","low_avoided_pct",0.272459104317511,0.24042121592267,0.303101650419938
+"two-part quota, site + visit order","none","A-C","ghost_avoided_pct",0.518518518518518,0.481238920566562,0.561020819725027
+"two-part quota, site + visit order","none","A-C","ghost_per_high_missed",5.40350877192982,4.16527551622419,7.0072424869338
+"two-part quota, site + visit order","none","A-C","tows_saved_follow_up_pct",0,0,0
+"two-part quota, site + visit order","A-B","A-C","dives_avoided_pct",0.217350050830227,0.184893767034445,0.252443746976958
+"two-part quota, site + visit order","A-B","A-C","high_missed",311,244.95,389
+"two-part quota, site + visit order","A-B","A-C","high_missed_pct",0.055834829443447,0.0417189795836361,0.0759710726701959
+"two-part quota, site + visit order","A-B","A-C","low_avoided_pct",0.281844998659158,0.246452866120003,0.31403878626358
+"two-part quota, site + visit order","A-B","A-C","ghost_avoided_pct",0.527609427609428,0.489487595153285,0.56802037215348
+"two-part quota, site + visit order","A-B","A-C","ghost_per_high_missed",5.03858520900322,3.90941108991998,6.45300751018913
+"two-part quota, site + visit order","A-B","A-C","tows_saved_follow_up_pct",0.276268844480191,0.239446352187028,0.324326599402753
+"two-part quota, site + visit order","A-C","A-C","dives_avoided_pct",0.21301253812267,0.181255400291126,0.247217144939367
+"two-part quota, site + visit order","A-C","A-C","high_missed",290,224.95,367.2
+"two-part quota, site + visit order","A-C","A-C","high_missed_pct",0.052064631956912,0.038731979465499,0.0707071996231288
+"two-part quota, site + visit order","A-C","A-C","low_avoided_pct",0.277822472512738,0.244706801711705,0.309951936268002
+"two-part quota, site + visit order","A-C","A-C","ghost_avoided_pct",0.524579124579125,0.487035378346651,0.565658379834543
+"two-part quota, site + visit order","A-C","A-C","ghost_per_high_missed",5.37241379310345,4.11806420137345,6.94965225493148
+"two-part quota, site + visit order","A-C","A-C","tows_saved_follow_up_pct",0.169337375487224,0.14002155911616,0.205278646279847
+"density-aware v2","A-B","none","dives_avoided_pct",0.00542189088444595,0.00337231037143538,0.00810022900020014
+"density-aware v2","A-B","none","high_missed",9,2,18
+"density-aware v2","A-B","none","high_missed_pct",0.00161579892280072,0.00036141106637501,0.00348479294155874
+"density-aware v2","A-B","none","low_avoided_pct",0.00777688388307857,0.00431719502765717,0.0120666018749255
+"density-aware v2","A-B","none","ghost_avoided_pct",0.00875420875420875,0.00367595090383885,0.0161263220690282
+"density-aware v2","A-B","none","ghost_per_high_missed",2.88888888888889,1,11.5875
+"density-aware v2","A-B","none","tows_saved_follow_up_pct",0.241456825259337,0.209527782489097,0.282816359329686
+"density-aware v2","A-C","none","dives_avoided_pct",0.00277871907827855,0.0014336169248098,0.00499908022151173
+"density-aware v2","A-C","none","high_missed",2,0,6
+"density-aware v2","A-C","none","high_missed_pct",0.000359066427289048,0,0.00122314138953105
+"density-aware v2","A-C","none","low_avoided_pct",0.00482703137570394,0.00199934000472713,0.00973428995050773
+"density-aware v2","A-C","none","ghost_avoided_pct",0.00404040404040404,0.00139017624572917,0.00774956085696699
+"density-aware v2","A-C","none","ghost_per_high_missed",6,1.4125,Inf
+"density-aware v2","A-C","none","tows_saved_follow_up_pct",0.157458392625131,0.127518689397222,0.191683751559915
+"density-aware v2","none","A-C","dives_avoided_pct",0.202168756353778,0.171872392994016,0.235719327760863
+"density-aware v2","none","A-C","high_missed",230,176,294.575
+"density-aware v2","none","A-C","high_missed_pct",0.0412926391382406,0.0290483320428739,0.0577443037861662
+"density-aware v2","none","A-C","low_avoided_pct",0.282917672298203,0.250204312189821,0.31708920209655
+"density-aware v2","none","A-C","ghost_avoided_pct",0.48956228956229,0.450042393973906,0.531443763330977
+"density-aware v2","none","A-C","ghost_per_high_missed",6.32173913043478,4.85426551094891,8.27861897896879
+"density-aware v2","none","A-C","tows_saved_follow_up_pct",0,0,0
+"density-aware v2","A-B","A-C","dives_avoided_pct",0.207590647238224,0.176921380271897,0.241689896193577
+"density-aware v2","A-B","A-C","high_missed",239,184.375,306.1
+"density-aware v2","A-B","A-C","high_missed_pct",0.0429084380610413,0.0301959046869916,0.0596317824636467
+"density-aware v2","A-B","A-C","low_avoided_pct",0.290694556181282,0.257810378838592,0.325023990374049
+"density-aware v2","A-B","A-C","ghost_avoided_pct",0.498316498316498,0.456197155708874,0.539071215370211
+"density-aware v2","A-B","A-C","ghost_per_high_missed",6.19246861924686,4.77089160839161,8.06367041198502
+"density-aware v2","A-B","A-C","tows_saved_follow_up_pct",0.241456825259337,0.209527782489097,0.282816359329686
+"density-aware v2","A-C","A-C","dives_avoided_pct",0.204947475432057,0.174951843194068,0.238761776370743
+"density-aware v2","A-C","A-C","high_missed",232,176.475,297.625
+"density-aware v2","A-C","A-C","high_missed_pct",0.0416517055655296,0.0291924325775684,0.0577531939982648
+"density-aware v2","A-C","A-C","low_avoided_pct",0.287744703673907,0.25584970318091,0.321733324370067
+"density-aware v2","A-C","A-C","ghost_avoided_pct",0.493602693602694,0.454158268069818,0.535209648463323
+"density-aware v2","A-C","A-C","ghost_per_high_missed",6.31896551724138,4.86419642857143,8.22211155131856
+"density-aware v2","A-C","A-C","tows_saved_follow_up_pct",0.157458392625131,0.127518689397222,0.191683751559915
+"density-aware v2, untowed neutral","A-B","none","dives_avoided_pct",0.00603185360894612,0.00392553535737911,0.00896630522051707
+"density-aware v2, untowed neutral","A-B","none","high_missed",16,6,29.525
+"density-aware v2, untowed neutral","A-B","none","high_missed_pct",0.00287253141831239,0.00113707652735432,0.00551996201538419
+"density-aware v2, untowed neutral","A-B","none","low_avoided_pct",0.0080450522928399,0.00440878094512097,0.0123904427638306
+"density-aware v2, untowed neutral","A-B","none","ghost_avoided_pct",0.00909090909090909,0.0032774029022139,0.0182519784082213
+"density-aware v2, untowed neutral","A-B","none","ghost_per_high_missed",1.6875,0.547613636363636,5
+"density-aware v2, untowed neutral","A-B","none","tows_saved_follow_up_pct",0.249994844191466,0.217128588276232,0.290693546562422
+"density-aware v2, untowed neutral","A-C","none","dives_avoided_pct",0.00365977634700102,0.00197625311425889,0.00600238232347347
+"density-aware v2, untowed neutral","A-C","none","high_missed",5,0,13
+"density-aware v2, untowed neutral","A-C","none","high_missed_pct",0.000897666068222621,0,0.00243871094936482
+"density-aware v2, untowed neutral","A-C","none","low_avoided_pct",0.0053633681952266,0.00240256273358249,0.0100831513358226
+"density-aware v2, untowed neutral","A-C","none","ghost_avoided_pct",0.00673400673400673,0.00205236812832972,0.0134426010421023
+"density-aware v2, untowed neutral","A-C","none","ghost_per_high_missed",4,1.059375,Inf
+"density-aware v2, untowed neutral","A-C","none","tows_saved_follow_up_pct",0.166986326795768,0.135093909629357,0.203106572783818
+"density-aware v2, untowed neutral","none","A-C","dives_avoided_pct",0.203253134530668,0.172192114541762,0.238088929811249
+"density-aware v2, untowed neutral","none","A-C","high_missed",233,179.425,299.05
+"density-aware v2, untowed neutral","none","A-C","high_missed_pct",0.0418312387791741,0.0293689539145587,0.058952696087775
+"density-aware v2, untowed neutral","none","A-C","low_avoided_pct",0.282113167068919,0.247199123779312,0.317631106894518
+"density-aware v2, untowed neutral","none","A-C","ghost_avoided_pct",0.494612794612795,0.451129698952387,0.537418516334601
+"density-aware v2, untowed neutral","none","A-C","ghost_per_high_missed",6.30472103004292,4.84044941960542,8.3152330701488
+"density-aware v2, untowed neutral","none","A-C","tows_saved_follow_up_pct",0,0,0
+"density-aware v2, untowed neutral","A-B","A-C","dives_avoided_pct",0.209284988139614,0.177644039044728,0.244749777738502
+"density-aware v2, untowed neutral","A-B","A-C","high_missed",249,195.375,315.525
+"density-aware v2, untowed neutral","A-B","A-C","high_missed_pct",0.0447037701974865,0.0314110726449503,0.0624900555721829
+"density-aware v2, untowed neutral","A-B","A-C","low_avoided_pct",0.290158219361759,0.256519596703506,0.326286084343622
+"density-aware v2, untowed neutral","A-B","A-C","ghost_avoided_pct",0.503703703703704,0.460134963405724,0.547343907971334
+"density-aware v2, untowed neutral","A-B","A-C","ghost_per_high_missed",6.00803212851406,4.636672123755,7.89963559064683
+"density-aware v2, untowed neutral","A-B","A-C","tows_saved_follow_up_pct",0.249994844191466,0.217128588276232,0.290693546562422
+"density-aware v2, untowed neutral","A-C","A-C","dives_avoided_pct",0.206912910877669,0.175694998828046,0.241913303900639
+"density-aware v2, untowed neutral","A-C","A-C","high_missed",238,183.95,303.575
+"density-aware v2, untowed neutral","A-C","A-C","high_missed_pct",0.0427289048473968,0.030007403657431,0.0599786609358588
+"density-aware v2, untowed neutral","A-C","A-C","low_avoided_pct",0.287476535264146,0.255086785204157,0.322514134156412
+"density-aware v2, untowed neutral","A-C","A-C","ghost_avoided_pct",0.501346801346801,0.457765000744827,0.543998694639855
+"density-aware v2, untowed neutral","A-C","A-C","ghost_per_high_missed",6.2563025210084,4.84696367368085,8.27916750075068
+"density-aware v2, untowed neutral","A-C","A-C","tows_saved_follow_up_pct",0.166986326795768,0.135093909629357,0.203106572783818
+"density-aware v2, untowed neutral + habitat","A-B","none","dives_avoided_pct",0.00589630633683497,0.00375741169539571,0.008776648757736
+"density-aware v2, untowed neutral + habitat","A-B","none","high_missed",14,5.475,26
+"density-aware v2, untowed neutral + habitat","A-B","none","high_missed_pct",0.00251346499102334,0.00090535934189185,0.00507769122226953
+"density-aware v2, untowed neutral + habitat","A-B","none","low_avoided_pct",0.0080450522928399,0.00440878094512097,0.0123904427638306
+"density-aware v2, untowed neutral + habitat","A-B","none","ghost_avoided_pct",0.00909090909090909,0.0032774029022139,0.0182519784082213
+"density-aware v2, untowed neutral + habitat","A-B","none","ghost_per_high_missed",1.92857142857143,0.609842995169082,5.36071428571428
+"density-aware v2, untowed neutral + habitat","A-B","none","tows_saved_follow_up_pct",0.247870651075502,0.214947091200623,0.288245874930702
+"density-aware v2, untowed neutral + habitat","A-C","none","dives_avoided_pct",0.00352422907488987,0.001829289645006,0.00584752988939129
+"density-aware v2, untowed neutral + habitat","A-C","none","high_missed",5,0,13
+"density-aware v2, untowed neutral + habitat","A-C","none","high_missed_pct",0.000897666068222621,0,0.00243871094936482
+"density-aware v2, untowed neutral + habitat","A-C","none","low_avoided_pct",0.00482703137570394,0.00176779569864401,0.00972964658079352
+"density-aware v2, untowed neutral + habitat","A-C","none","ghost_avoided_pct",0.00673400673400673,0.00205236812832972,0.0134426010421023
+"density-aware v2, untowed neutral + habitat","A-C","none","ghost_per_high_missed",4,1.059375,Inf
+"density-aware v2, untowed neutral + habitat","A-C","none","tows_saved_follow_up_pct",0.168079358204954,0.137317127892024,0.203920572116881
+"density-aware v2, untowed neutral + habitat","none","A-C","dives_avoided_pct",0.203049813622501,0.172302418946732,0.236936139711269
+"density-aware v2, untowed neutral + habitat","none","A-C","high_missed",234,177.475,302.625
+"density-aware v2, untowed neutral + habitat","none","A-C","high_missed_pct",0.0420107719928187,0.0299001980725507,0.0583699055911576
+"density-aware v2, untowed neutral + habitat","none","A-C","low_avoided_pct",0.282917672298203,0.248407937091165,0.317795613814843
+"density-aware v2, untowed neutral + habitat","none","A-C","ghost_avoided_pct",0.492592592592593,0.450961019975114,0.534815837620454
+"density-aware v2, untowed neutral + habitat","none","A-C","ghost_per_high_missed",6.25213675213675,4.78728101325758,8.27513440860215
+"density-aware v2, untowed neutral + habitat","none","A-C","tows_saved_follow_up_pct",0,0,0
+"density-aware v2, untowed neutral + habitat","A-B","A-C","dives_avoided_pct",0.208946119959336,0.177309073504752,0.243881822778047
+"density-aware v2, untowed neutral + habitat","A-B","A-C","high_missed",248,194,318.525
+"density-aware v2, untowed neutral + habitat","A-B","A-C","high_missed_pct",0.044524236983842,0.0318802708394852,0.0615731278282135
+"density-aware v2, untowed neutral + habitat","A-B","A-C","low_avoided_pct",0.290962724591043,0.257302839528438,0.327436000834448
+"density-aware v2, untowed neutral + habitat","A-B","A-C","ghost_avoided_pct",0.501683501683502,0.458025568181818,0.546183837741876
+"density-aware v2, untowed neutral + habitat","A-B","A-C","ghost_per_high_missed",6.00806451612903,4.61610810810811,7.90031879884821
+"density-aware v2, untowed neutral + habitat","A-B","A-C","tows_saved_follow_up_pct",0.247870651075502,0.214947091200623,0.288245874930702
+"density-aware v2, untowed neutral + habitat","A-C","A-C","dives_avoided_pct",0.206574042697391,0.175242037231936,0.240919243783159
+"density-aware v2, untowed neutral + habitat","A-C","A-C","high_missed",239,181.9,306.05
+"density-aware v2, untowed neutral + habitat","A-C","A-C","high_missed_pct",0.0429084380610413,0.0307231868452341,0.0596139939837681
+"density-aware v2, untowed neutral + habitat","A-C","A-C","low_avoided_pct",0.287744703673907,0.25381792134262,0.322326300178118
+"density-aware v2, untowed neutral + habitat","A-C","A-C","ghost_avoided_pct",0.499326599326599,0.457567509084053,0.542818645738954
+"density-aware v2, untowed neutral + habitat","A-C","A-C","ghost_per_high_missed",6.20502092050209,4.8083085106383,8.18107843137255
+"density-aware v2, untowed neutral + habitat","A-C","A-C","tows_saved_follow_up_pct",0.168079358204954,0.137317127892024,0.203920572116881
+"density-aware v3, local tow density","A-B","none","dives_avoided_pct",0.00609962724500169,0.00394593680003147,0.00906865822278446
+"density-aware v3, local tow density","A-B","none","high_missed",17,6,30.525
+"density-aware v3, local tow density","A-B","none","high_missed_pct",0.00305206463195691,0.00114621707272743,0.00581488819743853
+"density-aware v3, local tow density","A-B","none","low_avoided_pct",0.0080450522928399,0.00440878094512097,0.0123904427638306
+"density-aware v3, local tow density","A-B","none","ghost_avoided_pct",0.00909090909090909,0.0032774029022139,0.0182519784082213
+"density-aware v3, local tow density","A-B","none","ghost_per_high_missed",1.58823529411765,0.5,4.92083333333333
+"density-aware v3, local tow density","A-B","none","tows_saved_follow_up_pct",0.251479717049228,0.219209554401268,0.292579584135216
+"density-aware v3, local tow density","A-C","none","dives_avoided_pct",0.00359200271094544,0.0019142813402514,0.0058963993015166
+"density-aware v3, local tow density","A-C","none","high_missed",5,0,13
+"density-aware v3, local tow density","A-C","none","high_missed_pct",0.000897666068222621,0,0.00243871094936482
+"density-aware v3, local tow density","A-C","none","low_avoided_pct",0.00509519978546527,0.00225382605449795,0.00964742548391176
+"density-aware v3, local tow density","A-C","none","ghost_avoided_pct",0.00673400673400673,0.00205236812832972,0.0134426010421023
+"density-aware v3, local tow density","A-C","none","ghost_per_high_missed",4,1.059375,Inf
+"density-aware v3, local tow density","A-C","none","tows_saved_follow_up_pct",0.170265421023325,0.138557194426783,0.206551803727956
+"density-aware v3, local tow density","none","A-C","dives_avoided_pct",0.201491019993223,0.171144384944495,0.236171378694701
+"density-aware v3, local tow density","none","A-C","high_missed",233,178,300
+"density-aware v3, local tow density","none","A-C","high_missed_pct",0.0418312387791741,0.0293843314230464,0.0589173274141553
+"density-aware v3, local tow density","none","A-C","low_avoided_pct",0.278358809332261,0.242988883277039,0.315438948364634
+"density-aware v3, local tow density","none","A-C","ghost_avoided_pct",0.49023569023569,0.447726173373636,0.532742438615824
+"density-aware v3, local tow density","none","A-C","ghost_per_high_missed",6.24892703862661,4.80270250492542,8.25399716435816
+"density-aware v3, local tow density","none","A-C","tows_saved_follow_up_pct",0,0,0
+"density-aware v3, local tow density","A-B","A-C","dives_avoided_pct",0.207590647238224,0.176461495118897,0.242363777632179
+"density-aware v3, local tow density","A-B","A-C","high_missed",250,197.475,320
+"density-aware v3, local tow density","A-B","A-C","high_missed_pct",0.0448833034111311,0.0318171093414835,0.0625917137418172
+"density-aware v3, local tow density","A-B","A-C","low_avoided_pct",0.286403861625101,0.250839757113491,0.322402142220676
+"density-aware v3, local tow density","A-B","A-C","ghost_avoided_pct",0.499326599326599,0.457201046873047,0.543411346062741
+"density-aware v3, local tow density","A-B","A-C","ghost_per_high_missed",5.932,4.53985389842462,7.84100777437764
+"density-aware v3, local tow density","A-B","A-C","tows_saved_follow_up_pct",0.251479717049228,0.219209554401268,0.292579584135216
+"density-aware v3, local tow density","A-C","A-C","dives_avoided_pct",0.205083022704168,0.17434187095717,0.239656440363674
+"density-aware v3, local tow density","A-C","A-C","high_missed",238,183,302
+"density-aware v3, local tow density","A-C","A-C","high_missed_pct",0.0427289048473968,0.0301197021835011,0.0598176759423358
+"density-aware v3, local tow density","A-C","A-C","low_avoided_pct",0.283454009117726,0.247854154065765,0.319454870832301
+"density-aware v3, local tow density","A-C","A-C","ghost_avoided_pct",0.496969696969697,0.455263084732484,0.541096424878736
+"density-aware v3, local tow density","A-C","A-C","ghost_per_high_missed",6.20168067226891,4.78683274333181,8.16983431952663
+"density-aware v3, local tow density","A-C","A-C","tows_saved_follow_up_pct",0.170265421023325,0.138557194426783,0.206551803727956
+"density-aware v3, local tow density + aspect","A-B","none","dives_avoided_pct",0.00596407997289055,0.00376747642767799,0.00893156720629006
+"density-aware v3, local tow density + aspect","A-B","none","high_missed",15,6,28
+"density-aware v3, local tow density + aspect","A-B","none","high_missed_pct",0.00269299820466786,0.00097473114403137,0.00549779242134478
+"density-aware v3, local tow density + aspect","A-B","none","low_avoided_pct",0.0080450522928399,0.00440878094512097,0.0123904427638306
+"density-aware v3, local tow density + aspect","A-B","none","ghost_avoided_pct",0.00909090909090909,0.0032774029022139,0.0182519784082213
+"density-aware v3, local tow density + aspect","A-B","none","ghost_per_high_missed",1.8,0.552638888888889,5.27007575757575
+"density-aware v3, local tow density + aspect","A-B","none","tows_saved_follow_up_pct",0.251046629132381,0.218329688531241,0.291532609740476
+"density-aware v3, local tow density + aspect","A-C","none","dives_avoided_pct",0.00359200271094544,0.0019142813402514,0.0058963993015166
+"density-aware v3, local tow density + aspect","A-C","none","high_missed",5,0,13
+"density-aware v3, local tow density + aspect","A-C","none","high_missed_pct",0.000897666068222621,0,0.00243871094936482
+"density-aware v3, local tow density + aspect","A-C","none","low_avoided_pct",0.00509519978546527,0.00225382605449795,0.00964742548391176
+"density-aware v3, local tow density + aspect","A-C","none","ghost_avoided_pct",0.00673400673400673,0.00205236812832972,0.0134426010421023
+"density-aware v3, local tow density + aspect","A-C","none","ghost_per_high_missed",4,1.059375,Inf
+"density-aware v3, local tow density + aspect","A-C","none","tows_saved_follow_up_pct",0.170306667491596,0.138543514375731,0.205800333049676
+"density-aware v3, local tow density + aspect","none","A-C","dives_avoided_pct",0.201829888173501,0.170886812962802,0.236208398398009
+"density-aware v3, local tow density + aspect","none","A-C","high_missed",234,178.425,299
+"density-aware v3, local tow density + aspect","none","A-C","high_missed_pct",0.0420107719928187,0.0295246723646724,0.0589334762002065
+"density-aware v3, local tow density + aspect","none","A-C","low_avoided_pct",0.278090640922499,0.242919540123271,0.314107484012147
+"density-aware v3, local tow density + aspect","none","A-C","ghost_avoided_pct",0.493265993265993,0.450421661671662,0.535815383744717
+"density-aware v3, local tow density + aspect","none","A-C","ghost_per_high_missed",6.26068376068376,4.82149873346468,8.31338473205258
+"density-aware v3, local tow density + aspect","none","A-C","tows_saved_follow_up_pct",0,0,0
+"density-aware v3, local tow density + aspect","A-B","A-C","dives_avoided_pct",0.207793968146391,0.176483803731859,0.243135363481606
+"density-aware v3, local tow density + aspect","A-B","A-C","high_missed",249,195.375,314.575
+"density-aware v3, local tow density + aspect","A-B","A-C","high_missed_pct",0.0447037701974865,0.0315427337061175,0.0626977558977775
+"density-aware v3, local tow density + aspect","A-B","A-C","low_avoided_pct",0.286135693215339,0.251421846512656,0.323213367261309
+"density-aware v3, local tow density + aspect","A-B","A-C","ghost_avoided_pct",0.502356902356902,0.459034410221069,0.545312818209777
+"density-aware v3, local tow density + aspect","A-B","A-C","ghost_per_high_missed",5.99196787148594,4.60031278962002,7.85699620940477
+"density-aware v3, local tow density + aspect","A-B","A-C","tows_saved_follow_up_pct",0.251046629132381,0.218329688531241,0.291532609740476
+"density-aware v3, local tow density + aspect","A-C","A-C","dives_avoided_pct",0.205421890884446,0.174456910053169,0.240062069564836
+"density-aware v3, local tow density + aspect","A-C","A-C","high_missed",239,183.475,302.575
+"density-aware v3, local tow density + aspect","A-C","A-C","high_missed_pct",0.0429084380610413,0.0298842931162102,0.0599795289566701
+"density-aware v3, local tow density + aspect","A-C","A-C","low_avoided_pct",0.283185840707965,0.24887136841856,0.319371791944038
+"density-aware v3, local tow density + aspect","A-C","A-C","ghost_avoided_pct",0.5,0.456807572406455,0.542979168864332
+"density-aware v3, local tow density + aspect","A-C","A-C","ghost_per_high_missed",6.21338912133891,4.81816053511706,8.23120657797487
+"density-aware v3, local tow density + aspect","A-C","A-C","tows_saved_follow_up_pct",0.170306667491596,0.138543514375731,0.205800333049676

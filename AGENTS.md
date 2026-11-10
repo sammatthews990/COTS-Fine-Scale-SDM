@@ -30,7 +30,7 @@ of effort.
     the lowest-ranked tows by any model (script 14).
   - A manta-trained habitat model fitted within reef-years ranks tows best
     (AUC 0.61). It does not improve cull-site selection (script 17).
-- **Operational product.** `final/outputs/site_ranking/` holds the 2027
+- **Operational product.** `pipeline/outputs/site_ranking/` holds the 2027
   priority ranking of every designated cull site (CSV and KMZ, script 20).
   It uses the cull habitat rank plus the last 12 months of dives and tows.
   - Model choices are in `config.R` → `site_ranking`, chosen by the
@@ -132,7 +132,7 @@ of effort.
 - **Old SDM_Validation_Report ROC (AUC 0.865)** came from pooling across reefs,
   in-sample dives and point memorisation. On unseen 2026 dives the old RG
   map matches the current forward habitat layer. See the README.
-- Details, numbers and caveats are in `DataProcessing/cots_sdm_v2/final/README.md`.
+- Details, numbers and caveats are in `pipeline/README.md`.
 - **27 October ranking experiment.** Scripts 29–32 test three alternatives,
   including recent CPUE and polygon habitat percentiles. The original ranking
   remains the default. `outputs/site_ranking_candidates/` holds a separately
@@ -141,31 +141,44 @@ of effort.
 
 ## Where things are
 
-- `DataProcessing/cots_sdm_v2/final/` holds the delivered pipeline: layers,
-  validation and report figures. **Read `final/README.md` first.** It records
-  every result, caveat and the run order.
-- `DataProcessing/cots_sdm_v2/final/report/technical_report.qmd` is the current
-  technical-report source; `report/results.qmd` is an earlier Results draft.
+- `pipeline/` holds the delivered pipeline: layers, validation, the 2027
+  products and the report figures. **Read `pipeline/README.md` first.** It
+  records every result, caveat and the run order.
+- `pipeline/report/technical_report.qmd` is the current technical-report
+  source; `report/results.qmd` is an earlier Results draft.
   **Read `report/WRITING_BRIEF.md` and `report/CCIP_TEMPLATE_GUIDE.md` before
   report edits.** The supplied CCIP Bridging Project DOCX is immutable and
   governs section focus, length and formatting. Use
   `report/scripts/render_ccip_report.ps1` for the template-based Word/PDF export;
   a bare Quarto render produces only its content intermediate.
-- Everything else under `DataProcessing/cots_sdm_v2/` (iterations, artifacts,
-  reports) is exploratory history. It is due to be moved to
-  `cots_sdm_v2/archive/`; the user will do this move. The pipeline's
-  `config.R` finds inputs in either location.
-- `DataProcessing/SDM_Validation_Report.qmd` and `SDMReefValidation.qmd` are
-  superseded earlier estimates. They had no random baseline and used in-sample
-  scoring.
-- Raw data are in `data/`. This includes the EoTR designated cull-site KMZ and
-  the ReefScan detections (presence-only, no effort tracks).
+- **Data live outside the repository**, in the project data store: the
+  CCIP-BR-13 SharePoint `Data` folder (synced through OneDrive; override with
+  the `COTS_DATA_DIR` environment variable). Layout: `raw/` (source data as
+  received, including the EoTR designated cull-site KMZ and the ReefScan
+  detections, presence-only with no effort tracks), `predictors/` (the two
+  30 m stacks), `frozen/` (pinned intermediates, eReefs extract, ADRIA/COTSMod
+  snapshot) and `products/` (final habitat layers and site rankings).
+  `DATA_MANIFEST.csv` (in the store and in `pipeline/`) lists every file with
+  its checksum and origin. Office files and the ADRIA snapshot are stored
+  zipped (SharePoint rewrites Office metadata; ADRIA paths exceed Windows'
+  260-character limit); `initialise_final()` unpacks them into `cache/`.
+- `upstream/` keeps, for provenance only, the scripts that built the frozen
+  inputs (predictor stacks, legacy SDM refits, v2 data preparation, Hmsc
+  v3/v4 training tables, Lizard connectivity tables) and the exploratory
+  decision reports. They still use their original paths and are not run.
+- Everything else from the exploratory work (iterations, superseded validation
+  reports, scratch) was removed from the tree on 10 November 2026; tag
+  `v1.0-2027-products` holds the full repository as it produced the report and
+  the 2027 products. The large raw sources the predictor stacks were built
+  from are kept in a local backup, not in the repository or the store.
 
 ## Rules for analyses
 
-- **Frozen inputs.** `final/config.R` pins every input by SHA-256. Do not
-  regenerate or replace a pinned file silently. Add new inputs to `config.R`
-  with their checksum.
+- **Frozen inputs.** `pipeline/config.R` pins every input by SHA-256. Do not
+  regenerate or replace a pinned file silently. Add new inputs to the data
+  store and to `config.R` with their checksum, and to `DATA_MANIFEST.csv`.
+  Never write into the data store from a pipeline script; publishing products
+  there is a deliberate, separate step.
 - **Rank within reefs.** Operational decisions are made within a reef, so
   report within reef-year metrics: AUC, top-20 % lift, share kept at a fixed
   effort. Survey year and reef identity dominate raw probabilities.
@@ -190,19 +203,21 @@ of effort.
 ## Code conventions
 
 - R scripts, run from the repository root:
-  `Rscript DataProcessing/cots_sdm_v2/final/scripts/NN_name.R`.
+  `Rscript pipeline/scripts/NN_name.R`.
   Each script starts with a header comment stating its question, method and
   validation.
-- Scripts source `final/R/common.R` and call `initialise_final()`. Shared
-  helpers live in `final/R/`; for example, `cull_sites.R` provides designated
-  sites and matched dives.
-- Write every reported number to `final/outputs/tables/` with `write_table()`.
-  Put figures in `07_build_report_figures.R`, which runs last, using the
-  palette in `R/figures.R`. Intermediate results go in `final/cache/`
-  (git-ignored).
-- When a result changes, update `final/README.md` (results, figure list, run
-  order) and, where relevant, `report/results.qmd`.
+- Scripts source `pipeline/R/common.R` and call `initialise_final()`. Shared
+  helpers live in `pipeline/R/`; for example, `cull_sites.R` provides
+  designated sites and matched dives.
+- Write every reported number to `pipeline/outputs/tables/` with
+  `write_table()`. Put figures in `07_build_report_figures.R`, which runs last,
+  using the palette in `R/figures.R`. Intermediate results go in
+  `pipeline/cache/` (git-ignored).
+- When a result changes, update `pipeline/README.md` (results, figure list,
+  run order) and, where relevant, `report/results.qmd`.
 
 ## Git
 
-- Work on branch `tidy/final-pipeline`. Commit or push only when asked.
+- `master` holds the delivered state; tag `v1.0-2027-products` marks the
+  pipeline, report and 2027 products before the reorganisation. Work on a
+  branch and merge through a pull request. Commit or push only when asked.
