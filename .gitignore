@@ -2,23 +2,10 @@
 .Rhistory
 .RData
 .Ruserdata
+.quarto/
 
-data/doi_10_5061_dryad_wdbrv15vk__v20250413 (1).zip
-
-data/
-
-DataProcessing/outputs/
-
+# Data live in the project data store (see pipeline/README.md), not here.
 *.tif
 *.csv
 *.rds
 
-DataProcessing/validation_outputs/tiles_cache/Esri.WorldImagery/
-
-DataProcessing/SDM_Validation_Report_files/figure-pdf/
-
-DataProcessing/SDM_Validation_Report_files/figure-html/
-
-DataProcessing/SDM_Validation_Report_cache/pdf/
-
-DataProcessing/SDM_Validation_Report_cache/html/
