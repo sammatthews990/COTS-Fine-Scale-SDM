@@ -1,0 +1,258 @@
+---
+title: "Supplementary Material"
+subtitle: "Fine-scale decision support for crown-of-thorns starfish control on the Great Barrier Reef: evaluating search rules and prototyping strategic scenarios"
+bibliography: references.bib
+csl: csl/frontiers.csl
+nocite: |
+  @li2021bathymetry, @beaman2017gbr30, @guillaume2025coral, @li2022turbidity, @reefguide2026, @gbrmpageomorphic2021, @roelfsema2021shallow
+lang: en-US
+execute:
+  echo: false
+  warning: false
+  message: false
+format:
+  docx:
+    reference-doc: reference_manuscript.docx
+    number-sections: false
+  pdf:
+    documentclass: article
+    papersize: a4
+    geometry: margin=2cm
+    fontsize: 9pt
+    mainfont: "Times New Roman"
+    number-sections: false
+    include-in-header:
+      text: |
+        \usepackage{caption}
+        \captionsetup[table]{labelformat=empty}
+---
+
+<!-- Every value is read from ../outputs/tables: scripts 01-02, 05 and 18
+(habitat models), 20 (2027 ranking), 36 (density-aware replay and 2027 site
+models) and 38 (predictor table). Predictor sources follow upstream/predictors
+and the Hmsc v4 scripts in upstream/cots_sdm_v2/iterations/hmsc_corrected_v4;
+elevation and turbidity sources confirmed by the authors, 12 November 2026.
+Tables are numbered in the order the main text first cites them. -->
+
+```{r}
+#| label: setup
+#| include: false
+source("msw_helpers.R")
+msw_tables_dir <- Sys.getenv("MSW_TABLES", "../outputs/tables")
+hpt <- tab("habitat_predictor_table.csv")
+hps <- tab("habitat_model_specification.csv")
+src <- tab("site_ranking_2027_coefficients.csv")
+v2m <- tab("density_v2_2027_site_coefficients.csv")
+la  <- tab("layer_agreement_summary.csv")
+fbc <- tab("legacy_rg_clean_fallback_calibration.csv")
+srf <- tab("site_ranking_forward.csv")
+pdst <- tab("protocol_density_statistics.csv")
+pdtot <- tab("protocol_density_totals.csv")
+sig <- function(x) ifelse(is.finite(x), prettyNum(signif(x, 3), big.mark = ","), "")
+share <- function(x) ifelse(is.finite(x), sprintf("%.1f", 100 * x), "–")
+blank <- function(x) ifelse(is.na(x), "", x)
+times <- function(x) gsub(" x ", " × ", x, fixed = TRUE)
+est_se <- function(e, s) sprintf("%s (%s)", num(e, 3), num(s, 3))
+# Relative column widths for a pipe table: pandoc reads them from the dashes
+# in the separator line when rows are long enough to wrap.
+widths <- function(k, w) {
+  i <- grep("^\\|[-:|]+\\|$", k)[1]
+  cells <- strsplit(sub("^\\|(.*)\\|$", "\\1", k[i]), "|", fixed = TRUE)[[1]]
+  n <- pmax(3, round(100 * w / sum(w)))
+  k[i] <- paste0("|", paste0(ifelse(startsWith(cells, ":"), ":", ""), strrep("-", n), ifelse(endsWith(cells, ":"), ":", ""),
+                             collapse = "|"), "|")
+  k
+}
+fw <- function(score, metric, period, col = "value") pick(srf, period = period, score = score, metric = metric, col = col)
+V2 <- "density-aware v2, untowed neutral"
+pdv <- function(layer, zone, rule, metric, evidence = if (rule == "none") "none" else "discretion at A-x", col = "value",
+                scope = "all visits", memory = zone != "none") {
+  d <- pdst[which(pdst$scope == scope & !pdst$random & pdst$layer == layer & pdst$zone == zone & pdst$rule == rule &
+                    pdst$evidence == evidence & pdst$memory == memory & pdst$metric == metric), ]
+  stopifnot(nrow(d) == 1)
+  d[[col]]
+}
+```
+
+This file accompanies the article and contains Supplementary Tables S1–S8, numbered in the order the main text first cites them.
+
+- Table S1. Habitat predictors: sources, processing, values on reef cells, models and gain.
+- Table S2. Training data and settings of the habitat models.
+- Table S3. Coefficients of the within-reef cull-site score for 2027.
+- Table S4. Coefficients of the site models behind the 2027 density-aware classes.
+- Table S5. Delivered habitat layers and 2027 products.
+- Table S6. Agreement between habitat layers within reefs.
+- Table S7. Season-by-season forward test of the cull-site ranking.
+- Table S8. Tow-zone and dive-rule settings under three class sets.
+
+::: {.landscape}
+
+```{r}
+codes <-c(C = "in_clean_year", R = "in_rg_year", M = "in_manta_within", H1 = "in_hmsc_enhanced",
+           H2 = "in_hmsc_clean", H3 = "in_hmsc_clean_native")
+models <- vapply(seq_len(nrow(hpt)), function(i)
+  paste(names(codes)[vapply(codes, function(k) isTRUE(as.logical(hpt[[k]][i])), logical(1))], collapse = ", "), "")
+values <- ifelse(is.finite(hpt$median), sprintf("%s (%s to %s)", sig(hpt$median), sig(hpt$p05), sig(hpt$p95)), "")
+gains <- ifelse(is.finite(hpt$gain_clean_year) | is.finite(hpt$gain_rg_year) | is.finite(hpt$gain_manta_within),
+                sprintf("%s / %s / %s", share(hpt$gain_clean_year), share(hpt$gain_rg_year), share(hpt$gain_manta_within)), "–")
+variable <- sub("^(Acropora [a-z]+)", "*\\1*", hpt$variable)
+s1 <- do.call(rbind, lapply(unique(hpt$group), function(g) {
+  i <- which(hpt$group == g)
+  rbind(data.frame(v = sprintf("**%s**", g), c = "", u = "", n = times(hpt$source[i[1]]), x = "", m = "", g = ""),
+        data.frame(v = variable[i], c = hpt$code[i], u = times(hpt$units[i]), n = times(blank(hpt$processing[i])),
+                   x = values[i], m = models[i], g = gains[i]))
+}))
+names(s1) <- c("Variable", "Code", "Units", "Source and processing", "Median (5th to 95th percentile)", "Models",
+               "Gain C / R / M (%)")
+widths(knitr::kable(s1, row.names = FALSE, align = "lllllll",
+  caption = "Supplementary Table S1. Habitat predictors. Each group's source and processing are given on its header row; variable rows add only what differs. Values are the median and 5th–95th percentiles over a regular sample of reef cells within 1 km of mapped reefs. Models: C, clean + year; R, RG + year; M, manta model within reef-years; H1–H3, the three joint-model components (main, clean multiscale, clean 30 m). Gain is each XGBoost model's share of total gain, in percent; survey year was set to 2026 for mapping. Joint-model predictors are 4 × 4 block means of the 30 m layers at 120 m."),
+  c(15, 12, 8, 33, 14, 9, 9))
+```
+
+:::
+
+```{r}
+x <- function(model, col) hps[[col]][hps$model == model]
+knitr::kable(data.frame(
+  Model = c("Clean + year (XGBoost)", "RG + year (XGBoost)", "Joint model, main component (HMSC)",
+            "Joint model, clean multiscale component", "Joint model, clean 30 m component"),
+  `Training rows` = prettyNum(c(x("clean_year", "training_rows"), x("rg_year", "training_rows"), x("hmsc_enhanced", "training_rows"),
+                                x("hmsc_clean", "training_rows"), x("hmsc_clean_native", "training_rows")), big.mark = ","),
+  `Problematic (target rows)` = c(prettyNum(x("clean_year", "positives"), big.mark = ","), prettyNum(x("rg_year", "positives"), big.mark = ","),
+    sprintf("%s (%s)", prettyNum(c(x("hmsc_enhanced", "positives"), x("hmsc_clean", "positives"), x("hmsc_clean_native", "positives")), big.mark = ","),
+            prettyNum(c(x("hmsc_enhanced", "target_rows"), x("hmsc_clean", "target_rows"), x("hmsc_clean_native", "target_rows")), big.mark = ","))),
+  Settings = c(
+    sprintf("1,500 trees; depth %d; learning rate %s; minimum loss reduction %s; minimum node size %d",
+            x("clean_year", "tree_depth"), signif(x("clean_year", "learn_rate"), 3), signif(x("clean_year", "loss_reduction"), 3), x("clean_year", "min_n")),
+    sprintf("1,500 trees; depth %d; learning rate %s; minimum loss reduction %s; minimum node size %d",
+            x("rg_year", "tree_depth"), signif(x("rg_year", "learn_rate"), 3), signif(x("rg_year", "loss_reduction"), 3), x("rg_year", "min_n")),
+    sprintf("%d covariates incl. intercept; 4 chains × %s samples, thin %d, transient %s",
+            c(x("hmsc_enhanced", "covariates"), x("hmsc_clean", "covariates"), x("hmsc_clean_native", "covariates")),
+            prettyNum(x("hmsc_enhanced", "samples"), big.mark = ","), x("hmsc_enhanced", "thin"), prettyNum(x("hmsc_enhanced", "transient"), big.mark = ","))),
+  check.names = FALSE), row.names = FALSE, align = "lrrl",
+  caption = "Supplementary Table S2. Training data and settings of the habitat models. Cull-trained XGBoost models were fitted to site-years (problematic: pooled CPUE ≥0.02) and tuned over a 30-point space-filling grid by five-fold spatial-block cross-validation with 50 km blocks, keeping the highest ROC AUC; held-out refits reused the clean + year settings. Joint-model rows are 120 m cell visits in active reef-years; the target rows are those with cull dives. The manta model is described in the main text.")
+```
+
+```{r}
+rank_terms <- c("(Intercept)", "habitat", "site_problematic_prev", "site_quiet_prev", "cull_rate", "log_cull_effort",
+                "log_manta_strong", "log_manta_effort")
+stopifnot(identical(as.character(src$term), rank_terms))
+knitr::kable(data.frame(
+  Symbol = c("β~0~", "β~H~", "β~P~", "β~Q~", "β~R~", "β~E~", "β~M~", "β~T~"),
+  Input = c("Intercept", "Within-reef habitat rank of the site", "Any dive at the site with CPUE ≥0.02",
+            "Site dived, no dive with CPUE ≥0.02", "Weighted share of nearby dives with CPUE ≥0.02",
+            "log(1 + weighted count of nearby dives)", "log(1 + weighted count of nearby strong tows)",
+            "log(1 + weighted count of all nearby tows)"),
+  `Estimate (SE)` = est_se(src$estimate, src$std_error),
+  check.names = FALSE), row.names = FALSE, align = "llr",
+  caption = sprintf("Supplementary Table S3. Coefficients of the within-reef cull-site score for 2027 (logistic regression on the CPUE ≥0.02 dive response; %s dives, %s). Terms are those of the score equation in the main text; evidence is from the preceding 12 months, and nearby records are weighted by a Gaussian kernel (σ = 300 m) to 900 m. Coefficients are conditional associations, and the effort terms also encode where crews chose to work. The forward tests refitted these coefficients on earlier seasons only.",
+                    prettyNum(src$training_dives[1], big.mark = ","), sub("-", "–", src$training_years[1])))
+```
+
+```{r}
+v2_terms <- c(`(Intercept)` = "Intercept",
+              reef_lp = "Reef density, log odds relative to a typical culled reef",
+              rank_lo = "Site's rank on its reef in the cull-site score, logit of the top fraction",
+              has_dr = "Any dive at the site in the past year",
+              rate_dr = "Problematic share of those dives, smoothed logit",
+              has_dl = "Any dive at the site one to six years before",
+              rate_dl = "Problematic share of those dives, smoothed logit",
+              has_tr = "Any linked tow in the past year",
+              rate_tr = "Strong-evidence share of those tows, smoothed logit",
+              has_tl = "Any linked tow one to six years before",
+              rate_tl = "Strong-evidence share of those tows, smoothed logit",
+              log_dr = "log(1 + recent dive count)",
+              log_dl = "log(1 + earlier dive count)",
+              log_tl = "log(1 + earlier tow count)")
+v2_cell <- function(model, term) {
+  d <- v2m[v2m$model == model & v2m$term == term, ]
+  if (nrow(d) == 0) "—" else est_se(d$estimate, d$std_error)
+}
+stopifnot(setequal(v2m$term, names(v2_terms)))
+knitr::kable(data.frame(
+  Term = unname(v2_terms),
+  `Dive model` = vapply(names(v2_terms), v2_cell, "", model = "dive"),
+  `Visit model` = vapply(names(v2_terms), v2_cell, "", model = "visit"),
+  check.names = FALSE), row.names = FALSE, align = "lrr",
+  caption = sprintf("Supplementary Table S4. Coefficients, estimate (SE), of the two logistic site models behind the 2027 density-aware classes (second version), fitted on 2019–2026 reef visits. The dive model gives the chance that a dive at the site is problematic (%s dives); the visit model gives the chance that the site received a problematic dive on a visit (%s site-visits, every designated site of each cull visit), so it also encodes where crews chose to dive. A site's score is the dive model's log odds plus %s times the visit model's. Recent records are weighted by a 90-day half-life within the past year; dives count within 300 m of the site and tows within 100 m. Smoothed logits are logit((k + 0.5)/(n + 1)), and 0 with no records. A site with no recent tow takes the mean recent strong-tow share of the reef's towed sites.",
+                    prettyNum(v2m$training_rows[v2m$model == "dive"][1], big.mark = ","),
+                    prettyNum(v2m$training_rows[v2m$model == "visit"][1], big.mark = ","), v2m$weight[v2m$model == "visit"][1]))
+```
+
+| Product | Resolution | Contents |
+|------------------------------|----------|------------------------------------------------------------|
+| Primary search-planning layer | 30 m | Probability of a problematic site-year in 2026 from RG + year, with the calibrated clean + year fallback; percentile within the reef polygon and map classes for the top 10%, 10–20% and 20–30% |
+| Clean + year and RG + year layers | 30 m | The two cull-trained XGBoost predictions for 2026; RG + year is missing where ReefGuidance layers are missing |
+| Manta model | 30 m | Relative log odds of strong manta evidence against the reef-year average; percentile within the reef |
+| Joint habitat model (HMSC) | 120 m | Posterior mean probability of a problematic dive given an active reef-year; posterior SD, 5th and 95th percentiles, and the component used in each cell |
+| Known aggregation sites | 120 m | Kernel-weighted rate of earlier problematic cull site-years and its evidence weight; joint-model habitat updated by that history |
+| 2027 cull-site priority, within-reef classes | Site | Class A–E, rank on the reef, modelled chance of a problematic dive if dived, and the evidence behind the score (CSV and KMZ of the designated cull sites) |
+| 2027 cull-site priority, density-aware classes (second version) | Site | Recommended classes for the field trial, with the within-reef and first-version classes, rank by the site's record, recent reef density and its source (CSV and KMZ) |
+| 2027 exploration zones | Zone | Nested bands of each reef's top 40, 30, 20 and 10% of habitat outside cull sites and recent tows: area, number of pieces, mean habitat percentile and depth range (CSV, GeoPackage and both KMZ files) |
+
+: Supplementary Table S5. Delivered habitat layers and 2027 products. Layers are GeoTIFF in GDA2020 / MGA zone 55. The first density-aware version and an experimental recent-CPUE ranking are also delivered as separately labelled, non-default products. [TO CONFIRM: repository and DOI, as in the Data availability statement.]
+
+```{r}
+pairs <- c("Clean + year vs RG + year", "Clean + year vs HMSC joint", "RG + year vs HMSC joint")
+stopifnot(setequal(la$pair, pairs))
+lr <- la[match(pairs, la$pair), ]
+knitr::kable(data.frame(
+  `Layer pair` = sub("HMSC joint", "joint model", lr$pair),
+  Reefs = prettyNum(lr$reefs, big.mark = ","),
+  `Median Spearman correlation (interquartile range)` = sprintf("%s (%s to %s)", num(lr$median, 2), num(lr$q25, 2), num(lr$q75, 2)),
+  check.names = FALSE), row.names = FALSE, align = "lrl",
+  caption = sprintf("Supplementary Table S6. Agreement between habitat layers within reefs: Spearman correlation of 30 m cell values within each reef polygon, summarized over reefs where both layers exist. RG + year exists on fewer reefs because the ReefGuidance layers are incomplete. Where both cull-trained layers existed, the calibrated clean + year fallback and RG + year correlated at %s over %s sampled cells, so ranks near the RG + year coverage boundary within a reef are less reliable.",
+                    num(fbc$spearman, 2), prettyNum(fbc$overlap_rows, big.mark = ",")))
+```
+
+```{r}
+periods <- c(as.character(2019:2026), "2019-2026")
+labs <- c(as.character(2019:2025), "2026 (January–May)", "2019–2026")
+arrow <- function(p, metric, f) sprintf("%s → %s", f(fw("habitat_only", metric, p)), f(fw("cull_all", metric, p)))
+p0 <- function(x) pct(x, 0)
+widths(knitr::kable(data.frame(
+  `Test season` = labs,
+  Dives = vapply(periods, function(p) int(fw("cull_all", "sites_searched_at_90", p, "dives")), ""),
+  `Reef-years` = vapply(periods, function(p) int(fw("cull_all", "sites_searched_at_90", p, "reef_years")), ""),
+  `Sites searched` = vapply(periods, arrow, "", metric = "sites_searched_at_90", f = p0),
+  `Low-density dives avoided` = vapply(periods, arrow, "", metric = "low_dives_avoided_at_90", f = p0),
+  `Ghost dives avoided` = vapply(periods, arrow, "", metric = "ghost_dives_avoided_at_90", f = p0),
+  `AUC, problematic vs low-density` = vapply(periods, arrow, "", metric = "auc_problematic_vs_low", f = function(v) num(v, 2)),
+  check.names = FALSE), row.names = FALSE, align = "lrrllll",
+  caption = "Supplementary Table S7. Season-by-season forward test of the cull-site ranking, with 90% of problematic dives (CPUE ≥0.02) retained. Each season uses an evidence regression fitted only on earlier seasons; habitat ranks come from models withheld by reef, which were not restricted to earlier years. Values are habitat alone → habitat plus the previous season's cull dives and manta tows. Sites searched are designated site-years, including never-dived sites; AUC is within reef-years."),
+  c(16, 9, 8, 17, 17, 17, 16))
+```
+
+::: {.landscape}
+
+```{r}
+dw_rows <- data.frame(
+  setting = c("Tow zone A–B", "Tow zone A–C", "Dive rule A–C", "Dive rule A–D", "Zone A–B + dive rule A–C", "Zone A–C + dive rule A–D"),
+  zone = c("A-B", "A-C", "none", "none", "A-B", "A-C"),
+  rule = c("none", "none", "A-C", "A-D", "A-C", "A-D"),
+  evidence = c("none", "none", rep("discretion at A-x", 4)))
+class_sets <- c(`Within-reef` = "within-reef", `Density-aware, first version` = "density-aware", `Density-aware, second version` = V2)
+dw_tab <- do.call(rbind, lapply(names(class_sets), function(nm) {
+  v <- function(m) vapply(seq_len(nrow(dw_rows)), function(i)
+    pdv(class_sets[[nm]], dw_rows$zone[i], dw_rows$rule[i], m, evidence = dw_rows$evidence[i]), 0)
+  gpm <- v("ghost_per_high_missed")
+  data.frame(Classes = c(nm, rep("", nrow(dw_rows) - 1)), Setting = dw_rows$setting,
+             `Follow-up tows saved (%)` = sprintf("%.1f", 100 * v("tows_saved_follow_up_pct")),
+             `Dives skipped (%)` = sprintf("%.1f", 100 * v("dives_avoided_pct")),
+             `Above 0.04 missed, n (%)` = sprintf("%s (%.1f)", int(v("high_missed")), 100 * v("high_missed_pct")),
+             `Ghost avoided (%)` = sprintf("%.1f", 100 * v("ghost_avoided_pct")),
+             `Low-density avoided (%)` = sprintf("%.1f", 100 * v("low_avoided_pct")),
+             `Ghost per miss` = ifelse(is.finite(gpm), num(gpm, 1), "—"),
+             check.names = FALSE)
+}))
+knitr::kable(dw_tab, row.names = FALSE, align = "llrrrrrr",
+  caption = sprintf("Supplementary Table S8. Tow-zone and dive-rule settings under the three class sets, replayed forward on %s reef visits in 2020–2026 (%s follow-up visits). Zones apply on follow-up visits and include season memory: open sites and sites near strong tows earlier that season are always towed. Dive rules apply to dives without a strong tow within 100 m, which crews may make only at sites in the stated classes. Percentages are of follow-up tows and of all dives in each CPUE class under current practice. Ghost per miss is ghost dives avoided per dive above 0.04 missed. The recommended setting is the second version with zone A–C and dive rule A–D. Models were refitted on earlier seasons for each test season; the visit-model weight was chosen on these seasons.",
+                    int(pdtot$visits), int(pdtot$follow_up_visits)))
+```
+
+:::
+
+# References {.unnumbered}
+
+::: {#refs}
+:::

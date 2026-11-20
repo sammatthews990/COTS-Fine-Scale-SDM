@@ -3,6 +3,43 @@
 Read by the `marine-science-writing` skill before drafting. Update it when a
 decision changes. Items marked `[TO CONFIRM]` are for the authors to supply.
 
+## Manuscript supplement and Figure 1 (12 November 2026)
+
+Author confirmations: the 30 m terrain set is Allen Coral Atlas depth
+(`li2021bathymetry`); the Torres Strait uses Allen Coral Atlas 15 m depth and the
+DeepReef 30 m model (`beaman2017gbr30`); slope is in radians; the coral layers are
+*A. hyacinthus*, *A. spathulata* and *A. tenuis*. Turbidity is the Allen Coral Atlas
+Sentinel-2 product (`li2022turbidity`) in its stored units of FNU × 10 (55 = 5.5 FNU);
+the author suggested FNU and the ×10 follows from the Atlas methods document and the
+reef-cell range 18–79. The technical report's predictor table still carries the
+older `[TO CONFIRM]` on product versions; update it when integrating review 14.
+
+`manuscript_frontiers_supplementary.qmd` holds Tables S1–S8, numbered by first
+citation in the main text. Table S1 prints each group's shared source once, on a
+header row. Figure 1 (`fig35`, `R/manuscript_figures.R`) replaced the three-layer GBR
+overview at the author's request: the operational layer (RG + year with the clean +
+year fallback) across the GBR in viridis, a 30 m Eyrie inset of within-reef ranks,
+and the report's fig22 workflow panels over one Sentinel-2 scene per reef. Esri
+imagery cannot be relicensed under CC-BY, and the EOX cloudless mosaics mask the
+ocean and show no offshore reefs.
+
+## Appendix consolidation and manuscript update (11 November 2026)
+
+At the author's request the report's 15 appendices became five (A outputs and
+Work Plan status; B model specification; C detailed search results; D workflow,
+density-aware classes and field trial; E larval and population modelling). Appendix
+letters in the dated notes below refer to the earlier structure. The outside audit
+and open main-body findings are in
+`reviews/technical_report_ccip_audit_2026-11-11.md`.
+
+`manuscript_frontiers.qmd` now reflects the five classes, the >0.04 assessment, the
+workflow replay, density-aware classes, exploration zones and the 21 October
+metacommunity snapshot. It uses "outbreak" (the term in the literature), while the
+report keeps "irruption". It omits Esri-imagery figures because the article is
+CC-BY, and omits the larval-concentration results (one season, no connectivity
+result yet). `manuscript_frontiers_submission.md` holds the scope statement, cover
+declaration and remaining checklist.
+
 ## Current ranking experiment and review 11
 
 The main report and review 11 add the three-alternative ranking experiment
@@ -635,3 +672,31 @@ initial reductions. On 27 October the author confirmed review 09 had no comments
 and requested its refresh. Review 09 and both clean baselines now match the
 updated main report. Previous copies are archived in the pipeline cache. Use
 this refreshed review 09 for the next feedback round; review 10 has not started.
+
+### Chosen settings and shorter Methods and Results — 11 November 2026
+
+The author confirmed that the 5 November workshop led to the density-aware products
+and exploration zones, chose density-aware v2 with a dive rule at A–D and a tow zone
+at A–C, kept the population model in the Frontiers paper, and asked for Methods and
+Results to carry only the necessary information, a little over the template guide.
+Hydrodynamic detail, the score equation and the full site-rule table moved to the
+appendices. Earlier A–C wording in this brief describes the within-reef settings.
+
+Describe reefs outside the calibration score carefully. Martin and Linnet are the
+more independent check. Yonge, Carter and No Name informed the wave-exposure term,
+so agreement there checks its design and is not validation.
+
+### Review 14 and the Frontiers habitat Methods — 12 November 2026
+
+Review 14 and both clean baselines were created from the 11 November export, after
+the appendix consolidation, the chosen settings and the shorter Methods and Results.
+Reviews 12 and 13 hold no feedback still to integrate. Use review 14 for the next
+feedback round.
+
+The Frontiers Methods now describe how the habitat predictors and models were built
+(Habitat predictors; Habitat models). Supplementary Tables S1 (every predictor) and
+S2 (training sizes and settings) are in `manuscript_frontiers_supplementary.qmd`, read
+from script 38's tables. The deployed RG + year model has its own tuned settings
+(depth 12); held-out refits reused the clean + year settings. Do not describe both
+models as sharing one set of hyperparameters.
+

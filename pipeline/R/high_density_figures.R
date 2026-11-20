@@ -26,6 +26,6 @@ build_high_density_figures <- function(cfg) {
  op <- op[op$score=='combined',]
  xop <- op$value[op$metric=='sites_selected']; yop <- op$value[op$metric=='high_retained']
  p <- p+ggplot2::annotate('point',x=xop,y=yop,shape=23,size=3.3,fill=ink$surface,colour=ink$primary)+
-  ggplot2::annotate('text',x=xop-.015,y=yop+.04,label='A-C only (defer D)',hjust=1,size=3.1,colour=ink$primary)
+  ggplot2::annotate('text',x=xop-.015,y=yop+.04,label='A-D only (defer E)',hjust=1,size=3.1,colour=ink$primary)
  ggplot2::ggsave(file.path(cfg$dirs$figures,'fig20_high_density_retention.png'),p,width=7.5,height=5,dpi=300,bg=ink$surface)
 }

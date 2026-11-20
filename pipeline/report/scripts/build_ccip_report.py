@@ -288,7 +288,8 @@ def build(template:Path,content:Path,output:Path,audit:Path,metadata:Path|None=N
                 ('Candidate sites selected' in text(rows[0]) and
                  'Change in dive avoidance' in text(rows[0])) or
                 '>0.04 retained: same dive count' in text(rows[0]) or
-                '0.02–0.04 retained' in text(rows[0]))
+                '0.02–0.04 retained' in text(rows[0]) or
+                'Spearman, model / baseline' in text(rows[0]))
             cols=max(sum(int(first(first(tc,'w:tcPr'),'w:gridSpan').getAttribute('w:val')) if first(tc,'w:tcPr') and first(first(tc,'w:tcPr'),'w:gridSpan') else 1 for tc in children(row,'w:tc')) for row in rows)
             # Operational table: a wide label column, the rest sharing the portrait width.
             preferred_widths=None

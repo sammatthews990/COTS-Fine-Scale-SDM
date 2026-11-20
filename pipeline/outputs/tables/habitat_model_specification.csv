@@ -1,0 +1,6 @@
+"model","training_rows","positives","trees","tree_depth","learn_rate","loss_reduction","min_n","tuning","target_rows","covariates","samples","thin","transient","chains"
+"clean_year",9940,4559,1500,5,0.00137382379588326,1e-10,20,"30-point space-filling grid, five-fold spatial-block CV (50 km blocks), ROC AUC",NA,NA,NA,NA,NA,NA
+"rg_year",8801,4132,1500,12,0.00573615251044868,0.819960824460494,11,"30-point space-filling grid, five-fold spatial-block CV (50 km blocks), ROC AUC",NA,NA,NA,NA,NA,NA
+"hmsc_enhanced",14120,1852,NA,NA,NA,NA,NA,NA,3844,25,1000,30,5000,4
+"hmsc_clean",15512,2110,NA,NA,NA,NA,NA,NA,4360,12,1000,30,5000,4
+"hmsc_clean_native",15571,2110,NA,NA,NA,NA,NA,NA,4362,12,1000,30,5000,4

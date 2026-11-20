@@ -32,7 +32,7 @@ Final Project Report form is a different deliverable.
 | Acknowledgements | Non-author contributions and any funding beyond the standard front-matter statement | Concise |
 | Data Accessibility | Actual repositories/access links, FAIR registration, custodians and justified restrictions | Public links/DOIs must be supplied before final release; never invent them |
 | References | Coral Reefs author–date style, alphabetic bibliography and full DOI links where available | `csl/coral-reefs-ccip.csl` |
-| Appendices | Detailed methods, full comparison tables, validation, archived snapshots and scenario/field designs | Preserve scientifically necessary detail and distinguish old definitions |
+| Appendices | Five units only (11 November 2026): A outputs and Work Plan status; B model specification; C detailed search results; D workflow, density-aware classes and field trial; E larval and population modelling | Keep what a reader needs to check or reproduce a main-text claim; leave archived snapshots and superseded comparisons to `outputs/tables/` and git history |
 
 Page ranges guide focus and density; do not pad sections or shrink template type
 to hit a page count. Validate text length separately from maps, tables and
@@ -119,7 +119,7 @@ with their captions rather than splitting a few rows across pages.
 Keep results read from the existing CSV tables. Distinguish selected cull sites,
 whole manta tows, tow distance, dive outcomes and annual effort. The exact A–C
 rule differs from archived percentile cutoffs. Main Results uses one concise
-operational table; the full retention tables and curve remain in Appendix H.
+operational table; the full retention tables and curve remain in Appendix C.
 No model is refitted merely to reformat this report.
 
 Engagement facts confirmed by the author on 27 October 2026: an April visit to
@@ -128,6 +128,9 @@ multiple GBRMPA meetings, including the cull-site-ranking concept; a delivery
 workshop planned for 5 November 2026; and trials planned aboard BPM in Cairns
 and with Malu in the Far Northern GBR/Torres Strait in January–February 2027.
 Distinguish completed engagement from planned trials and uncompleted model work.
+Confirmed by the author on 11 November 2026: the 5 November workshop took place and
+led to the density-aware products and the exploration zones. The trial uses
+density-aware v2 with a dive rule at A–D and a follow-up tow zone at A–C.
 
 Display equations reuse the source's borderless equation-table component,
 with editable native Word mathematics and live equation numbers. Merge the
@@ -141,7 +144,8 @@ inspect page images, check section lengths/display counts and the immutable
 template hash. Create the next numbered review and both clean baselines only
 after the final main document passes checks. Preserve annotated review inputs:
 review 09 is the preserved feedback source; review 11 adds the subsequent ranking
-experiment while review 10 is retained. Do not
+experiment while review 10 is retained. Review 14 (12 November 2026) is the current copy for
+feedback; earlier reviews are retained. Do not
 use `-RefreshReview09` to overwrite the annotated input.
 
 The packaged `render_docx.py` cannot run in this Windows environment because

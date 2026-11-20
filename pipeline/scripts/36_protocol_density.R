@@ -644,6 +644,12 @@ fvn <- site_frame(ok_rows, sv$top[ok_rows], lp_tr27[sv_vis[ok_rows]], site_feat_
 comb_all_n <- rep(-Inf, length(all_rows))
 comb_all_n[match(ok_rows, all_rows)] <- stats::predict(m27, fvn) + visit_weight * stats::predict(mv27, fvn)
 cls27[["density-aware v2, untowed neutral"]] <- ifelse(ev27, class_of(neut27, calibrate(comb_all_n)), cls27[["two-part quota, site + visit order"]])
+# Coefficients of the two site models behind the 2027 v2 product (fitted on
+# every 2019-2026 visit; Supplementary Table S4 of the manuscript).
+write_table(dplyr::bind_rows(lapply(list(dive = m27, visit = mv27), function(m)
+  tibble::tibble(term = names(stats::coef(m)), estimate = unname(stats::coef(m)), std_error = unname(sqrt(diag(stats::vcov(m)))),
+                 training_rows = stats::nobs(m))), .id = "model") |>
+  dplyr::mutate(weight = ifelse(.data$model == "visit", visit_weight, 1)), cfg, "density_v2_2027_site_coefficients.csv")
 # + habitat: deployed cull-habitat rank from 20 for 2027 sites; forward ranks
 # for the 2019-2026 training site-visits.
 r20 <- utils::read.csv(file.path(cfg$dirs$outputs, "site_ranking", "cots_cull_site_priority_2027.csv"), stringsAsFactors = FALSE)
@@ -1094,6 +1100,123 @@ totals <- tibble::tibble(seasons = seasons, visits = nrow(tv), follow_up_visits 
                          median_delta_first = stats::median(vis$delta[vis$visit %in% tv$visit[!tv$follow_up]]))
 write_table(totals, cfg, "protocol_density_totals.csv")
 print(totals, width = Inf)
+
+# --- The chosen protocol: v2 classes, A-C tow zone, A-D dive rule ----------------------
+# Chosen 11 November 2026, after the 5 November delivery workshop. Trial planning
+# as in 35 for these settings, and the zone against the same tows skipped at other
+# positions (34's rotation) and 9-on-3-off blocks. Kept last so the random draws
+# above are unchanged.
+chosen_layer <- "density-aware v2, untowed neutral"
+chosen_zone <- "A-C"
+chosen_rule <- "A-D"
+chosen_tag <- paste(chosen_layer, chosen_zone, "memory", sep = "|")
+trial_years <- 2024:2026
+trial_reps <- 2000L
+pooled_voyages <- c(1L, 2L, 3L, 5L, 10L, 25L, 50L)
+n_shifts <- 20L
+block_on <- 9L
+block_off <- 3L
+set.seed(cfg$hmsc$seed + 3636L)
+dv$voyage <- sub("^[^|]*[|][|]", "", dv$visit)
+tv$voyage <- sub("^[^|]*[|][|]", "", tv$visit)
+chosen_flag <- dive_rule(chosen_layer, chosen_rule, "discretion at A-x")
+
+chosen_rates <- dv[dv$nonstrong, ] |>
+  dplyr::mutate(skipped = chosen_flag[dv$nonstrong]) |>
+  dplyr::group_by(.data$skipped) |>
+  dplyr::summarise(dives = dplyr::n(), high_share = mean(.data$high), inter_share = mean(.data$inter),
+                   low_share = mean(.data$outcome == "low"), ghost_share = mean(.data$outcome == "ghost"), .groups = "drop")
+write_table(chosen_rates, cfg, "protocol_chosen_filter_rates.csv")
+print(chosen_rates, width = Inf)
+
+in_trial <- dv$year %in% trial_years
+chosen_voy <- dv[in_trial, ] |>
+  dplyr::mutate(flag = chosen_flag[in_trial]) |>
+  dplyr::group_by(.data$voyage) |>
+  dplyr::summarise(reefs = dplyr::n_distinct(.data$reef_name), dives = dplyr::n(), high = sum(.data$high),
+                   ghost = sum(.data$outcome == "ghost"), flagged = sum(.data$flag),
+                   flagged_ghost = sum(.data$flag & .data$outcome == "ghost"), .groups = "drop")
+chosen_voy_tows <- tv[tv$year %in% trial_years, ] |>
+  dplyr::group_by(.data$voyage) |>
+  dplyr::summarise(follow_up_reefs = sum(.data$follow_up), follow_up_tows = sum(.data$tows[.data$follow_up]), all_tows = sum(.data$tows),
+                   tows_saved_memory = sum(.data[[chosen_tag]]), .groups = "drop")
+chosen_voy <- dplyr::inner_join(chosen_voy, chosen_voy_tows, by = "voyage")
+chosen_voyage_summary <- tidyr::pivot_longer(chosen_voy, -"voyage", names_to = "quantity") |>
+  dplyr::group_by(.data$quantity) |>
+  dplyr::summarise(voyages = dplyr::n(), mean = mean(.data$value), p10 = stats::quantile(.data$value, 0.1),
+                   median = stats::median(.data$value), p90 = stats::quantile(.data$value, 0.9), .groups = "drop")
+write_table(chosen_voyage_summary, cfg, "protocol_chosen_voyage_summary.csv")
+print(chosen_voyage_summary, n = Inf)
+
+chosen_all_voy <- dv |>
+  dplyr::mutate(flag = chosen_flag) |>
+  dplyr::filter(.data$nonstrong) |>
+  dplyr::group_by(.data$voyage) |>
+  dplyr::summarise(f_n = sum(.data$flag), f_high = sum(.data$flag & .data$high), f_ghost = sum(.data$flag & .data$outcome == "ghost"),
+                   k_n = sum(!.data$flag), k_high = sum(!.data$flag & .data$high), k_ghost = sum(!.data$flag & .data$outcome == "ghost"),
+                   .groups = "drop")
+chosen_trial <- dplyr::bind_rows(lapply(pooled_voyages, function(k) {
+  r <- vapply(seq_len(trial_reps), function(b) {
+    s <- colSums(chosen_all_voy[sample.int(nrow(chosen_all_voy), k, replace = TRUE), -1])
+    c(none_flagged = s[["f_n"]] == 0,
+      lower_high_rate = s[["f_n"]] > 0 && s[["k_n"]] > 0 && s[["f_high"]] / s[["f_n"]] < s[["k_high"]] / s[["k_n"]],
+      higher_ghost_rate = s[["f_n"]] > 0 && s[["k_n"]] > 0 && s[["f_ghost"]] / s[["f_n"]] > s[["k_ghost"]] / s[["k_n"]],
+      flagged = s[["f_n"]])
+  }, numeric(4))
+  tibble::tibble(voyages = k, p_none_flagged = mean(r[1, ]), p_lower_high_rate = mean(r[2, ]),
+                 p_higher_ghost_rate = mean(r[3, ]), flagged_median = stats::median(r[4, ]),
+                 flagged_p10 = stats::quantile(r[4, ], 0.1), flagged_p90 = stats::quantile(r[4, ], 0.9))
+}))
+write_table(chosen_trial, cfg, "protocol_chosen_trial_power.csv")
+print(chosen_trial, width = Inf)
+
+# Follow-up visits only: the same skips rotated among the visit's own tows
+# (averaged over offsets), and fixed blocks (averaged over phases).
+rotate <- function(x, k) x[((seq_along(x) - 1L + k) %% length(x)) + 1L]
+zone_null <- dplyr::bind_rows(lapply(test_idx[vis$follow_up[test_idx]], function(i) {
+  ev_i <- which(vis$reef_name == vis$reef_name[i] & vis$year == vis$year[i] & vis$first < vis$first[i])
+  gs <- unique(unlist(strong_g[ev_i]))
+  season_strong <- sites_near(gs[tows$survey_date[gs] < vis$plan[i]])
+  g <- guide[[i]]
+  s_idx <- sv_by_visit[[vis$visit[i]]]
+  s <- sv[s_idx, ]
+  d <- ctx$dives[d_by_visit[[vis$visit[i]]], ]
+  d <- d[d$site_row %in% s$site_row, ]
+  gap <- sqrt((tows$sx[g][-1] - tows$ex[g][-length(g)])^2 + (tows$sy[g][-1] - tows$ey[g][-length(g)])^2)
+  seg <- cumsum(c(TRUE, tows$survey_date[g][-1] != tows$survey_date[g][-length(g)] | gap > segment_break_m))
+  own <- ctx$own[[i]]
+  strong <- tows$strong[g]
+  dive_strong <- !(d$site_row %in% s$site_row[s$open]) & d$site_row %in% sites_near(g[strong])
+  zin <- sv_scores[[chosen_layer]][s_idx] >= site_thr[[chosen_layer]](zone_cuts[[chosen_zone]], vis$year[i]) - 1e-9
+  rows <- union(s$site_row[s$open | zin], intersect(season_strong, s$site_row))
+  keep <- vapply(tow_sites[as.character(g)], function(j) any(j %in% rows), logical(1))
+  skip <- skip_runs(!keep & own, seg)
+  lost <- function(sk) sum(dive_strong & d$cpue > 0.04 & !(d$site_row %in% sites_near(g[strong & !sk])))
+  o <- which(own)
+  n_own <- length(o)
+  offsets <- if (n_own > 1) sample.int(n_own - 1L, min(n_shifts, n_own - 1L)) else 0L
+  shifted <- mean(vapply(offsets, function(k) lost(replace(skip, o, rotate(skip[o], k))), 0))
+  period <- block_on + block_off
+  pattern <- rep(c(rep(FALSE, block_on), rep(TRUE, block_off)), length.out = n_own + period)
+  blocks <- lapply(seq_len(period) - 1L, function(p) replace(logical(length(g)), o, pattern[p + seq_len(n_own)]))
+  data.frame(reef_year = paste(vis$reef_name[i], vis$year[i]), tows = sum(own), zone_saved = sum(skip), zone_lost = lost(skip),
+             shifted_lost = shifted, block_saved = mean(vapply(blocks, sum, 0)), block_lost = mean(vapply(blocks, lost, 0)))
+}))
+null_years <- unique(zone_null$reef_year)
+null_ry <- match(zone_null$reef_year, null_years)
+null_stats <- function(w) {
+  x <- w[null_ry]
+  c(zone_saved_pct = sum(x * zone_null$zone_saved) / sum(x * zone_null$tows), zone_lost = sum(x * zone_null$zone_lost),
+    shifted_lost = sum(x * zone_null$shifted_lost), block_saved_pct = sum(x * zone_null$block_saved) / sum(x * zone_null$tows),
+    block_lost = sum(x * zone_null$block_lost))
+}
+null_point <- null_stats(rep(1, length(null_years)))
+null_boot <- vapply(seq_len(boot_reps), function(r) null_stats(tabulate(sample.int(length(null_years), replace = TRUE), length(null_years))),
+                    numeric(length(null_point)))
+chosen_zone_baseline <- tibble::tibble(metric = names(null_point), value = null_point, low = apply(null_boot, 1, stats::quantile, 0.025),
+                                       high = apply(null_boot, 1, stats::quantile, 0.975))
+write_table(chosen_zone_baseline, cfg, "protocol_chosen_zone_baseline.csv")
+print(chosen_zone_baseline, width = Inf)
 print(zone_size, width = Inf)
 print(tradeoff[!tradeoff$random & (tradeoff$zone != "none" | tradeoff$rule == "none"),
                c("layer", "zone", "memory", "rule", "evidence", "tows_saved_follow_up_pct", "high_missed", "high_missed_pct",

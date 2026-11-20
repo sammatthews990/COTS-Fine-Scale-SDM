@@ -60,7 +60,7 @@ of effort.
   share; misses fall 206 → 166 (paired CI crosses zero alone, not with the
   zone). Requiring at least a weak scar for every dive misses at near-random
   rates. Candidate: density-aware A–B zone + A–C dive rule. In the report
-  (Appendix N, fig33; fig22 now shows density-aware classes on four reefs).
+  (Appendix D; fig22 now shows density-aware classes on four reefs).
 - **Density-aware v2 (scripts 36–37, 9 November).** Chosen by the user as
   the density-aware product.
   - *Why v1 failed.* Its 12-month density, fitted on dived reef-years, kept
@@ -92,9 +92,20 @@ of effort.
     untowed scores to the towed median was rejected: it put Batt's
     (untowed) NE flank in A. Cost: tow-zone misses rose from 9 to 16 over
     2020–2026; the dive rule was unchanged.
-  - *Product and report.* `*_density_v2_2027.*`. Report: Appendix N
-    (#sec-density-v2), fig22 (v2), fig33, fig34 (ghost per miss). Run order:
+  - *Product and report.* `*_density_v2_2027.*`. Report: Appendix D
+    (#sec-density-v2), fig22 (v2), fig34 (ghost per miss). Run order:
     36 → 37 → 21.
+- **Chosen settings (11 November).** The 2027 trial uses density-aware v2 with
+  a dive rule at A–D and a follow-up tow zone at A–C (script 36, "chosen
+  protocol" tables; report Results and Appendix D). The 5 November delivery
+  workshop led to the density-aware classes and the exploration zones. Within-reef
+  and v1 classes remain as comparisons.
+- **Population model outside its calibration (script 25, 11 November).** Martin
+  and Linnet are the more independent check; timing is close and the model orders
+  years better than a no-model regional series, but it does not consistently
+  identify irruption years better. Yonge, Carter and No Name had false outbreaks
+  until the wave-exposure term, which was designed from those records, so they
+  check that design and are not validation. Keep that distinction in any text.
 - **Deployment-realistic validation (script 33, 30 October).** Forward in
   time, with every reef's own history in training. The combined ranking gains
   little from that, but refreshing the evidence to each voyage's departure

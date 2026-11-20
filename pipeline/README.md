@@ -968,6 +968,7 @@ All in `outputs/figures/`, 7.5 in wide at 300 dpi, built by `07` from the tables
 | `fig22_protocol_batt_eyrie.png` | Batt, Eyrie, Big Broadhurst and Lady Musgrave: the proposed protocol (35) under the density-aware v2 classes (37): classes, the follow-up tow zone (A-C + 100 m), exploration zones and the last 12 months of strong vs other tows |
 | `fig33_protocol_density_tradeoff.png` | Tow zone (A-B vs A-C) and dive rule (A-B/A-C/A-D, three evidence requirements) trade-offs, within-reef vs density-aware v1 and v2 classes (36) |
 | `fig34_ghost_per_miss.png` | Ghost dives avoided per dive above 0.04 missed: evidence-only rules, random, dive rules A-B/A-C/A-D under within-reef, v1 and v2 classes, and zone + rule protocols, with 95 % intervals (36) |
+| `fig35_manuscript_gbr_and_workflow.png` | Frontiers Figure 1: the operational search-planning layer (RG + year with clean + year fallback) across the GBR (viridis) with a 30 m within-reef inset of Eyrie, beside the 2027 v2 classes, A-C tow zone, tows and exploration zones on four reefs over one Sentinel-2 L2A scene per reef (Earth Search; open Copernicus data, compatible with CC-BY; scenes in `manuscript_figure1_imagery.csv`, crops cached as `cache/s2_<reef>.tif`); `R/manuscript_figures.R`, rebuild alone with `--manuscript_map_only=1` |
 | `fig23_workflow_decision.png` | Decision diagram for a reef visit under the proposed workflow (35): open sites, tow zone, strong-evidence trigger, A–C dive rule |
 | `fig18_metacommunity_candidates.png` | W, C3a and C6 historical trajectories: five-seed means and SD, with LTMP observations |
 | `fig21_manta_surveillance_highlight.png` | Plain-language surveillance summary of the same aggregation retention results: habitat-priority, evenly spaced and random tows; detailed figure 13 retained |
@@ -1037,6 +1038,7 @@ Rscript pipeline/scripts/34_manta_zone_strategy.R        # option A: tow the zon
 Rscript pipeline/scripts/35_protocol_statistics.R        # proposed protocol: dive rule, zone, trial planning (~3 min; needs 34)
 Rscript pipeline/scripts/36_protocol_density.R           # protocol under density-aware classes; alternative densities and site-level layers, v2 (~30 min; needs 20b, 33, 34)
 Rscript pipeline/scripts/37_site_ranking_density_v2_2027.R # density-aware v2 product: CSV + KMZ (needs 36); then rerun 21 to add exploration zones to its KMZ
+Rscript pipeline/scripts/38_habitat_predictor_table.R    # predictor table (Frontiers Table S1) and habitat-model training sizes and settings (~1 min)
 Rscript pipeline/scripts/07_build_report_figures.R      # last: uses outputs of 06-21
 ```
 
@@ -1134,9 +1136,15 @@ Run script **25**, then **07 --calibration_report_only=1** to rebuild without
 the GBR rasters or rerunning script 22. New metadata pins in `config.R`
 freeze member tables/figures and source data checksums; the builder checks
 those checksums before combining the COTS/coral plots. Outputs are
-`calibration_20261021_{summary,peaks}.csv`,
+`calibration_20261021_{summary,peaks,additional_reefs}.csv`,
 `projection_20261021_reef_outcomes.csv` and Figures 22–27 (PNG/PDF).
 No biological fitting is performed and old pins/results are retained.
+`_additional_reefs` compares the five reefs outside the calibration score with
+LTMP manta records and a no-model baseline (the mean observed series of the four
+calibration reefs). Martin and Linnet are the more independent check. Yonge,
+Carter and No Name informed the wave-exposure settlement term, after false
+outbreaks in the 19 October audit (COTSMod-Calibration
+`store/runs/20261019T_04_extra_reefs_w2_1991_v1`), so they check its design only.
 ADRIA base revision was `1d18e8bef3dca1ab33ad9b1add7548e2fffc27ea`, with local
 uncommitted projection changes. SALAD/cull inputs remain in the sibling worktree;
 derived figures are for local report review, with publication permissions to
@@ -1512,6 +1520,11 @@ Methods, Results, Discussion and the product list identify the option while
 preserving existing Table 1/Appendix H results. Review 11 is the new clean copy;
 review 10 and all earlier feedback remain preserved. No commit or push was made.
 
+**Appendix letters changed on 11 November 2026.** The report now has five
+appendices. Letters in the dated notes in this file refer to the earlier
+structure: G is now B; H and M are C; L and N are D; I, K and O are E; J was
+removed. Figures 33 and others no longer in the report are still built by 07.
+
 ## Deployment-realistic validation (33) — 30 October 2026
 
 **Question.** Do the leave-reef-out statistics undersell the ranking? A
@@ -1787,6 +1800,14 @@ only at A–x). 300 reef-year bootstraps; paired density − within differences.
 20b's helpers moved to `R/density_classes.R`; 20b caches its training inputs
 for 36 (outputs unchanged, verified byte-identical).
 
+**Chosen settings (11 November 2026):** density-aware v2, dive rule A–D, tow
+zone A–C. The last section of 36 writes trial planning for these settings
+(`protocol_chosen_{filter_rates,voyage_summary,trial_power}.csv`) and the zone
+against the same tows at other positions and 9-on-3-off blocks
+(`protocol_chosen_zone_baseline.csv`). It runs after every earlier random draw,
+so existing tables are unchanged. `07 --workflow_figures_only=1` rebuilds fig17,
+fig22 and fig23, which show these settings.
+
 Outputs: `protocol_density_statistics.csv` (every rule set, both scopes, CIs),
 `_differences.csv` (paired), `_tradeoff.csv` (compact), `_zone_size.csv`,
 `_totals.csv`; fig33.
@@ -1876,7 +1897,9 @@ to the within-reef classes' pooled effort.
     sensitivity;
   - `density_layers_matched.csv`: matched effort with paired CIs;
   - `protocol_density_*.csv` (all layers), `density_layer_thresholds.csv`,
-    `density_site_model_coefficients.csv`;
+    `density_site_model_coefficients.csv` (forward fits);
+  - `density_v2_2027_site_coefficients.csv`: the dive and visit models behind
+    the 2027 v2 classes (Frontiers Table S4);
   - `density_layers_2027_sites.csv` and `_totals.csv`,
     `density_methods_2027_reefs.csv`;
   - `density_clean_tow_sites.csv`, `density_batt_flank_2027.csv`,

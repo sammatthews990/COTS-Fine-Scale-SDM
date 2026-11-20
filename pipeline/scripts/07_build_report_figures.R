@@ -59,10 +59,26 @@ if (identical(script_args()[["high_density_only"]], "1")) {
   write_table(tibble::tibble(file = list.files(cfg$dirs$figures, pattern = "^fig.*\\.png$")), cfg, "figure_manifest.csv")
   quit(save = "no")
 }
+source(file.path(cfg$final_dir, "R", "manuscript_figures.R"))
+if (identical(script_args()[["manuscript_map_only"]], "1")) {
+  build_manuscript_map_figure(cfg)
+  write_table(tibble::tibble(file = list.files(cfg$dirs$figures, pattern = "^fig.*\\.png$")), cfg, "figure_manifest.csv")
+  quit(save = "no")
+}
 if (identical(script_args()[["metacommunity_only"]], "1")) {
   build_metacommunity_figures(cfg)
   write_table(tibble::tibble(file = list.files(cfg$dirs$figures, pattern = "^fig.*\\.png$")), cfg, "figure_manifest.csv")
   quit(save = "no")
+}
+
+# Rewrite only the three workflow figures; the others are drawn and discarded.
+workflow_figures_only <- identical(script_args()[["workflow_figures_only"]], "1")
+if (workflow_figures_only) {
+  write_figure <- save_figure
+  save_figure <- function(plot, cfg, name, width, height) {
+    if (name %in% c("fig17_search_2027_exploration.png", "fig22_protocol_batt_eyrie.png", "fig23_workflow_decision.png"))
+      write_figure(plot, cfg, name, width, height)
+  }
 }
 
 four_reef_maps_only <- identical(script_args()[["four_reef_maps_only"]], "1")
@@ -989,6 +1005,11 @@ if (file.exists(file.path(ranking_dir, "cots_exploration_zones_2027.gpkg"))) {
   cull_sites <- sf::st_read(file.path(cfg$dirs$cache, "cull_sites_designated.gpkg"), quiet = TRUE)
   cull_sites <- cull_sites[!duplicated(paste(cull_sites$reef_name, cull_sites$site_name)), ] |>
     dplyr::left_join(priority[, c("reef_name", "site_name", "priority")], by = c("reef_name", "site_name"))
+  # Density-aware v2 classes (37), the product chosen for the 2027 trial.
+  density_sites <- utils::read.csv(file.path(ranking_dir, "cots_cull_site_priority_density_v2_2027.csv"), stringsAsFactors = FALSE)
+  density_reefs <- utils::read.csv(file.path(ranking_dir, "cots_cull_site_priority_density_v2_2027_reefs.csv"), stringsAsFactors = FALSE)
+  cull_sites$priority_density <- density_sites$priority_density_v2[match(paste(cull_sites$reef_name, cull_sites$site_name),
+                                                                         paste(density_sites$reef_name, density_sites$site_name))]
   tow_geom <- readRDS(checked_input(cfg, "footprint_links"))$manta |>
     dplyr::group_by(.data$visit_id) |>
     dplyr::summarise(sx = dplyr::first(.data$start_x), sy = dplyr::first(.data$start_y),
@@ -999,7 +1020,6 @@ if (file.exists(file.path(ranking_dir, "cots_exploration_zones_2027.gpkg"))) {
     dplyr::filter(is.finite(.data$sx), .data$survey_date > cfg$site_ranking$evidence_end - 365 * 5,
                   .data$survey_date <= cfg$site_ranking$evidence_end)
   priority_cols <- c(A = "#e34948", B = "#eb6834", C = "#eda100", D = "#f2d98d", E = "#898781")
-  priority_labels <- c(A = "A: top 20%", B = "B: 20-50%", C = "C: 50-66%", D = "D: 66-80%", E = "E: bottom 20%")
   fig17_panel <- function(slug) {
     i <- match(slug, names(reef_ids))
     p <- reef_panels[[i]]
@@ -1011,11 +1031,11 @@ if (file.exists(file.path(ranking_dir, "cots_exploration_zones_2027.gpkg"))) {
     ggplot() +
       tidyterra::geom_spatraster_rgb(data = reef_imagery[[i]], maxcell = 2e6) +
       geom_sf(data = p$polygon, fill = NA, colour = "white", linewidth = 0.25) +
-      geom_sf(data = sites_r, aes(fill = priority), colour = NA, alpha = 0.75) +
+      geom_sf(data = sites_r, aes(fill = priority_density), colour = NA, alpha = 0.75) +
       geom_segment(data = tows_r, aes(x = sx, y = sy, xend = ex, yend = ey, linetype = "Manta tows, last 5 seasons"),
                    colour = "#9ec5f4", linewidth = 0.3, alpha = 0.8) +
       geom_sf(data = explore_r[order(explore_r$habitat_floor), ], aes(alpha = zone), fill = "#7b68d9", colour = NA) +
-      scale_fill_manual(values = priority_cols, labels = priority_labels, name = "Cull-site priority 2027", na.translate = FALSE) +
+      scale_fill_manual(values = priority_cols, limits = names(priority_cols), name = "Cull-site priority 2027 (density-aware v2)", na.translate = FALSE) +
       scale_alpha_manual(values = stats::setNames(rep(zone_alpha, length(zone_levels)), zone_levels),
                          name = "Exploration zones", drop = FALSE) +
       scale_linetype_manual(values = c("Manta tows, last 5 seasons" = "solid"), name = NULL) +
@@ -1027,12 +1047,13 @@ if (file.exists(file.path(ranking_dir, "cots_exploration_zones_2027.gpkg"))) {
                fill = "#7b68d9", alpha = 1 - (1 - zone_alpha)^seq_along(zone_levels))),
              linetype = guide_legend(order = 3, override.aes = list(colour = "#3987e5", linewidth = 0.6)))
   }
-  fig17 <- (fig17_panel("batt") | fig17_panel("eyrie")) +
+  # Class legend from Eyrie: Batt has no E sites under the v2 classes.
+  fig17 <- (fig17_panel("batt") + guides(fill = "none") | fig17_panel("eyrie")) +
     plot_layout(widths = c(1.35, 1), guides = "collect") +
     plot_annotation(
       title = "Where to search in 2027: ranked cull sites and rarely searched habitat",
       subtitle = paste(
-        "Cull sites coloured by 2027 priority (habitat + last 12 months of dives and manta tows).",
+        "Cull sites coloured by 2027 density-aware v2 priority (reef's recent density and the site's own record).",
         "Purple: habitat outside the cull sites and > 150 m from any manta tow in the last 5 seasons; darker is better-ranked habitat.", sep = "\n"),
       caption = paste(
         "Exploration zones: reef 0.5-16 m deep, > 100 m from cull sites, in the reef's top 40, 30, 20 and 10 % of habitat",
@@ -1049,13 +1070,9 @@ if (file.exists(file.path(ranking_dir, "cots_exploration_zones_2027.gpkg"))) {
   recent12 <- recent[recent$survey_date > cfg$site_ranking$evidence_end - 365, ]
   recent12$evidence <- ifelse(recent12$manta_evidence_class %in% strong_classes, "Strong evidence", "Weak or none")
   recent12 <- recent12[order(recent12$evidence == "Strong evidence"), ]   # strong tows drawn on top
-  # Density-aware v2 classes (37) on two dense reefs, a culled-down reef (Big
+  # Density-aware v2 classes on two dense reefs, a culled-down reef (Big
   # Broadhurst) and a southern reef (Lady Musgrave).
-  density_sites <- utils::read.csv(file.path(ranking_dir, "cots_cull_site_priority_density_v2_2027.csv"), stringsAsFactors = FALSE)
-  density_reefs <- utils::read.csv(file.path(ranking_dir, "cots_cull_site_priority_density_v2_2027_reefs.csv"), stringsAsFactors = FALSE)
-  cull_sites$priority_density <- density_sites$priority_density_v2[match(paste(cull_sites$reef_name, cull_sites$site_name),
-                                                                         paste(density_sites$reef_name, density_sites$site_name))]
-  # Replay numbers for the two zones (36), v2 product layer.
+  # Replay numbers for the chosen zone (36), v2 product layer.
   pzs <- read_table("protocol_density_statistics.csv")
   pz <- function(zone, metric) pzs$value[pzs$scope == "all visits" & !pzs$random & pzs$layer %in% "density-aware v2, untowed neutral" &
                                            pzs$zone == zone & pzs$rule == "none" & pzs$memory %in% TRUE & pzs$metric == metric]
@@ -1076,7 +1093,6 @@ if (file.exists(file.path(ranking_dir, "cots_exploration_zones_2027.gpkg"))) {
     label <- fig22_reefs[[slug]]
     in_reef <- function(x) grepl(paste0("(", label, ")"), x, fixed = TRUE)
     sites_r <- sf::st_transform(cull_sites[in_reef(cull_sites$reef_name), ], sf::st_crs(g$polygon))
-    zone_r <- sf::st_sf(geometry = sf::st_union(sf::st_buffer(sites_r[sites_r$priority_density %in% c("A", "B"), ], 100)))
     zone_c <- sf::st_sf(geometry = sf::st_union(sf::st_buffer(sites_r[sites_r$priority_density %in% c("A", "B", "C"), ], 100)))
     explore_r <- sf::st_transform(explore[in_reef(explore$reef_name), ], sf::st_crs(g$polygon))
     tows_r <- recent12[recent12$sx > frame[1] & recent12$sx < frame[3] & recent12$sy > frame[2] & recent12$sy < frame[4], ]
@@ -1087,15 +1103,14 @@ if (file.exists(file.path(ranking_dir, "cots_exploration_zones_2027.gpkg"))) {
       geom_sf(data = explore_r[order(explore_r$habitat_floor), ], aes(alpha = zone), fill = "#7b68d9", colour = NA) +
       geom_sf(data = sites_r, aes(fill = priority_density), colour = NA, alpha = 0.8) +
       geom_segment(data = tows_r, aes(x = sx, y = sy, xend = ex, yend = ey, colour = evidence, linewidth = evidence)) +
-      geom_sf(data = zone_c, aes(linetype = "Extended to A-C + 100 m (fewer misses)"), fill = NA, colour = "#f2b705", linewidth = 0.6) +
-      geom_sf(data = zone_r, aes(linetype = "Follow-up tow zone: A-B + 100 m"), fill = NA, colour = "white", linewidth = 0.7) +
+      geom_sf(data = zone_c, aes(linetype = "Follow-up tow zone: A-C + 100 m"), fill = NA, colour = "white", linewidth = 0.7) +
       scale_fill_manual(values = priority_cols, limits = names(priority_cols), name = "Site priority (density-aware v2)",
                         na.translate = FALSE) +
       scale_colour_manual(values = c("Strong evidence" = "#2ee6ff", "Weak or none" = "#cde2fb"),
                           limits = c("Strong evidence", "Weak or none"), name = "Manta tows, last 12 months") +
       scale_linewidth_manual(values = c("Strong evidence" = 0.9, "Weak or none" = 0.25),
                              limits = c("Strong evidence", "Weak or none"), guide = "none") +
-      scale_linetype_manual(values = c(`Follow-up tow zone: A-B + 100 m` = "22", `Extended to A-C + 100 m (fewer misses)` = "42"), limits = c("Follow-up tow zone: A-B + 100 m", "Extended to A-C + 100 m (fewer misses)"), name = NULL) +
+      scale_linetype_manual(values = c(`Follow-up tow zone: A-C + 100 m` = "22"), limits = "Follow-up tow zone: A-C + 100 m", name = NULL) +
       scale_alpha_manual(values = stats::setNames(rep(zone_alpha, length(zone_levels)), zone_levels),
                          name = "Exploration zones", drop = FALSE) +
       coord_sf(xlim = frame[c(1, 3)], ylim = frame[c(2, 4)], expand = FALSE, datum = NA) +
@@ -1107,26 +1122,25 @@ if (file.exists(file.path(ranking_dir, "cots_exploration_zones_2027.gpkg"))) {
       theme(plot.subtitle = element_text(size = 7, colour = ink$secondary)) +
       guides(fill = guide_legend(order = 1, nrow = 1, override.aes = list(alpha = 0.9)),
              colour = guide_legend(order = 2, override.aes = list(linewidth = c(0.9, 0.4))),
-             linetype = guide_legend(order = 3, override.aes = list(colour = c("#52514e", "#d99a00"))),
+             linetype = guide_legend(order = 3, override.aes = list(colour = "#52514e")),
              alpha = guide_legend(order = 4, nrow = 1, override.aes = list(
                fill = "#7b68d9", alpha = 1 - (1 - zone_alpha)^seq_along(zone_levels))))
   }
-  # One legend, from Batt (every key present); other reefs may lack strong tows
-  # or a band, which would make patchwork collect a second, partial legend.
+  # One legend, from Eyrie (every key present); other reefs may lack E sites,
+  # strong tows or a band, which would make patchwork collect a partial legend.
   no_legend <- guides(fill = "none", colour = "none", linetype = "none", alpha = "none")
-  fig22 <- ((fig22_panel("batt") | fig22_panel("eyrie") + no_legend) + plot_layout(widths = c(1.35, 1))) /
+  fig22 <- ((fig22_panel("batt") + no_legend | fig22_panel("eyrie")) + plot_layout(widths = c(1.35, 1))) /
     ((fig22_panel("broadhurst") + no_legend | fig22_panel("lady_musgrave") + no_legend) + plot_layout(widths = c(1, 1))) +
     plot_layout(guides = "collect") +
     plot_annotation(
-      title = "On a follow-up visit: tow the A-B zone (or A-C), dive strong evidence, and dive other sites only if A-D",
+      title = "On a follow-up visit: tow the A-C zone, dive strong evidence, and dive other sites only if A-D",
       subtitle = paste(
         "Cull sites coloured by density-aware v2 priority: each site's chance of a problematic dive, from the reef's recent density and the",
         "site's own record of dives and tows. Expected problematic dives: the reef's dives and tows weighted to the last 90 days.",
-        "White dashed: A-B sites plus 100 m, the ground towed on a follow-up visit (open sites and sites near strong tows earlier that",
-        sprintf("season are added on the day). Amber dashed: the zone extended to A-C; in the 2020-2026 replay it saved %.0f %% rather than %.0f %%",
-                100 * pz("A-C", "tows_saved_follow_up_pct"), 100 * pz("A-B", "tows_saved_follow_up_pct")),
-        sprintf("of follow-up tows and missed %d rather than %d dives above 0.04. Purple: exploration zones (rarely searched habitat).",
-                as.integer(pz("A-C", "high_missed")), as.integer(pz("A-B", "high_missed"))), sep = "\n"),
+        "White dashed: A-C sites plus 100 m, the ground towed on a follow-up visit (open sites and sites near strong tows earlier that",
+        sprintf("season are added on the day). In the 2020-2026 replay the zone saved %.0f %% of follow-up tows and missed %d dives above 0.04.",
+                100 * pz("A-C", "tows_saved_follow_up_pct"), as.integer(pz("A-C", "high_missed"))),
+        "Purple: exploration zones (rarely searched habitat).", sep = "\n"),
       caption = paste(
         paste0("Tows and evidence to ", format(cfg$site_ranking$evidence_end, "%d %B %Y"),
                "; strong evidence = COTS seen, >= 2 feeding scars, or scars recorded as common."),
@@ -1146,7 +1160,7 @@ wf_boxes <- tibble::tribble(
   "open",   2.1,  7.1, 3.8, 1.0, FALSE, "Dive open sites first\n(last dive > 0.04); cull to < 0.04",
   "tow",    2.1,  4.9, 3.8, 1.6, TRUE,  "Manta tow\nfirst visit: whole reef\nfollow-up: A–C zone, open sites and\nsites near earlier strong tows",
   "strong", 6.4,  4.9, 3.2, 1.2, FALSE, "Strong tow within 100 m?\nCOTS seen, >= 2 scars\nor scars 'common'",
-  "rank",   6.4,  2.6, 3.2, 1.0, TRUE,  "Site ranked A–C?\n(top two-thirds of the reef)",
+  "rank",   6.4,  2.6, 3.2, 1.0, TRUE,  "Site ranked A–D?\n(density-aware classes)",
   "dive1",  10.1, 4.9, 2.6, 0.8, FALSE, "Dive",
   "dive2",  10.1, 2.6, 2.6, 1.4, FALSE, "Dive at crew discretion\nweak scar, negative tows,\nadjacent or long-unvisited",
   "defer",  6.4,  0.7, 3.2, 0.9, TRUE,  "Defer to the next visit\nor the annual check"
@@ -1311,10 +1325,12 @@ if (file.exists(file.path(tables_dir, "protocol_density_statistics.csv"))) {
   save_figure(fig34, cfg, "fig34_ghost_per_miss.png", width = 7.5, height = 5.5)
 }
 
+if (workflow_figures_only) quit(save = "no")
 if (file.exists(file.path(tables_dir, "metacommunity_candidates.csv"))) build_metacommunity_figures(cfg)
 if (file.exists(file.path(tables_dir, "calibration_20261021_summary.csv"))) build_calibration_report_figures(cfg)
 if (file.exists(file.path(tables_dir, "larval_concentration_scope.csv"))) build_larval_concentration_figures(cfg)
 if (file.exists(file.path(tables_dir, "cull_high_density_fixed.csv"))) build_high_density_figures(cfg)
 if (file.exists(file.path(tables_dir, "manta_aggregation_cv_summary.csv"))) build_report_highlight_figures(cfg)
+build_manuscript_map_figure(cfg)
 manifest <- tibble::tibble(file = list.files(cfg$dirs$figures, pattern = "^fig.*\\.png$"))
 write_table(manifest, cfg, "figure_manifest.csv")
