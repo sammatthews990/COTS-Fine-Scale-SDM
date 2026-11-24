@@ -144,8 +144,8 @@ inspect page images, check section lengths/display counts and the immutable
 template hash. Create the next numbered review and both clean baselines only
 after the final main document passes checks. Preserve annotated review inputs:
 review 09 is the preserved feedback source; review 11 adds the subsequent ranking
-experiment while review 10 is retained. Review 14 (12 November 2026) is the current copy for
-feedback; earlier reviews are retained. Do not
+experiment while review 10 is retained. Review 15 (20 November 2026, after the voice and figure-style pass) is the
+current copy for feedback; review 14 was never annotated; earlier reviews are retained. Do not
 use `-RefreshReview09` to overwrite the annotated input.
 
 The packaged `render_docx.py` cannot run in this Windows environment because

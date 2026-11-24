@@ -30,7 +30,7 @@ initialise_final <- function() {
   final_dir <- normalizePath(file.path(dirname(script_file), ".."), winslash = "/")
   source(file.path(final_dir, "config.R"), local = FALSE)
   cfg <- final_config(final_dir)
-  for (f in c("hmsc.R", "support_grid.R", "rasters.R", "figures.R", "context.R")) {
+  for (f in c("hmsc.R", "support_grid.R", "rasters.R", "msw_figures.R", "figures.R", "context.R")) {
     source(file.path(final_dir, "R", f), local = FALSE)
   }
   invisible(lapply(cfg$dirs, dir.create, recursive = TRUE, showWarnings = FALSE))

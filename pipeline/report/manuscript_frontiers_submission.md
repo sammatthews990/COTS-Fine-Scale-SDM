@@ -57,9 +57,8 @@ the repository and DOI.
 `scripts/export_frontiers_figures.py` writes the nine figures, in order of
 appearance, to `submission/figures/` as 180 mm wide, 300 dpi TIFF files.
 
-- [ ] Remove the titles and subtitles burned into Figures 2–6, and the footnote
-      in Figure 1, at source; the captions carry this text. Figure 7 has panel
-      letters burned in, which Frontiers adds at typesetting.
+- [x] Titles, subtitles and captions are no longer burned into the figures (20
+      November): `save_figure()` strips them and the legends carry the text.
 - [ ] Check text is at least 8 pt at final size after the reduction to 180 mm.
 - [ ] Add alt text for each figure on the submission form.
 - [ ] Figures with Esri imagery have been left out, because the article is CC-BY.

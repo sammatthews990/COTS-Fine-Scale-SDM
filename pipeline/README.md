@@ -945,6 +945,8 @@ fifth-wave suppression scenarios, without claiming completed efficacy results. T
 
 All in `outputs/figures/`, 7.5 in wide at 300 dpi, built by `07` from the tables in `outputs/tables/` (run it last). Use `07 --metacommunity_only=1` for figures 18–19 alone after script 22.
 
+Figure style (20 November 2026): all figures use the classic-axes theme and project colour key in `R/figures.R` (helpers in `R/msw_figures.R`, from the marine-science-figures skill); `save_figure()` strips figure-level titles, subtitles and captions, which live in the report and manuscript legends. The study-area panel c (fig29) reads the author's COMPAS–EMS mesh images from `report/assets/`.
+
 | Figure | Shows |
 |---|---|
 | `fig01_gbr_overview.png` | The three layers across the GBR |

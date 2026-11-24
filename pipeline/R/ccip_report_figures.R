@@ -22,7 +22,7 @@ build_ccip_report_figures <- function(cfg) {
   ggplot2::geom_point(data=pts,ggplot2::aes(lon,lat),colour=layer_colours[[1]],size=.55,alpha=.7)+
   ggplot2::annotate('rect',xmin=145.2,xmax=145.65,ymin=-14.9,ymax=-14.5,fill=NA,colour=ink$primary,linewidth=.6)+
   ggplot2::coord_sf(xlim=c(141,153.5),ylim=c(-25,-9.5),expand=FALSE)+
-  ggplot2::labs(title='A  Cull observation footprint',x=NULL,y=NULL)+theme_report(10)
+  ggplot2::labs(tag='a',title='Cull observation footprint',x=NULL,y=NULL)+theme_report(10)
  right <- ggplot2::ggplot()+ggplot2::geom_sf(data=land,fill=ink$land,colour=NA)+
   ggplot2::geom_sf(data=cr,fill=layer_colours[[1]],colour=NA,alpha=.4)+
   ggplot2::geom_point(data=lab,ggplot2::aes(lon,lat),size=1.5,colour=ink$primary)+
@@ -30,25 +30,30 @@ build_ccip_report_figures <- function(cfg) {
   ggplot2::scale_x_continuous(breaks=c(145.3,145.45,145.6))+
   ggplot2::scale_y_continuous(breaks=c(-14.5,-14.6,-14.7,-14.8))+
   ggplot2::coord_sf(xlim=c(145.25,145.65),ylim=c(-14.85,-14.5),expand=FALSE)+
-  ggplot2::labs(title='B  Northern calibration reefs',x=NULL,y=NULL)+theme_report(10)
+  ggplot2::labs(tag='b',title='Northern calibration reefs',x=NULL,y=NULL)+theme_report(10)
  domain <- sf::st_read(checked_input(cfg,'report_metapop_domain'),quiet=TRUE)
  stopifnot(nrow(domain)==2895,length(unique(domain$GBRMPA_ID))==113)
  domain <- sf::st_transform(domain,4326)
- pending <- ggplot2::ggplot()+
-  ggplot2::annotate('rect',xmin=0,xmax=1,ymin=0,ymax=1,
-   fill=ink$surface,colour=ink$muted,linewidth=.4)+
-  ggplot2::annotate('text',x=.5,y=.52,
-   label='Hydrodynamic mesh figure\nto be supplied',size=4,colour=ink$primary,lineheight=1.3)+
-  ggplot2::coord_fixed(expand=FALSE)+
-  ggplot2::labs(title='C  Hydrodynamic model mesh')+theme_report(10)+
-  ggplot2::theme(axis.text=ggplot2::element_blank(),axis.title=ggplot2::element_blank(),
-   axis.ticks=ggplot2::element_blank(),panel.grid=ggplot2::element_blank())
+ # Panel c: the COMPAS-EMS model mesh (whole domain, with the mesh around
+ # Lizard Island as an inset), supplied by the author on 20 November 2026 as
+ # images in report/assets.
+ mesh_dir <- file.path(cfg$final_dir, 'report', 'assets')
+ img_panel <- function(f) {
+  x <- png::readPNG(file.path(mesh_dir, f))
+  ggplot2::ggplot()+ggplot2::annotation_raster(x, 0, ncol(x), 0, nrow(x))+
+   ggplot2::coord_fixed(xlim=c(0, ncol(x)), ylim=c(0, nrow(x)), expand=FALSE)+theme_map(10)
+ }
+ mesh_zoom <- img_panel('hydro_mesh_lizard.png')+
+  ggplot2::theme(plot.background=ggplot2::element_rect(fill=ink$surface, colour=ink$primary, linewidth=.5),
+   plot.margin=ggplot2::margin(1, 1, 1, 1))
+ pending <- img_panel('hydro_mesh_domain.png')+ggplot2::labs(tag='c', title='Hydrodynamic model mesh')+
+  patchwork::inset_element(mesh_zoom, left=0, bottom=0, right=.56, top=.28, align_to='panel')
  full_domain <- ggplot2::ggplot()+
   ggplot2::geom_sf(data=land,fill=ink$land,colour=NA)+
   ggplot2::geom_sf(data=domain,fill=layer_colours[[1]],colour=ink$primary,linewidth=.12)+
   ggplot2::geom_point(data=lab,ggplot2::aes(lon,lat),size=1,colour=ink$primary)+
   ggplot2::coord_sf(xlim=c(145.05,145.9),ylim=c(-15.82,-14.25),expand=FALSE)+
-  ggplot2::labs(title='D  Population-model domain',x=NULL,y=NULL)+theme_report(10)
+  ggplot2::labs(tag='d',title='Population-model domain',x=NULL,y=NULL)+theme_report(10)
  p <- (left+right)/(pending+full_domain)+patchwork::plot_layout(widths=c(1,1.1))
  ggplot2::ggsave(file.path(cfg$dirs$figures,'fig29_report_study_area.png'),p,width=7.5,height=8,dpi=300,bg=ink$surface)
 }

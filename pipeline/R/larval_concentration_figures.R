@@ -15,7 +15,7 @@ build_larval_concentration_figures <- function(cfg) {
   panel <- function(xlim, ylim, selected, domain = FALSE) {
     p <- ggplot2::ggplot() + ggplot2::geom_sf(data = geo$land, fill = ink$land, colour = NA) +
       ggplot2::geom_sf(data = geo$sites, ggplot2::aes(fill = .data$top20_share, colour = .data$top20_share), linewidth = .15) +
-      ggplot2::scale_fill_gradientn(colours = ramp_orange, limits = c(0, 1), breaks = c(0, .5, 1),
+      ggplot2::scale_fill_viridis_c(limits = c(0, 1), breaks = c(0, .5, 1),
         labels = scales::label_percent(), name = "Releases in\ntop fifth", aesthetics = c("fill", "colour")) +
       ggrepel::geom_text_repel(data = labels |> dplyr::filter(.data$label %in% selected),
         ggplot2::aes(.data$lon, .data$lat, label = .data$label), size = 2.85, family = report_font,
@@ -25,17 +25,17 @@ build_larval_concentration_figures <- function(cfg) {
     p + ggplot2::coord_sf(xlim = xlim, ylim = ylim, expand = FALSE, datum = NA)
   }
   a <- panel(c(145.1, 145.9), c(-15.8, -14.27), c("Lizard Island", "Jewell", "Mackay", "Williamson", "Osterlund"), TRUE) +
-    ggplot2::labs(title = "A  Model domain")
+    ggplot2::labs(tag = "a", title = "Model domain")
   b <- panel(zoom[c("xmin", "xmax")], zoom[c("ymin", "ymax")],
              c("Lizard Island", "MacGillivray", "Eyrie", "Martin", "North Direction Island", "Ribbon No 10", "Yonge", "Carter")) +
-    ggplot2::labs(title = "B  Lizard Island group")
+    ggplot2::labs(tag = "b", title = "Lizard Island group")
   main <- (a | b) + patchwork::plot_layout(widths = c(1, 1.3), guides = "collect") &
     ggplot2::theme(legend.position = "bottom", legend.direction = "horizontal", legend.text = ggplot2::element_text(size = 8),
       legend.title = ggplot2::element_text(size = 8), legend.key.width = grid::unit(1.2, "cm"))
   save_figure(main, cfg, "fig28_larval_hotspot_persistence.png", width = 6.26, height = 6.6)
 
   zones <- c("Inner shelf", "Lizard group", "Other mid-shelf", "Ribbon Reefs", "Outer barrier N of Lizard")
-  cols <- setNames(c("#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4"), zones)
+  cols <- setNames(unname(okabe_ito[c("blue", "vermillion", "green", "orange", "purple")]), zones)
   r$release <- as.Date(r$release)
   r$zone <- factor(r$zone, rev(zones))
   r$age <- factor(paste("Day", r$age), paste("Day", c(5, 9, 10)))

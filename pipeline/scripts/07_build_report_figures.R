@@ -119,8 +119,8 @@ overview_panel <- function(id) {
   ggplot() +
     geom_sf(data = land, fill = ink$land, colour = NA) +
     geom_raster(data = d, aes(x, y, fill = value)) +
-    scale_fill_gradientn(
-      colours = ramp_blue, limits = limits, oob = scales::squish,
+    scale_fill_viridis_c(
+      limits = limits, oob = scales::squish,
       name = value_titles[[id]], labels = scales::label_number(accuracy = 0.01)
     ) +
     coord_sf(xlim = bbox[c(1, 3)], ylim = bbox[c(2, 4)], expand = FALSE, datum = NA) +
@@ -131,7 +131,7 @@ overview_panel <- function(id) {
       legend.key.height = grid::unit(0.18, "cm"), legend.title.position = "top"
     )
 }
-fig01 <- wrap_plots(lapply(layer_ids, overview_panel), nrow = 1) +
+fig01 <- wrap_plots(lapply(layer_ids, overview_panel), nrow = 1) + msw_tags() +
   plot_annotation(
     title = "Three delivered COTS layers across the GBR",
     subtitle = "Cell means at ~2.9 km for display; colour stretch is each layer's 2nd-98th percentile.",
@@ -209,8 +209,8 @@ percentile_scale <- scale_fill_gradientn(
   colours = ramp_blue, limits = c(0, 1), name = "Within-reef percentile",
   breaks = c(0, 0.5, 1), labels = c("lowest", "median", "highest")
 )
-width_scale <- scale_fill_gradientn(
-  colours = ramp_orange, limits = c(0, width_max),
+width_scale <- scale_fill_viridis_c(
+  option = "magma", direction = -1, limits = c(0, width_max),
   name = "HMSC 90% interval width", labels = scales::label_number(accuracy = 0.01)
 )
 # Top-rank emphasis for fig02: everything below the 70th within-reef
@@ -220,7 +220,7 @@ top_rank_floor <- 0.7
 top_rank_scale <- scale_fill_viridis_c(
   option = "viridis", limits = c(top_rank_floor, 1), oob = scales::squish,
   breaks = c(0.7, 0.8, 0.9, 1), labels = c("\u2264 70th", "80th", "90th", "100th"),
-  name = "Within-reef percentile (top 30% emphasised)"
+  name = "Within-reef percentile"
 )
 column_titles <- c(unname(fig02_layers), "Uncertainty")
 n_cols <- length(column_titles)
@@ -771,19 +771,17 @@ if (file.exists(file.path(tables_dir, "operations_cull_scenarios.csv"))) {
 if (file.exists(file.path(tables_dir, "manta_aggregation_cv_summary.csv"))) {
   agg <- read_table("manta_aggregation_cv_summary.csv") |>
     dplyr::filter(.data$subset == "aggregations (>= 2 strong tows), all years")
-  strat_labels <- c(layer_cv = "Primary layer, leave-reef-out", layer_deployed = "Primary layer, deployed (confounded)",
-                    systematic = "Systematic (every n-th tow)", random = "Random")
-  strat_cols <- c(layer_cv = layer_colours[["legacy_rg_year2026"]], layer_deployed = "#f39670",
-                  systematic = ink$secondary, random = ink$muted)
+  strat_labels <- c(layer_cv = "Habitat layer, held out", layer_deployed = "Habitat layer, in-sample",
+                    systematic = "Evenly spaced", random = "Random")
+  strat_cols <- c(layer_cv = key_colours[["habitat"]], layer_deployed = key_colours[["habitat"]],
+                  systematic = key_colours[["systematic"]], random = key_colours[["random"]])
   strat_lty <- c(layer_cv = "solid", layer_deployed = "42", systematic = "solid", random = "22")
   strat_shape <- c(layer_cv = 16, layer_deployed = 1, systematic = 15, random = 17)
   long <- dplyr::bind_rows(lapply(names(strat_labels), function(st) tibble::tibble(
     keep = agg$keep, strategy = st, value = agg[[st]], low = agg[[paste0(st, "_low")]], high = agg[[paste0(st, "_high")]])))
   long$strategy <- factor(long$strategy, levels = names(strat_labels))
   pa <- ggplot(long, aes(keep, value, colour = strategy, linetype = strategy)) +
-    geom_hline(yintercept = 0.95, colour = ink$axis, linewidth = 0.4) +
-    annotate("text", x = 0.3, y = 0.95, label = "95% of aggregations", hjust = 1, vjust = -0.5, size = 2.6,
-             colour = ink$secondary, family = report_font) +
+    geom_hline(yintercept = 0.95, colour = ink$axis, linewidth = 0.4, linetype = "dotted") +
     geom_ribbon(data = dplyr::filter(long, strategy == "layer_cv"), aes(ymin = low, ymax = high),
                 fill = strat_cols[["layer_cv"]], alpha = 0.15, colour = NA, show.legend = FALSE) +
     geom_line(linewidth = 0.7) +
@@ -793,29 +791,25 @@ if (file.exists(file.path(tables_dir, "manta_aggregation_cv_summary.csv"))) {
     scale_shape_manual(values = strat_shape, labels = strat_labels, name = NULL) +
     scale_x_reverse(labels = scales::label_percent()) +
     scale_y_continuous(labels = scales::label_percent(), limits = c(0.4, 1)) +
-    labs(x = "Share of manta tows kept in each survey", y = "Aggregations found (>= 1 tow kept)",
-         title = sprintf("Aggregations of >= 2 strong-evidence tows (n = %s, %s surveys)",
-                         format(agg$aggregations[1], big.mark = ","), format(agg$surveys[1], big.mark = ","))) +
+    labs(x = "Manta tows kept in each survey", y = "Aggregations found") +
     theme_report(8) +
-    theme(legend.position = "bottom", plot.title = element_text(size = 9)) +
-    guides(colour = guide_legend(nrow = 2), linetype = guide_legend(nrow = 2), shape = guide_legend(nrow = 2))
+    theme(legend.position = "inside", legend.position.inside = c(0.02, 0.02), legend.justification = c(0, 0),
+          legend.key.width = grid::unit(0.8, "cm"))
   sizes <- read_table("manta_aggregation_cv_by_size.csv") |>
     dplyr::filter(.data$keep == cfg$operations$headline_keep) |>
     tidyr::pivot_longer(dplyr::all_of(names(strat_labels)), names_to = "strategy", values_to = "value") |>
     dplyr::mutate(strategy = factor(.data$strategy, levels = names(strat_labels)),
-                  size_class = sprintf("%s\n(n = %s)", .data$size_class, trimws(format(.data$aggregations, big.mark = ","))),
+                  size_class = sub(" (isolated)", "", .data$size_class, fixed = TRUE),
                   size_class = factor(.data$size_class, levels = unique(.data$size_class)))
   pb <- ggplot(sizes, aes(value, size_class, colour = strategy, shape = strategy)) +
     geom_point(size = 2.2, position = position_dodge(width = 0.6)) +
     scale_colour_manual(values = strat_cols, labels = strat_labels, guide = "none") +
     scale_shape_manual(values = strat_shape, labels = strat_labels, guide = "none") +
     scale_x_continuous(labels = scales::label_percent(), limits = c(NA, 1)) +
-    labs(x = sprintf("Found with %d%% of tows kept", round(100 * cfg$operations$headline_keep)), y = NULL,
-         title = "By aggregation size") +
-    theme_report(8) +
-    theme(panel.grid.major.y = element_blank(), axis.text.y = element_text(colour = ink$primary),
-          plot.title = element_text(size = 9))
-  fig13 <- (pa | pb) + plot_layout(widths = c(1.5, 1)) +
+    labs(x = sprintf("Found with %d%% of tows kept", round(100 * cfg$operations$headline_keep)),
+         y = "Strong-evidence tows in the aggregation") +
+    theme_report(8)
+  fig13 <- (pa | pb) + plot_layout(widths = c(1.5, 1)) + msw_tags() +
     plot_annotation(
       title = "Can manta tows be cut without missing aggregations?",
       subtitle = paste(
@@ -1114,10 +1108,7 @@ if (file.exists(file.path(ranking_dir, "cots_exploration_zones_2027.gpkg"))) {
       scale_alpha_manual(values = stats::setNames(rep(zone_alpha, length(zone_levels)), zone_levels),
                          name = "Exploration zones", drop = FALSE) +
       coord_sf(xlim = frame[c(1, 3)], ylim = frame[c(2, 4)], expand = FALSE, datum = NA) +
-      labs(title = paste0(sub(" \\(.*", "", sub("^\\((Big|Little)\\) ", "\\1 ", g$name)), " (", label, ")"),
-           subtitle = sprintf("Expected problematic dives %.0f %%\nA %d, A-B %d, A-C %d, A-D %d of %d sites",
-                              100 * rd$reef_density_v2, rd$priority_a, rd$priority_a + rd$priority_b,
-                              rd$priority_a + rd$priority_b + rd$priority_c, rd$sites - rd$priority_e, rd$sites)) +
+      labs(title = paste0(sub(" \\(.*", "", sub("^\\((Big|Little)\\) ", "\\1 ", g$name)), " (", label, ")")) +
       theme_map(8) +
       theme(plot.subtitle = element_text(size = 7, colour = ink$secondary)) +
       guides(fill = guide_legend(order = 1, nrow = 1, override.aes = list(alpha = 0.9)),
@@ -1292,8 +1283,9 @@ if (file.exists(file.path(tables_dir, "protocol_density_statistics.csv"))) {
   opts$tone <- dplyr::case_when(opts$group %in% c("Evidence alone", "Random") ~ opts$group,
                                 startsWith(opts$label, "Within") ~ "Within-reef", startsWith(opts$label, "v1") ~ "Density-aware v1",
                                 startsWith(opts$label, "v2") ~ "Density-aware v2", TRUE ~ opts$group)
-  tone_cols <- c(`Evidence alone` = ink$muted, Random = ink$axis, `Within-reef` = "#3987e5",
-                 `Density-aware v1` = "#eb6834", `Density-aware v2` = "#1baf7a")
+  tone_cols <- c(`Evidence alone` = key_colours[["evidence"]], Random = key_colours[["random"]],
+                 `Within-reef` = key_colours[["combined"]], `Density-aware v1` = key_colours[["density_v1"]],
+                 `Density-aware v2` = key_colours[["density_v2"]])
   # The three options with the most ghost dives avoided per dive above 0.04 missed.
   opts$best <- rank(-opts$ratio, ties.method = "first") <= 3
   opts$group <- factor(opts$group, unique(opts$group))
@@ -1305,24 +1297,21 @@ if (file.exists(file.path(tables_dir, "protocol_density_statistics.csv"))) {
     geom_col(aes(fill = tone), width = 0.68) +
     geom_col(data = opts[opts$best, ], fill = NA, colour = ink$primary, linewidth = 0.6, width = 0.68) +
     geom_errorbar(aes(xmin = low, xmax = high), orientation = "y", width = 0.25, linewidth = 0.35, colour = ink$secondary) +
-    geom_text(aes(x = 13.4, label = text, fontface = ifelse(best, "bold", "plain")), hjust = 0, size = 2.5,
-              colour = ink$primary, family = report_font) +
     scale_y_discrete(labels = function(k) opts$label[match(k, paste(opts$group, opts$label))]) +
-    scale_x_continuous(limits = c(0, 18.2), breaks = seq(0, 12, 2), expand = expansion(mult = c(0, 0))) +
+    scale_x_continuous(limits = c(0, max(opts$high) * 1.03), breaks = seq(0, 12, 4), expand = expansion(mult = c(0, 0))) +
     scale_fill_manual(values = tone_cols, guide = "none") +
     facet_grid(group ~ ., scales = "free_y", space = "free_y", switch = "y") +
     labs(title = "Ghost dives avoided per dive above 0.04 missed",
          subtitle = paste("Replay of 2020–2026 reef visits; dive rules apply to dives without a strong tow within 100 m (crew discretion",
                           "within the classes). Whiskers: 95% interval over 300 reef-year resamples. Dashed: random skipping.", sep = "\n"),
-         x = "Ghost dives avoided per dive above 0.04 missed", y = NULL,
+         x = "Ghost dives avoided per high-density dive missed", y = NULL,
          caption = paste("Outlined and bold: the three options with the most ghost dives avoided per dive above 0.04 missed.",
                          "Labels: ratio, then dives above 0.04 missed (share of all such dives). With the tow zone: follow-up visits tow the zone with season memory.",
                          sep = "\n")) +
     theme_report() +
-    theme(strip.placement = "outside", strip.text.y.left = element_text(angle = 0, hjust = 1, face = "bold", size = 7.5),
-          panel.grid.major.y = element_blank(), panel.spacing.y = grid::unit(0.25, "lines"),
-          axis.text.y = element_text(size = 7.5))
-  save_figure(fig34, cfg, "fig34_ghost_per_miss.png", width = 7.5, height = 5.5)
+    theme(strip.placement = "outside", strip.text.y.left = element_text(angle = 0, hjust = 1, face = "bold", size = 8),
+          panel.spacing.y = grid::unit(0.25, "lines"), axis.text.y = element_text(size = 8))
+  save_figure(fig34, cfg, "fig34_ghost_per_miss.png", width = 7.1, height = 5.2)
 }
 
 if (workflow_figures_only) quit(save = "no")

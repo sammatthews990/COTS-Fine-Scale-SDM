@@ -27,7 +27,8 @@ def checked(path, expected):
 
 def reflow_supplements(a, meta, tr, obs):
     """Replot source summaries at portrait width with readable eight-point type."""
-    colors = ("#0d366b", "#5b2a86")
+    # Project colour key: sky blue without, vermillion with recorded culling.
+    colors = ("#56B4E9", "#D55E00")
     grid = "#e1e0d9"
     plt.rcParams.update({"font.size": 8, "axes.titlesize": 8, "axes.labelsize": 8,
                          "xtick.labelsize": 8, "ytick.labelsize": 8})
@@ -40,9 +41,11 @@ def reflow_supplements(a, meta, tr, obs):
     all_tr = [pd.concat([t, e]) for t, e in zip(tr, extra)]
 
     def style(ax):
-        ax.grid(color=grid, linewidth=.6)
         ax.spines[["top", "right"]].set_visible(False)
         ax.tick_params(labelsize=8)
+
+    def tag(ax, i, title):
+        ax.set_title(rf"$\bf{{{chr(97 + i)}}}$  {title}", loc="left")
 
     def save(fig, stem, bottom=.15, top=.96):
         fig.tight_layout(rect=(0, bottom, 1, top))
@@ -71,25 +74,27 @@ def reflow_supplements(a, meta, tr, obs):
         calibration_lines(ax, reef, recent=True)
         for src, marker in (("SALAD", "o"), ("cull_converted", "s")):
             d = targets[(targets.target_reef == reef) & (targets.target_source == src) & (targets.target_density_ha > 0)]
-            ax.scatter(d.report_year, d.target_density_ha, marker=marker, color="#eb6834", s=16, zorder=5)
-        ax.set(title=reef, xlim=(2014.5, 2026.5), ylim=(.1, 300), yscale="log", xlabel="Year", ylabel="Adult COTS ha$^{-1}$")
+            ax.scatter(d.report_year, d.target_density_ha, marker=marker, color="#000000", s=14, zorder=5)
+        tag(ax, reefs.index(reef), reef.replace(" Reef", ""))
+        ax.set(xlim=(2014.5, 2026.5), ylim=(.1, 300), yscale="log", xlabel="Year", ylabel="Adult COTS ha$^{-1}$")
         ax.set_xticks([2015, 2020, 2025])
     axes.flat[-1].set_visible(False)
-    fig.legend(handles=cal_legend + [Line2D([], [], color="#eb6834", marker="o", linestyle="none", label="SALAD diver density"),
-               Line2D([], [], color="#eb6834", marker="s", linestyle="none", label="Cull-derived density")],
+    fig.legend(handles=cal_legend + [Line2D([], [], color="#000000", marker="o", linestyle="none", label="SALAD diver density"),
+               Line2D([], [], color="#000000", marker="s", linestyle="none", label="Cull-derived density")],
                loc="lower center", ncol=2, frameon=False, fontsize=8)
     save(fig, "fig23_metacommunity_recent_density", bottom=.13)
 
     others = {"Martin Reef": "Martin Reef", "Linnet Reef": "Linnet Reef", "Yonge Reef": "Yonge Reef",
               "Carter Reef": "Carter Reef", "No Name Reef": "No Name Reef", "Ribbon No 10 Reef": None}
     fig, axes = plt.subplots(3, 2, figsize=(6.26, 7.2))
-    for ax, (reef, oname) in zip(axes.flat, others.items()):
+    for i, (ax, (reef, oname)) in enumerate(zip(axes.flat, others.items())):
         calibration_lines(ax, reef, scale=.015)
         if oname:
             o = obs[obs.reef_name == oname].groupby("year").cotsptow.mean()
             ax.scatter(o.index, o, s=12, color="#1f1e1d", zorder=5)
         ax.axhline(.22, color="gray", linestyle=":", linewidth=.8)
-        ax.set(title=reef, xlim=(1991.5, 2026.5), xlabel="Year", ylabel="COTS per manta tow")
+        tag(ax, i, reef.replace(" Reef", ""))
+        ax.set(xlim=(1991.5, 2026.5), xlabel="Year", ylabel="COTS per manta tow")
         ax.set_ylim(bottom=0)
         ax.set_xticks([1995, 2005, 2015, 2025])
     fig.legend(handles=cal_legend + [Line2D([], [], color="#1f1e1d", marker="o", linestyle="none", label="LTMP manta"),
@@ -163,16 +168,16 @@ def reflow_supplements(a, meta, tr, obs):
     order = ["fcN", "fcF100", "fcF150", "fcF200", "fcF300", "fcT100", "fcT150", "fcT200", "fcT300"]
     labels = ["None", "Recent ×1", "Recent ×1.5", "Recent ×2", "Recent ×3", "Targeted ×1", "Targeted ×1.5", "Targeted ×2", "Targeted ×3"]
     fig, axes = plt.subplots(2, 2, figsize=(6.26, 5.7))
-    for ax, var, title in zip(axes.flat, ("years", "peak", "coral", "removed"),
-                             ("Years in irruption, 2027–50", "Peak adults ha$^{-1}$, 2027–31", "Mean coral cover, 2027–50", "Domain removals (thousands)")):
-        for offset, ssp, color in ((-.12, "ssp245", "#2a78d6"), (.12, "ssp370", "#eb6834")):
+    for i, (ax, var, title) in enumerate(zip(axes.flat, ("years", "peak", "coral", "removed"),
+                             ("Years in irruption, 2027–50", "Peak adults ha$^{-1}$, 2027–31", "Mean coral cover, 2027–50", "Domain removals (thousands)"))):
+        for offset, ssp, color, marker in ((-.12, "ssp245", "#000000", "o"), (.12, "ssp370", "#999999", "^")):
             g = means[means.ssp == ssp].groupby("cull")[var]
             m, lo, hi = [f().reindex(order) for f in (g.median, lambda: g.quantile(.1), lambda: g.quantile(.9))]
-            ax.errorbar([i+offset for i in range(9)], m, yerr=[m-lo, hi-m], color=color, fmt="o", ms=3, linewidth=.8)
+            ax.errorbar([k+offset for k in range(9)], m, yerr=[m-lo, hi-m], color=color, fmt=marker, ms=3, linewidth=.8)
         ax.set_xticks(range(9), labels, rotation=55, ha="right")
-        ax.set_title(title, loc="left")
+        tag(ax, i, title)
         style(ax)
-    fig.legend(handles=[Line2D([], [], color=c, marker="o", label=s) for c, s in (("#2a78d6", "SSP2-4.5"), ("#eb6834", "SSP3-7.0"))],
+    fig.legend(handles=[Line2D([], [], color=c, marker=mk, label=s) for c, mk, s in (("#000000", "o", "SSP2-4.5"), ("#999999", "^", "SSP3-7.0"))],
                loc="lower center", ncol=2, frameon=False, fontsize=8)
     save(fig, "fig27_metacommunity_projection_effects", bottom=.08)
 
@@ -199,8 +204,9 @@ def main():
     tr = [pd.read_csv(paths[n]) for n in ("trajectories.csv", "cull/trajectories.csv")]
     reefs = {"Lizard Island Reef": "Lizard Isles", "MacGillivray Reef": "Macgillivray Reef",
              "North Direction Reef": "North Direction Island", "Eyrie Reef": "Eyrie Reef"}
-    # Shared report blue/orange; purple distinguishes the culling diagnostic.
-    blue, purple, orange, grid = "#0d366b", "#5b2a86", "#eb6834", "#e1e0d9"
+    # Project colour key: sky blue without, vermillion with recorded culling;
+    # observations black, photo-transect cover grey.
+    blue, purple, orange = "#56B4E9", "#D55E00", "#808080"
     plt.rcParams.update({"font.family": "Arial", "font.size": 9.3, "axes.titlesize": 10.3})
     fig, axes = plt.subplots(4, 2, figsize=(7.25, 8.0), sharex=True)
     for row, (reef, oname) in enumerate(reefs.items()):
@@ -227,10 +233,9 @@ def main():
                 ph = photo[photo.domain_name == oname].groupby("report_year")["median"].mean()
                 ax.scatter(ph.index, ph, color=orange, marker="D", s=12, zorder=6)
                 ax.set_ylim(0, .8)
-            ax.set_title(f"{chr(65 + row*2 + col)}  {reef.replace(' Reef', '')}", loc="left", pad=3)
+            ax.set_title(rf"$\bf{{{chr(97 + row*2 + col)}}}$  {reef.replace(' Reef', '')}", loc="left", pad=3)
             ax.set_xlim(1991.5, 2026.5)
             ax.set_xticks([1995, 2005, 2015, 2025])
-            ax.grid(color=grid, linewidth=.6)
             ax.spines[["top", "right"]].set_visible(False)
             ax.tick_params(labelsize=9.3)
     fig.text(.28, .98, "COTS per manta tow", ha="center", weight="bold", fontsize=10.3)

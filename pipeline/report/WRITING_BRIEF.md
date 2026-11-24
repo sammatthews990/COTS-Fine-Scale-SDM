@@ -3,6 +3,27 @@
 Read by the `marine-science-writing` skill before drafting. Update it when a
 decision changes. Items marked `[TO CONFIRM]` are for the authors to supply.
 
+## Voice and figure-style pass (20 November 2026)
+
+Both documents were run through the updated skills: `references/voice.md` of
+marine-science-writing (Matthews and McWilliam voice) and the new
+marine-science-figures skill. In the manuscript, Results paragraphs now open with
+the finding, carry one headline interval per sentence, name reefs where the data
+show the pattern (Big Broadhurst, John Brewer and Batt Reef's two flanks, all read
+from tables) and end with what the pattern means. The Introduction states numbered
+aims, and the Discussion opens with four ordinal findings, a "key learning"
+reframing and a closing "buy time" sentence. The report main body stays close to
+the CCIP page limits, so it received length-neutral edits only.
+
+Figures now follow the project colour key in `R/figures.R` (orange habitat alone,
+blue habitat + recent evidence, purple density-aware v1, bluish green v2, grey
+random, black systematic; sky blue and vermillion for metacommunity runs without
+and with culling). `save_figure()` strips figure-level titles, subtitles and
+captions, so the legend text carries them; legends now open with a bold
+one-sentence message and name each panel (**a**, **b**). The report's study-area
+panel c shows the COMPAS–EMS mesh (author images, 20 November, in
+`report/assets/`). Review 15 is the current copy for feedback.
+
 ## Manuscript supplement and Figure 1 (12 November 2026)
 
 Author confirmations: the 30 m terrain set is Allen Coral Atlas depth
@@ -12,7 +33,7 @@ DeepReef 30 m model (`beaman2017gbr30`); slope is in radians; the coral layers a
 Sentinel-2 product (`li2022turbidity`) in its stored units of FNU × 10 (55 = 5.5 FNU);
 the author suggested FNU and the ×10 follows from the Atlas methods document and the
 reef-cell range 18–79. The technical report's predictor table still carries the
-older `[TO CONFIRM]` on product versions; update it when integrating review 14.
+older `[TO CONFIRM]` on product versions; resolved on 20 November (review 15).
 
 `manuscript_frontiers_supplementary.qmd` holds Tables S1–S8, numbered by first
 citation in the main text. Table S1 prints each group's shared source once, on a

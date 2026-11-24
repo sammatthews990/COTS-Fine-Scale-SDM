@@ -96,6 +96,7 @@ build_manuscript_map_figure <- function(cfg) {
                          name = "RG + year (clean + year fallback)\nP(problematic site-year), 2026",
                          labels = scales::label_number(accuracy = 0.01)) +
     coord_sf(xlim = bbox[c(1, 3)], ylim = bbox[c(2, 4)], expand = FALSE, datum = NA) +
+    labs(tag = "a") +
     theme_map(text_pt) +
     theme(legend.position = "inside", legend.position.inside = c(0.03, 0.03), legend.justification = c(0, 0),
           legend.direction = "horizontal", legend.title.position = "top",
@@ -146,6 +147,7 @@ build_manuscript_map_figure <- function(cfg) {
     dplyr::mutate(evidence = ifelse(.data$manta_evidence_class %in% strong_classes, "Strong evidence", "Weak or none"))
   tows <- tows[order(tows$evidence == "Strong evidence"), ]
   priority_cols <- c(A = "#e34948", B = "#eb6834", C = "#eda100", D = "#f2d98d", E = "#898781")
+  panel_tags <- c(batt = "b", eyrie = "c", lady_musgrave = "d", broadhurst = "e")
   zone_label <- "Follow-up tow zone: A–C sites + 100 m"
   reef_panel <- function(slug) {
     g <- geo[[slug]]
@@ -174,9 +176,7 @@ build_manuscript_map_figure <- function(cfg) {
       scale_alpha_manual(values = stats::setNames(rep(zone_alpha, length(zone_levels)), zone_levels),
                          labels = zone_names, name = "Exploration zones", drop = FALSE) +
       coord_sf(xlim = frame[c(1, 3)], ylim = frame[c(2, 4)], expand = FALSE, datum = NA) +
-      labs(title = short_name(slug),
-           subtitle = sprintf("Expected problematic %.0f%%\nA–C %d, A–D %d of %d sites", 100 * rd$reef_density_v2,
-                              rd$priority_a + rd$priority_b + rd$priority_c, rd$sites - rd$priority_e, rd$sites)) +
+      labs(title = short_name(slug), tag = panel_tags[[slug]]) +
       theme_map(text_pt) +
       theme(plot.title = element_text(size = text_pt + 0.5, face = "bold"),
             plot.subtitle = element_text(size = text_pt - 0.5, colour = ink$secondary, lineheight = 0.95),
