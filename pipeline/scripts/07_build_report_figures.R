@@ -39,6 +39,18 @@ if (identical(script_args()[["ccip_template_only"]], "1")) {
   write_table(tibble::tibble(file = list.files(cfg$dirs$figures, pattern = "^fig.*\\.png$")), cfg, "figure_manifest.csv")
   quit(save = "no")
 }
+source(file.path(cfg$final_dir, "R", "metapop_concept_figure.R"))
+source(file.path(cfg$final_dir, "R", "workflow_figure.R"))
+if (identical(script_args()[["workflow_diagram_only"]], "1")) {
+  build_workflow_figure(cfg)
+  write_table(tibble::tibble(file = list.files(cfg$dirs$figures, pattern = "^fig.*\\.png$")), cfg, "figure_manifest.csv")
+  quit(save = "no")
+}
+if (identical(script_args()[["metapop_concept_only"]], "1")) {
+  build_metapop_concept_figure(cfg)
+  write_table(tibble::tibble(file = list.files(cfg$dirs$figures, pattern = "^fig.*\\.png$")), cfg, "figure_manifest.csv")
+  quit(save = "no")
+}
 if (identical(script_args()[["larval_concentration_only"]], "1")) {
   build_larval_concentration_figures(cfg)
   write_table(tibble::tibble(file = list.files(cfg$dirs$figures, pattern = "^fig.*\\.png$")), cfg, "figure_manifest.csv")
@@ -1144,45 +1156,9 @@ if (file.exists(file.path(ranking_dir, "cots_exploration_zones_2027.gpkg"))) {
   save_figure(fig22, cfg, "fig22_protocol_batt_eyrie.png", width = 7.5, height = 10)
 }
 
-# --- fig23: proposed on-water workflow for a reef visit (35) ----------------------
-wf_boxes <- tibble::tribble(
-  ~id,      ~x,   ~y,  ~w,  ~h,  ~new,  ~label,
-  "plan",   2.1,  9.0, 3.8, 1.2, TRUE,  "Before each voyage\nrefresh the ranking to departure;\nissue A–E maps and tow zones",
-  "open",   2.1,  7.1, 3.8, 1.0, FALSE, "Dive open sites first\n(last dive > 0.04); cull to < 0.04",
-  "tow",    2.1,  4.9, 3.8, 1.6, TRUE,  "Manta tow\nfirst visit: whole reef\nfollow-up: A–C zone, open sites and\nsites near earlier strong tows",
-  "strong", 6.4,  4.9, 3.2, 1.2, FALSE, "Strong tow within 100 m?\nCOTS seen, >= 2 scars\nor scars 'common'",
-  "rank",   6.4,  2.6, 3.2, 1.0, TRUE,  "Site ranked A–D?\n(density-aware classes)",
-  "dive1",  10.1, 4.9, 2.6, 0.8, FALSE, "Dive",
-  "dive2",  10.1, 2.6, 2.6, 1.4, FALSE, "Dive at crew discretion\nweak scar, negative tows,\nadjacent or long-unvisited",
-  "defer",  6.4,  0.7, 3.2, 0.9, TRUE,  "Defer to the next visit\nor the annual check"
-)
-wf_arrows <- tibble::tribble(
-  ~x,   ~y,   ~xend, ~yend, ~label, ~lx,  ~ly,
-  2.1,  8.4,  2.1,   7.6,   "",     NA,   NA,
-  2.1,  6.6,  2.1,   5.7,   "",     NA,   NA,
-  4.0,  4.9,  4.8,   4.9,   "",     NA,   NA,
-  8.0,  4.9,  8.8,   4.9,   "yes",  8.4,  5.15,
-  6.4,  4.3,  6.4,   3.1,   "no",   6.65, 3.7,
-  8.0,  2.6,  8.8,   2.6,   "yes",  8.4,  2.85,
-  6.4,  2.1,  6.4,   1.15,  "no",   6.65, 1.6
-)
-fig23 <- ggplot() +
-  geom_segment(data = wf_arrows, aes(x = x, y = y, xend = xend, yend = yend), colour = ink$secondary, linewidth = 0.4,
-               arrow = grid::arrow(length = grid::unit(0.08, "in"), type = "closed")) +
-  geom_text(data = wf_arrows[!is.na(wf_arrows$lx), ], aes(x = lx, y = ly, label = label), colour = ink$secondary,
-            size = 2.6, family = report_font) +
-  geom_rect(data = wf_boxes, aes(xmin = x - w / 2, xmax = x + w / 2, ymin = y - h / 2, ymax = y + h / 2, fill = new, colour = new),
-            linewidth = 0.5) +
-  geom_text(data = wf_boxes, aes(x = x, y = y, label = label), colour = ink$primary, size = 2.7, lineheight = 0.95,
-            family = report_font) +
-  scale_fill_manual(values = c(`TRUE` = ramp_blue[1], `FALSE` = ink$surface), guide = "none") +
-  scale_colour_manual(values = c(`TRUE` = ramp_blue[4], `FALSE` = ink$axis), guide = "none") +
-  annotate("text", x = 0.2, y = -0.3, hjust = 0, size = 2.5, colour = ink$secondary, family = report_font,
-           label = "Blue: new steps. Crews may override any step when they see COTS or fresh feeding; record each dive's evidence, rank and any override.") +
-  coord_cartesian(xlim = c(0.1, 11.5), ylim = c(-0.5, 9.7), expand = FALSE) +
-  theme_void() +
-  theme(plot.background = element_rect(fill = ink$surface, colour = NA))
-save_figure(fig23, cfg, "fig23_workflow_decision.png", width = 7.5, height = 4.6)
+# --- fig23: proposed on-water workflow for a reef visit (35-36) -------------------
+# Drawn in R/workflow_figure.R as a staged IPM-style decision tree.
+build_workflow_figure(cfg)
 
 # --- fig33: tow zone and dive rule trade-offs, within-reef vs density-aware v1, v2 (36) --
 if (file.exists(file.path(tables_dir, "protocol_density_tradeoff.csv"))) {
@@ -1321,5 +1297,6 @@ if (file.exists(file.path(tables_dir, "larval_concentration_scope.csv"))) build_
 if (file.exists(file.path(tables_dir, "cull_high_density_fixed.csv"))) build_high_density_figures(cfg)
 if (file.exists(file.path(tables_dir, "manta_aggregation_cv_summary.csv"))) build_report_highlight_figures(cfg)
 build_manuscript_map_figure(cfg)
+build_metapop_concept_figure(cfg)
 manifest <- tibble::tibble(file = list.files(cfg$dirs$figures, pattern = "^fig.*\\.png$"))
 write_table(manifest, cfg, "figure_manifest.csv")

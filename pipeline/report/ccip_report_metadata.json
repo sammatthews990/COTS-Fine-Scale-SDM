@@ -1,9 +1,14 @@
 {
-  "affiliations": ["[TO CONFIRM: author affiliations]"],
-  "contact_name": "[TO CONFIRM: contact name]",
-  "contact_organisation": "[TO CONFIRM: organisation]",
-  "contact_email": "[TO CONFIRM: contact email]",
-  "back_contact": "[TO CONFIRM: key contact name, title and email]",
-  "citation_authors": "[TO CONFIRM: authors]",
+  "affiliations": [
+    "Australian Institute of Marine Science, Townsville, Queensland, Australia",
+    "James Cook University, Townsville, Queensland, Australia",
+    "Queensland University of Technology, Brisbane, Queensland, Australia",
+    "Great Barrier Reef Marine Park Authority, Townsville, Queensland, Australia"
+  ],
+  "contact_name": "Samuel Matthews",
+  "contact_organisation": "Australian Institute of Marine Science (AIMS)",
+  "contact_email": "s.matthews@aims.gov.au",
+  "back_contact": "Samuel Matthews, Australian Institute of Marine Science, s.matthews@aims.gov.au [TO CONFIRM: position title]",
+  "citation_authors": "Matthews SA, Choukroun S, Stewart O, Bode M, Iwanaga T, Ryan I",
   "copyright_owner": "[TO CONFIRM: copyright owner]"
 }

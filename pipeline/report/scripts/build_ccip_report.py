@@ -36,6 +36,9 @@ def set_slot(e,t):
     if not ts:raise ValueError('Slot has no text')
     set_text_node(ts[0],t)
     for n in ts[1:]:set_text_node(n,'')
+    # The template highlights its placeholders; a filled slot drops the highlight.
+    if '[TO CONFIRM' not in t:
+        for h in nodes(e,'w:highlight'):remove(h)
 def remove(e):
     if e.parentNode is not None:e.parentNode.removeChild(e)
 def el(doc,tag,attrs=None):
@@ -421,11 +424,11 @@ def build(template:Path,content:Path,output:Path,audit:Path,metadata:Path|None=N
     fig_heading=heading_from(49)
     set_style(fig_heading,style_of(fig_heading)).appendChild(el(doc,'w:pageBreakBefore'))
     body.appendChild(fig_heading)
-    body.appendChild(toc_field(51,'TOC \\h \\z \\c "Figure"'))
+    body.appendChild(toc_field(51,'TOC \\h \\z \\b MainBody \\c "Figure"'))
     table_heading=heading_from(55)
     set_style(table_heading,style_of(table_heading)).appendChild(el(doc,'w:pageBreakBefore'))
     body.appendChild(table_heading)
-    body.appendChild(toc_field(57,'TOC \\h \\z \\c "Table"'))
+    body.appendChild(toc_field(57,'TOC \\h \\z \\b MainBody \\c "Table"'))
     body.appendChild(clone_into(doc,source_nodes[59]))
     body.appendChild(heading_from(60))
     acronyms=[('COTS','Crown-of-thorns starfish'),('CCIP','COTS Control Innovation Program'),('CPUE','Catch per unit effort'),
@@ -441,6 +444,11 @@ def build(template:Path,content:Path,output:Path,audit:Path,metadata:Path|None=N
         at.appendChild(r)
     body.appendChild(at);body.appendChild(clone_into(doc,source_nodes[64]))
 
+    # The List of Figures and List of Tables cover the main report only: their
+    # TOC fields read captions inside the MainBody bookmark, which closes where
+    # the appendices begin. Numbering stays continuous into the appendices.
+    main_mark={'w:id':'999990'}
+    body.appendChild(el(doc,'w:bookmarkStart',{**main_mark,'w:name':'MainBody'}))
     in_appendix=False;wide_tables=0;equation_count=0
     for e in content_nodes:
         if e.tagName=='w:p' and nodes(e,'m:oMathPara'):
@@ -474,7 +482,22 @@ def build(template:Path,content:Path,output:Path,audit:Path,metadata:Path|None=N
             # Avoid a redundant manual page break immediately before the
             # template's own section break.
             while children(body) and children(body)[-1].tagName=='w:p' and nodes(children(body)[-1],'w:br') and not text(children(body)[-1]).strip():remove(children(body)[-1])
+            body.appendChild(el(doc,'w:bookmarkEnd',main_mark))
             body.appendChild(section_paragraph(doc,main_section));in_appendix=True
+        if e.tagName=='w:tbl' and not in_appendix:
+            # Main-body tables carry the template's full grid (Table Grid2),
+            # as the author set in review 17.
+            tp=first(e,'w:tblPr')
+            if tp is not None and first(tp,'w:tblStyle') is None:
+                tp.insertBefore(el(doc,'w:tblStyle',{'w:val':'TableGrid2'}),tp.firstChild)
+            # Main-body pages are portrait, so even a six-column table must fit
+            # the portrait text width rather than the landscape one.
+            tw=first(tp,'w:tblW') if tp is not None else None
+            grid=first(e,'w:tblGrid')
+            if tw is not None and grid is not None and int(tw.getAttribute('w:w') or 0)>9064:
+                cols_w=[int(x.getAttribute('w:w')) for x in children(grid,'w:gridCol')]
+                for x,w in zip(children(grid,'w:gridCol'),cols_w):x.setAttribute('w:w',str(round(w*9064/sum(cols_w))))
+                tw.setAttribute('w:w','9064')
         wide=e.tagName=='w:tbl' and max(len(children(r,'w:tc')) for r in children(e,'w:tr'))>=6
         if wide and in_appendix:
             # The closing sectPr describes the section before it. Thus portrait

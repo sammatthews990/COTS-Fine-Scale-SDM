@@ -144,8 +144,18 @@ inspect page images, check section lengths/display counts and the immutable
 template hash. Create the next numbered review and both clean baselines only
 after the final main document passes checks. Preserve annotated review inputs:
 review 09 is the preserved feedback source; review 11 adds the subsequent ranking
-experiment while review 10 is retained. Review 15 (20 November 2026, after the voice and figure-style pass) is the
-current copy for feedback; review 14 was never annotated; earlier reviews are retained. Do not
+experiment while review 10 is retained. Review 15 holds the author's comments on pages 1–5 (integrated 25 November;
+see `reviews/technical_report_review_15_response.md`). Review 16 holds the author's
+Summary, Context and Methods comments (integrated 25 November; see
+`reviews/technical_report_review_16_response.md`). Review 17 holds the author's
+Methods and Results comments (integrated 26 November; see
+`reviews/technical_report_review_17_response.md`). Review 18 (Discussion density, integrated 26 November; see
+`reviews/technical_report_review_18_response.md`) is done; review 19 is the current copy
+for feedback. Main-body tables are exported with the template's Table Grid2 borders and
+fitted to the portrait width (author request, review 17); the author allowed a fifth
+Results display in review 18 (the checker now accepts 2–5). The Methods heading "Engagement with Rights-holders and Management
+Stakeholders" is fixed by the template and asserted by the checker; keep it even if a
+review renames it. Review 14 was never annotated; earlier reviews are retained. Do not
 use `-RefreshReview09` to overwrite the annotated input.
 
 The packaged `render_docx.py` cannot run in this Windows environment because

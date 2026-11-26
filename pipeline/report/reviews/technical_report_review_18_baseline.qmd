@@ -1,0 +1,1352 @@
+---
+title: "CCIP-BR-13: Integrative fine-scale habitat suitability and metapopulation modelling for targeted Crown-of-Thorns Starfish management"
+subtitle: "Where and when to search for COTS on a reef · Technical report to the Great Barrier Reef Foundation, COTS Control Innovation Program, project CCIP-BR-13 · AIMS, JCU, QUT, GBRMPA"
+author:
+  - "Samuel A. Matthews¹, Severine Choukroun², Owen Stewart³, Michael Bode³, Takuya Iwanaga¹, Isobel Ryan⁴"
+date: today
+date-format: "MMMM YYYY"
+msw-type: technical-report
+msw-section-limits:
+  "Project Summary": 360
+  "Conclusions & Next Steps": 300
+bibliography: references.bib
+csl: csl/coral-reefs-ccip.csl
+lang: en-AU
+crossref:
+  fig-prefix: Figure
+  tbl-prefix: Table
+execute:
+  echo: false
+  warning: false
+  message: false
+format:
+  docx:
+    reference-doc: "CCIP Final Report Template - Bridging Projects.docx"
+    toc: false
+    number-sections: false
+    fig-dpi: 300
+---
+
+<!-- Public-facing technical report (CCIP final-report Output A; Work Plan
+outputs E and H). Readers: COTS Control Program managers, vessel operators and
+scientists. Australian English. Every result is read from ../outputs/tables
+(or ../outputs/site_ranking) by inline R; see ../README.md for the script
+behind each table. Personnel listed in the Work Plan: S. Matthews, T. Iwanaga,
+M. Bode, O. Stewart, S. Choukroun, B. Beesley, J. Wilmes / I. Ryan; authorship
+is for the team to decide. -->
+
+```{r}
+#| label: setup
+#| include: false
+source("msw_helpers.R")
+msw_tables_dir <- Sys.getenv("MSW_TABLES", "../outputs/tables")
+sr_dir <- "../outputs/site_ranking"
+
+# Formatting ---------------------------------------------------------------
+p0 <- function(x) pct(x, 0)
+p1 <- function(x) pct(x, 1)
+a2 <- function(x) num(x, 2)
+a3 <- function(x) num(x, 3)
+pp <- function(x) formatC(100 * abs(as.numeric(x)), format = "f", digits = 0)
+gpp <- function(lo, hi) sprintf("%+.0f to %+.0f", 100 * as.numeric(lo), 100 * as.numeric(hi))
+ci3 <- function(est, lo, hi) sprintf("%s (95%% CI %s–%s)", a3(est), a3(lo), a3(hi))
+cip <- function(est, lo, hi, d = 1) sprintf("%s (95%% CI %s–%s)", pct(est, d), pct(lo, d), pct(hi, d))
+
+# Tables -------------------------------------------------------------------
+mic  <- tab("manta_independent_check.csv")
+fv   <- tab("forward_validation_summary.csv")
+la   <- tab("layer_agreement_summary.csv")
+lcov <- tab("layer_coverage_on_reef_polygons.csv")
+rsrc <- tab("search_planning_reef_sources.csv")
+fbc  <- tab("legacy_rg_clean_fallback_calibration.csv")
+hcov <- tab("hmsc_joint_coverage.csv")
+hist <- tab("history_combined_layer_summary.csv")
+ops  <- tab("operations_headline.csv")
+agg  <- tab("manta_aggregation_cv_summary.csv")
+mxc  <- tab("manta_aggregation_cv_max_cut.csv")
+mrt  <- tab("manta_response_tow_check.csv")
+mra  <- tab("manta_response_aggregations.csv")
+mrc  <- tab("manta_response_cull_auc.csv")
+mri  <- tab("manta_response_importance.csv")
+csc  <- tab("cull_site_selection_cv.csv")
+csa  <- tab("cull_site_selection_auc.csv")
+ccov <- tab("cull_site_selection_coverage.csv")
+crscope <- tab("cull_record_scope.csv")
+hdmatched <- tab("cull_high_density_matched.csv")
+hdfixed <- tab("cull_high_density_fixed.csv")
+hddiff <- tab("cull_high_density_differences.csv")
+hdcomposition <- tab("cull_high_density_composition.csv")
+hdclasses <- tab("cull_high_density_priority_classes.csv")
+opcut <- tab("operational_priority_cutoff.csv")
+opdive <- tab("operational_deferred_dive_metrics.csv")
+opbreakdown <- tab("operational_deferred_dive_breakdown.csv")
+rk_results <- tab("ranking_candidate_assessment.csv")
+rk_diff <- tab("ranking_candidate_differences.csv")
+rk_scope <- tab("ranking_candidate_scope.csv")
+rk_decisions <- tab("ranking_candidate_decisions.csv")
+rk_labels <- c(archived="Current ranking",mean_control="Current model: all-cell mean",
+ high_indicator="Prior >0.04 indicator",recent_cpue="Indicator + recent CPUE",
+ hotspot_cpue="Recent CPUE + 90th-percentile habitat",random="Random sites")
+rk <- function(metric,model="recent_cpue",rule="matched_high",target=.9,period="2019-2026",col="value")
+ pick(rk_results,metric=metric,model=model,rule=rule,target=target,period=period,col=col)
+rkci <- function(metric,model="recent_cpue",rule="matched_high",target=.9,period="2019-2026")
+ cip(rk(metric,model,rule,target,period),rk(metric,model,rule,target,period,"low"),rk(metric,model,rule,target,period,"high"),1)
+rd <- function(metric,model="recent_cpue",reference="archived",rule="matched_high",target=.9,period="2019-2026",col="value")
+ pick(rk_diff,metric=metric,model=model,reference=reference,rule=rule,target=target,period=period,col=col)
+rdci <- function(metric,model="recent_cpue",reference="archived",rule="matched_high",target=.9,period="2019-2026")
+ sprintf("%+.2f [%+.2f to %+.2f]",100*rd(metric,model,reference,rule,target,period),100*rd(metric,model,reference,rule,target,period,"low"),100*rd(metric,model,reference,rule,target,period,"high"))
+rscope <- function(metric) pick(rk_scope,metric=metric,col="value")
+opmanta <- tab("operational_tow_effort_matched.csv")
+opcover <- tab("operational_tow_effort_coverage.csv")
+oc <- function(metric, score = "combined", col = "value") pick(opcut, metric = metric, score = score, col = col)
+occi <- function(metric, score = "combined") cip(oc(metric, score), oc(metric, score, "low"), oc(metric, score, "high"), 1)
+od <- function(metric, score = "combined", col = "value") pick(opdive, metric = metric, score = score, col = col)
+odci <- function(metric, score = "combined") cip(od(metric, score), od(metric, score, "low"), od(metric, score, "high"), 1)
+om <- function(metric, target, score = "combined", col = "value") pick(opmanta, metric = metric, cutoff = target, score = score, col = col)
+hd <- function(metric, target = 0.95, score = "combined", design = "forward", period = "2019-2026", col = "value") {
+  pick(hdmatched, metric = metric, target = target, score = score, design = design, period = period, col = col)
+}
+hdci <- function(metric, target = 0.95, score = "combined", design = "forward", period = "2019-2026") {
+  cip(hd(metric, target, score, design, period), hd(metric, target, score, design, period, "low"), hd(metric, target, score, design, period, "high"), 1)
+}
+# Proposed on-water workflow (scripts 34-35). Variants are named in 35.
+pst  <- tab("protocol_statistics.csv")
+ptot <- tab("protocol_totals.csv")
+pvoy <- tab("protocol_voyage_summary.csv")
+ptp  <- tab("protocol_trial_power.csv")
+pfr  <- tab("protocol_filter_rates.csv")
+pzm  <- tab("protocol_zone_missed_reefs.csv")
+mzabs <- tab("manta_zone_absolute.csv")
+mzpool <- tab("manta_zone_dive_pools.csv")
+WF  <- "dive rule A-C"
+WFZ <- "protocol: zone with season memory + dive rule A-C"
+SR  <- "site rule A-D, all dives"
+RWF <- "random dive rule A-C"
+ps <- function(variant, metric, col = "value", scope = "all visits") pick(pst, scope = scope, variant = variant, metric = metric, col = col)
+psci <- function(variant, metric, scope = "all visits") cip(ps(variant, metric, scope = scope), ps(variant, metric, "low", scope), ps(variant, metric, "high", scope), 1)
+psret <- function(variant, metric) cip(1 - ps(variant, metric), 1 - ps(variant, metric, "high"), 1 - ps(variant, metric, "low"), 1)
+psr <- function(variant, metric, d = 1) sprintf("%s (%s–%s)", num(ps(variant, metric), d), num(ps(variant, metric, "low"), d), num(ps(variant, metric, "high"), d))
+pv <- function(quantity, col = "median") pick(pvoy, quantity = quantity, col = col)
+pt <- function(voyages, col = "p_lower_high_rate") pick(ptp, voyages = voyages, col = col)
+pfrv <- function(skipped, col, filter = "A-C") pick(pfr, filter = filter, skipped = skipped, col = col)
+mza <- function(visit_type, strategy, col, ranking = "combined", tows_from = "fresh") {
+  d <- mzabs[mzabs$visit_type == visit_type & mzabs$strategy == strategy & mzabs$ranking == ranking & mzabs$tows_from == tows_from &
+               (is.na(mzabs$cut) | abs(mzabs$cut - mzc) < 1e-9), ]
+  stopifnot(nrow(d) == 1)
+  d[[col]]
+}
+mzp <- function(pool, metric) pick(mzpool, pool = pool, metric = metric, col = "value")
+mzc <- 0.66   # follow-up tow zone: A-C (top 66%)
+# Density-aware classes (20b) and the workflow under them (36), 2020-2026.
+sdf  <- tab("site_ranking_density_forward.csv")
+sdc  <- tab("site_ranking_density_2027_classes.csv")
+sdco <- tab("site_ranking_density_2027_coefficients.csv")
+pdst <- tab("protocol_density_statistics.csv")
+pdtot <- tab("protocol_density_totals.csv")
+pdzs <- tab("protocol_density_zone_size.csv")
+sdv <- function(classes, metric, col = "value") pick(sdf, classes = classes, metric = metric, col = col)
+sdci <- function(classes, metric) cip(sdv(classes, metric), sdv(classes, metric, "low"), sdv(classes, metric, "high"), 1)
+sdk <- function(term) pick(sdco, term = term, col = "estimate")
+sdcl <- function(source, col) pick(sdc, density_source = source, col = col)
+pdv <- function(layer, zone, rule, metric, evidence = if (rule == "none") "none" else "discretion at A-x", col = "value",
+                scope = "all visits", memory = zone != "none") {
+  d <- pdst[which(pdst$scope == scope & !pdst$random & pdst$layer == layer & pdst$zone == zone & pdst$rule == rule &
+                    pdst$evidence == evidence & pdst$memory == memory & pdst$metric == metric), ]
+  stopifnot(nrow(d) == 1)
+  d[[col]]
+}
+pdci <- function(layer, zone, rule, metric, ...) cip(pdv(layer, zone, rule, metric, ...), pdv(layer, zone, rule, metric, col = "low", ...),
+                                                 pdv(layer, zone, rule, metric, col = "high", ...), 1)
+pdzv <- function(layer, zone, col = "median") pick(pdzs, layer = layer, zone = zone, col = col)
+pddf <- tab("protocol_density_differences.csv")
+pdd <- function(zone, rule, metric, evidence = if (rule == "none") "none" else "discretion at A-x", memory = zone != "none") {
+  d <- pddf[which(pddf$scope == "all visits" & pddf$layer == "density-aware" & pddf$reference == "within-reef" & pddf$zone == zone & pddf$rule == rule & pddf$evidence == evidence &
+                    pddf$memory == memory & pddf$metric == metric), ]
+  stopifnot(nrow(d) == 1)
+  sprintf("%+.1f points; 95%% CI %+.1f to %+.1f", 100 * d$difference, 100 * d$low, 100 * d$high)
+}
+# Density-aware v2 (36 layers at matched effort, 37 product).
+V2 <- "density-aware v2, untowed neutral"   # the v2 product (37)
+V2A <- "density-aware v2"                     # v2 before the untowed rule
+prand <- pick(pdst, scope = "all visits", variant = "random: within-reef / zone none / no memory / rule A-C / discretion at A-x",
+              metric = "ghost_per_high_missed", col = "value")   # random skipping among dives without strong evidence
+dlm  <- tab("density_layers_matched.csv")
+dlmv <- function(layer, metric, col = "value") pick(dlm, layer = layer, metric = metric, col = col)
+dlmci <- function(layer, metric, d = 1) cip(dlmv(layer, metric), dlmv(layer, metric, "low"), dlmv(layer, metric, "high"), d)
+dlmd <- function(layer, metric, ref = "density_aware", scale = 100, unit = " points") {
+  sprintf("%+.1f%s; 95%% CI %+.1f to %+.1f", scale * dlmv(layer, metric, paste0("minus_", ref)), unit,
+          scale * dlmv(layer, metric, paste0("minus_", ref, "_low")), scale * dlmv(layer, metric, paste0("minus_", ref, "_high")))
+}
+dacc <- tab("density_methods_accuracy.csv")
+dav  <- function(method, col = "auc_pooled") pick(dacc, method = method, col = col)
+dsmc <- tab("density_site_model_coefficients.csv")
+dsk  <- function(model, term) pick(dsmc, model = model, fitted_before = max(dsmc$fitted_before), term = term, col = "estimate")
+v2c  <- tab("site_ranking_density_v2_2027_classes.csv")
+v2cl <- function(source, col) pick(v2c, density_source = source, col = col)
+v2r  <- read.csv(file.path(sr_dir, "cots_cull_site_priority_density_v2_2027_reefs.csv"), stringsAsFactors = FALSE)
+v2rv <- function(label, col) v2r[[col]][grepl(paste0("(", label, ")"), v2r$reef_name, fixed = TRUE)]
+dlt  <- tab("density_layers_2027_totals.csv")
+dltv <- function(layer, source, col = "share_a_to_c") pick(dlt, layer = layer, source = source, col = col)
+dcl  <- tab("density_clean_tow_sites.csv")
+dclv <- function(col, layer = V2) pick(dcl, layer = layer, col = col)
+bfl  <- tab("density_batt_flank_2027.csv")
+bflv <- function(layer, col, flank) pick(bfl, layer = layer, flank = flank, col = col)
+# The chosen protocol (36): v2 classes, A-C tow zone, A-D dive rule.
+pcv <- tab("protocol_chosen_voyage_summary.csv")
+pct_trial <- tab("protocol_chosen_trial_power.csv")
+pcr <- tab("protocol_chosen_filter_rates.csv")
+pcz <- tab("protocol_chosen_zone_baseline.csv")
+RCH <- paste("random:", V2, "/ zone none / no memory / rule A-D / discretion at A-x")
+crv <- function(metric, col = "value") pdv(V2, "none", "A-D", metric, col = col)
+cri <- function(metric) cip(crv(metric), crv(metric, "low"), crv(metric, "high"), 1)
+crd <- function(metric, col = "value") pick(pdst, scope = "all visits", variant = RCH, metric = metric, col = col)
+ccv <- function(metric, col = "value") pdv(V2, "A-C", "A-D", metric, col = col)
+cci <- function(metric) cip(ccv(metric), ccv(metric, "low"), ccv(metric, "high"), 1)
+czb <- function(metric, col = "value") pick(pcz, metric = metric, col = col)
+cri2 <- function(metric) cip(czb(metric), czb(metric, "low"), czb(metric, "high"), 1)
+cpv <- function(quantity, col = "median") pick(pcv, quantity = quantity, col = col)
+cpt <- function(voyages, col = "p_lower_high_rate") pick(pct_trial, voyages = voyages, col = col)
+cpf <- function(skipped, col) pick(pcr, skipped = skipped, col = col)
+und  <- tab("cull_site_selection_undived.csv")
+ema  <- tab("cull_site_evidence_matched.csv")
+eauc <- tab("cull_site_evidence_auc.csv")
+ecov <- tab("cull_site_evidence_coverage.csv")
+srf  <- tab("site_ranking_forward.csv")
+src  <- tab("site_ranking_2027_coefficients.csv")
+eng  <- tab("exploration_new_ground_check.csv")
+spx  <- tab("search_plan_examples.csv")
+rsc  <- tab("reefscan_presence_check.csv")
+hsum <- rbind(tab("hmsc_enhanced_joint_production_summary.csv"),
+              tab("hmsc_clean_joint_production_summary.csv"),
+              tab("hmsc_clean_native_joint_production_summary.csv"))
+
+pri  <- read.csv(file.path(sr_dir, "cots_cull_site_priority_2027.csv"), stringsAsFactors = FALSE)
+cls  <- read.csv(file.path(sr_dir, "cots_cull_site_priority_classes_2027.csv"), stringsAsFactors = FALSE)
+expz <- read.csv(file.path(sr_dir, "cots_exploration_zones_2027.csv"), stringsAsFactors = FALSE)
+expz_band <- function(floor, f) f(expz[abs(expz$habitat_floor - floor) < 1e-9, , drop = FALSE])
+
+# Accessors ----------------------------------------------------------------
+AGG_ALL <- "aggregations (>= 2 strong tows), all years"
+AGG_RECENT <- "aggregations (>= 2 strong tows), 2022-2026"
+ag <- function(keep, col, subset = AGG_ALL) pick(agg, subset = subset, keep = keep, col = col)
+mx <- function(col, subset = AGG_ALL) pick(mxc, subset = subset, col = col)
+ev <- function(metric, retention, score, period = "2018-2026", col = "value")
+  pick(ema, metric = metric, retention = retention, score = score, window = "last_season", period = period, col = col)
+cs <- function(metric, sites, score = "leave-reef-out", period = "2018-2026", col = "value")
+  pick(csc, period = period, score = score, sites_searched = sites, metric = metric, col = col)
+fw <- function(score, metric, period = "2019-2026", col = "value")
+  pick(srf, period = period, score = score, metric = metric, col = col)
+fvh <- function(method, subset = "all", col = "within_reef_year_auc") pick(fv, subset = subset, method = method, col = col)
+mi <- function(layer, col) pick(mic, layer = layer, col = col)
+mt <- function(model, metric, col = "value") pick(mrt, model = model, metric = metric, col = col)
+op <- function(metric, col, period = "2022-2026") pick(ops, period = period, metric = metric, col = col)
+
+# Frequently used values -----------------------------------------------------
+n_sites   <- ccov$designated_sites
+n_reefs   <- ccov$reefs_with_sites
+n_ever    <- ccov$sites_ever_dived
+cs_dives  <- cs("problematic_dives_kept", 0.7, col = "dives")
+cs_ry     <- cs("problematic_dives_kept", 0.7, col = "reef_years")
+cs_prob   <- cs("problematic_dives_kept", 0.7, col = "problematic_dives")
+cs_low    <- cs("problematic_dives_kept", 0.7, col = "low_dives")
+cs_ghost  <- cs("problematic_dives_kept", 0.7, col = "ghost_dives")
+ev_dives  <- pick(eauc, window = "last_season", subset = "all", score = "habitat", col = "dives")
+ev_ry     <- pick(eauc, window = "last_season", subset = "all", score = "habitat", col = "reef_years")
+nv_dives  <- pick(eauc, window = "last_season", subset = "reef not visited", score = "habitat", col = "dives")
+nv_ry     <- pick(eauc, window = "last_season", subset = "reef not visited", score = "habitat", col = "reef_years")
+n_noev    <- sum(pri$evidence == "no recent evidence on this reef (habitat only)")
+n_probev  <- sum(pri$evidence == "problematic dive here last season")
+n_mantaev <- sum(pri$evidence == "strong manta evidence nearby last season")
+n_quiet   <- sum(pri$evidence == "dived last season, nothing problematic")
+fw_dives  <- fw("cull_all", "sites_searched_at_90", col = "dives")
+fw_ry     <- fw("cull_all", "sites_searched_at_90", col = "reef_years")
+year_gain_manta <- pick(mri, model = "manta", Feature = "Year", col = "gain")
+clsv <- function(p, col) cls[[col]][cls$priority == p]
+
+# Metacommunity reporting snapshot: script 22, archived runs through 15 Oct 2026.
+mcs <- tab("metacommunity_candidates.csv")
+mcp <- tab("metacommunity_peak_summary.csv")
+mco <- tab("metacommunity_observed_maxima.csv")
+mcu <- tab("metacommunity_culling_diagnostic.csv")
+mcr <- tab("metacommunity_culling_removal_summary.csv")
+mcl <- tab("metacommunity_2026_diagnostics.csv")
+mcnew <- tab("calibration_20261021_summary.csv")
+car <- tab("calibration_20261021_additional_reefs.csv")
+cpk <- tab("calibration_20261021_peaks.csv")
+carv <- function(reef, col) pick(car, reef = reef, col = col)
+cpkv <- function(reef, wave, col) pick(cpk, reef = reef, wave = wave, col = col)
+lc_scope <- tab("larval_concentration_scope.csv")
+mcn <- function(metric) pick(mcnew, metric = metric, col = "value")
+mc <- function(candidate, col) pick(mcs, candidate = candidate, col = col)
+mcv <- function(dataset, coral = "earlier thermal settings", index = "chloff", col = "loss_v3")
+  pick(mcl, dataset = dataset, coral = coral, larval_index = index, col = col)
+mcrv <- function(scope, col, period = "2021-24")
+  pick(mcr, treatment = "wc_b150_q20_eb_lin_obs015_s1_cull210_cv2_pnd", scope = scope, period = period, col = col)
+mcuv <- function(arm, col) pick(mcu, arm = arm, col = col)
+msd <- function(m, s, digits = 2) sprintf("%s ± %s", num(m, digits), num(s, digits))
+```
+
+**Suggested citation:** [TO CONFIRM: Matthews SA, Choukroun S, Stewart O, Bode M, Iwanaga T, Ryan I (2026). CCIP-BR-13: Integrative fine-scale habitat suitability and metapopulation modelling for targeted Crown-of-Thorns Starfish management. Report to the Great Barrier Reef Foundation, COTS Control Innovation Program (CCIP-BR-13). Australian Institute of Marine Science, Townsville. DOI/URL.]
+
+{{< pagebreak >}}
+
+# Project Summary {.unnumbered}
+
+Searching for crown-of-thorns starfish (COTS) takes a large share of COTS Control Program effort, with about 10% on surveillance and 20–40% on low-density culling [@gbrmpadashboard2026, D. Williamson pers. comm.]. Project CCIP-BR-13 combined fine-scale habitat maps, operational observations, connectivity modelling and a prototype metapopulation model to guide surveillance and culling within reefs and compare control across connected reefs.
+
+On their own, the 30 m GBR habitat maps rank sites only weakly by their chance of holding COTS above 0.04 per minute of bottom time (CPUE). Adding recent cull and manta observations substantially improved cull-site selection. Deferring the lowest-ranked 20% of sites retained `r p1(oc("high_retained"))` of dives above 0.04, against `r p1(oc("high_retained", "random"))` at random.
+
+Building on GBRMPA's own feeding-scar analysis, the habitat ranking became an on-water workflow that still dives open sites and strong manta evidence but ranks the rest. We developed density-aware classes reflecting each reef's recent density and each site's record. Tested on 2020–2026 records, diving on weak evidence (e.g. a single feeding scar) only at sites in classes A–D avoided `r p1(crv("ghost_avoided_pct"))` of empty ("ghost") dives and missed only `r p1(crv("high_missed_pct"))` of dives above 0.04, or `r num(crv("ghost_per_high_missed"), 1)` ghost dives avoided per miss; skipping the same number at random avoided `r p1(crd("ghost_avoided_pct"))` and missed `r p1(crd("high_missed_pct"))`. Moreover, towing only the A–C zone on follow-up visits to actively culled reefs saved `r p0(ccv("tows_saved_follow_up_pct"))` of that towing.
+
+On-water products include a 2027 ranking of `r int(n_sites)` cull sites and reproducible workflows. They show promise for a substantial reduction in time on empty dives, more search of overlooked habitat and better protection of coral. Frequent GBRMPA meetings guided development, engagement with Traditional Owner-led contractors (Malu Ventures) supported a future Far Northern-specific model, and vessel trials run 6–10 January 2027.
+
+A COTS–coral metapopulation model, built in AIMS's ADRIA framework [@iwanaga2023adria], reproduces the timing of past irruption waves in the initiation box and runs exploratory scenarios to 2050. Outside its calibration, it recreated past peak timing on two reefs and, with a wave-exposure term designed from their records, kept three almost COTS-free outer-shelf reefs free of false irruptions. Together, these advances provide a basis for important tactical and strategic decisions.
+
+{{< pagebreak >}}
+
+# Context & Objectives
+
+## The management problem
+
+Irruptions of crown-of-thorns starfish (*Acanthaster* cf. *solaris*; COTS) are a major cause of coral loss on the Great Barrier Reef [@death2012decline; @pratchett2017thirty]. The COTS Control Program suppresses irruptions by manual culling, which can protect coral at reef and regional scales when sufficient effort is deployed in a timely manner [@matthews2024protecting]. A substantial portion of operational effort goes into searching for COTS, with about 10% spent on surveillance and 20–40% on low-density culling [@gbrmpadashboard2026, D. Williamson pers. comm.], so there are clear opportunities to improve where surveillance and culling are directed.
+
+In the COTS Control Program, manta tow surveillance records COTS and feeding scars, assesses each reef's irruption status and directs subsequent culling dives under the Integrated Pest Management (IPM) framework [@fletcher2020strategy]. The IPM sets the on-water decision process, supported by the COTS Control Decision Support System, which brings together observations and modelled data [@matthews2026intelligence]. The IPM was designed on a precautionary principle, to ensure that very few aggregations are left unmanaged on a reef. However, this has led to more low-density cull dives between irruptions. In cull records from 2018 to 2026, `r p0(cs_ghost / cs_dives)` of dives found no COTS (ghost dives), and a further `r p0(cs_low / cs_dives)` found COTS at CPUE below 0.02 COTS per minute of bottom time (low-density dives).
+
+The IPM strategy links decisions at individual sites, reefs and voyages with regional strategic priorities set by the annual prioritisation process [@matthews2026blueprint]. In practice, tow routes mostly follow established cull sites around reef perimeters, which were initially delineated from satellite maps in 2018, leaving gaps in habitats such as lagoon bommie fields, shallow crests and isolated patches. Manta tows can therefore repeatedly trigger dives where few COTS are found while overlooking other potential habitat. Reducing repeated searches and culling in low-priority areas could free effort to search these gaps, improving both efficiency and the chance of finding previously undetected aggregations.
+<!-- Current practice and the history of site delineation supplied by the author
+in review 02; Fletcher supports the operational framework, not these specific
+observations about the current site register. -->
+
+On-water crews and GBRMPA analysts already hold useful information about recent culling, empty sites, and COTS or scars seen on manta tows, which could be used more fully alongside updated habitat maps to direct scarce and costly surveillance and culling more efficiently. This knowledge is strongest on frequently visited reefs and within the established search footprint, which builds a selection bias over time. Fine-scale habitat maps can cover places with little recent evidence, including potential search areas outside that footprint, but cannot resolve whether COTS are present at a given time. This project combines these sources to prioritise familiar sites and identify additional places to search.
+
+## Earlier models this project builds on
+
+Most COTS modelling has treated whole reefs as its spatial units, either across the GBR for regional planning [@condie2021interventions; @bozec2022cumulative; @matthews2020cotsmod] or on individual reefs to inform culling thresholds [@morello2014model; @plaganyi2020targets]. Reef-level species distribution models (SDMs), which relate species observations to environmental conditions, showed that larval connectivity and water quality explain much of the spatial distribution of irruptions [@matthews2020connectivity], and a hybrid machine-learning model estimates each reef's annual irruption probability [@stewart2026hybrid]. Population and ecosystem models help compare regional control strategies and ecological targets, but their whole-reef units do not identify where within a reef to search or cull.
+
+Recent developments support finer spatial resolution. Coral species distribution models use satellite-derived multiscale terrain and benthic variables from Allen Coral Atlas mapping [@lyons2020mapping; @li2021bathymetry], including its habitat maps of the GBR [@roelfsema2021shallow], to map habitat for key coral taxa at tens of metres [@guillaume2025coral]. Their predictions and environmental predictors are inputs to the habitat modelling here, which maps COTS suitability at 30 m and combines it with recent program observations.
+
+In parallel, advances in hydrodynamic and COTS larval-connectivity modelling provide a route to representing connections among smaller areas of reef. AIMS's high-throughput ADRIA ecosystem modelling framework and the CoralBlox coral model [@iwanaga2023adria; @adriamethods2026; @dealmeida2026coralblox] provide the flexibility and throughput to model key areas of the GBR, such as the northern irruption initiation box, at fine scales. Together, these advances make it possible to adapt COTSMod, a spatially explicit model of COTS populations and coral recovery [@matthews2020cotsmod], to site-level dynamics across a reef cluster ([the population-model Methods](#sec-metacommunity)).
+
+## The decisions this work supports
+
+This project explicitly addresses two operational uses: reducing manta tow effort while retaining detection of COTS aggregations, and searching fewer cull sites while avoiding empty or low-density dives. For management, the priority is to retain dives above 0.04 COTS per minute of bottom time, the threshold below which coral growth can outpace COTS consumption on reefs with less than 40% coral cover [@plaganyi2020targets]. Missing some dives between 0.02 and 0.04 is acceptable under the IPM's precautionary approach, and these misses should not carry the same penalty as missed dives above the ecological threshold of 0.04.
+
+The key test of any reduction in dive effort is whether a ranking finds more aggregations, or retains more high-density dives, than random selection at the same reduction in effort. These comparisons separate the value of the ranking from the saving achieved simply by searching less, and give a tangible trade-off between time saved and aggregations missed. By identifying additional areas for surveillance, we can also ask whether effort released from low-density areas can improve coverage and detection elsewhere.
+
+On the water, crews dive open sites first, those whose last dive exceeded 0.04, and then sites near manta tows that show COTS or feeding scars. GBRMPA has conducted its own ad hoc analysis of these triggers, prompted by concern over the growing number of low-density cull dives and "ghost culls" (dives in which no COTS are culled). This analysis led the program to count feeding scars rather than record them only as absent, present or common. It suggested that requiring at least two scars before diving could reduce empty dives, but might miss too many sites above the 0.04 threshold. That open question motivated this project's use of habitat models and recent field data to improve the efficiency of culling and surveillance within the program ([the workflow Discussion](#sec-workflow)).
+<!-- GBRMPA ad hoc scar analysis: described by the author in chat, 2 November
+2026. No document to cite; framed as a response to managers' needs and their
+own knowledge. -->
+
+A set of more strategic decisions sits above these operational concerns. How should control be allocated among connected reefs in a cluster or region? When should culling stop on a heavily affected reef if its remaining coral cannot be protected? When should control continue on a reef whose COTS population cannot be brought below a local target, because reducing its larval export could protect other reefs? A site-level model of population growth, collapse, dispersal and coral consumption is needed to compare those consequences. Evidence of renewed population growth at Lizard Island [@chandler2023densities; @uthicke2024edna] also motivates assessing whether the emerging fifth primary irruption wave can be suppressed, and what resources this would require.
+
+## Project priorities and objectives
+
+The bridging project adapts coral-habitat and hydrodynamic capabilities developed through linked NESP and RRAP work to COTS decisions, rather than duplicating those investments. The habitat and search evaluations address tactical planning and efficiency within reefs; the Lizard Island metapopulation model prototype establishes the basis for strategic tests.
+
+The specific project objectives were to:
+
+- Develop GBR-wide predictive fine-scale habitat suitability models by connecting fine-scale COTS data to new high-resolution benthic and coral habitat data.
+- Optimise and standardise surveillance paths to improve irruption detection and operational efficiency, including a comparison against traditional perimeter-based surveillance.
+- Refine site-level management strategies for individual reefs through predicted suitable habitat and metapopulation modelling.
+
+{{< pagebreak >}}
+
+# Methods
+
+## Observations and habitat information
+
+The analyses used existing Control Program and monitoring records across the GBR, both to fit habitat models and to backtest new surveillance and culling strategies. Cull records covered 2002–2026 across `r int(crscope$matched_sites)` designated sites on `r int(crscope$matched_reefs)` reefs. Catch per unit effort (CPUE) was the number of COTS culled per minute of bottom time. Ghost dives found no COTS, and low-density dives found some at CPUE below 0.02. Habitat models were fitted to dives with CPUE ≥0.02, to identify habitat that supports moderate to high COTS densities. Their probabilities were converted to site rankings within each reef, which were then assessed against dives above 0.04 CPUE, the program's ecological target [@plaganyi2020targets]. Dives from 0.02 to 0.04 inclusive formed an intermediate, "acceptably low density" group.
+
+Manta tows supplied COTS sightings and feeding-scar observations for model fitting and validation. Strong evidence of COTS was defined as a direct sighting, at least two counted scars, or scars recorded as common (more than 10) in legacy surveys. Scooter-assisted large area diver-based (SALAD) surveys and Reef Health and Impact Surveys contributed to the habitat model [@pratchett2022salad; @beeden2014rhis], and ReefScan sightings supplied a separate presence-only check of predictions [@bainbridge2024reefscan]. Habitat predictors described depth, seabed shape, exposure, turbidity and predicted habitat for three *Acropora* taxa at 30 m resolution [@guillaume2025coral; @gbrmpabathymetry2021; @gbrmpageomorphic2021; @roelfsema2021shallow], with depth, slope, turbidity and wave layers from the ReefGuide.jl repository [@reefguide2026] (Appendix B).
+
+The habitat layers came from gradient-boosted tree models [XGBoost; @chen2016xgboost], which predicted whether a cull dive reached CPUE ≥0.02 from the habitat predictors and survey year. One version used the full extent of the habitat maps, and a second added the ReefGuide layers where they were available. The operational layer used the second version where it existed and the first elsewhere, and ranked each 30 m cell within its reef. A version trained on manta tows ranked tow locations, and a hierarchical joint model [HMSC; @ovaskainen2017hmsc] related cull, SALAD and RHIS observations to habitat to describe habitat associations and their uncertainty. Because cull crews dive where manta tows have found COTS, a model scored on the reefs it was trained on would partly recall where crews went. Every reef was therefore scored by a model refitted without its group of reefs [grouped five-fold validation; @roberts2017cv]. Performance was measured within reef-years, where operational decisions are made: the within reef-year AUC is the chance that a location with COTS ranks above one without on the same reef in the same year (0.5 is no better than chance), and top-20% lift compares the share of COTS-positive locations in the highest-ranked fifth with the share expected at random. The cull-trained layers were also tested on independent manta tows (Appendix B).
+
+@fig-study-area shows the cull observations available for habitat modelling, the northern population-model calibration reefs and the model's sub-reef domain.
+
+![**Study areas and observations.** (**a**) Reef locations with cull records in the 2002–2026 data available for habitat modelling; symbols summarise locations by reef. (**b**) Lizard Island, Eyrie, MacGillivray and North Direction, whose LTMP monitoring series informed population-model calibration. (**c**) The COMPAS–EMS hydrodynamic model mesh across the far northern domain, with the finer mesh around Lizard Island inset. (**d**) The 2,895 sub-reef polygons on 113 reefs in the population model's domain.](../outputs/figures/fig29_report_study_area.png){#fig-study-area width="100%"}
+
+## Testing habitat and recent-evidence rankings
+
+Each designated site's score was calculated by combining its within-reef habitat rank with the preceding season's cull dives and nearby manta evidence, through a logistic regression fitted to dive outcomes (Appendix B). The score therefore encodes recent evidence and crews' decisions about where to dive, as well as habitat predictions. Sites were ordered on each reef. The top 20% formed class A, and classes B, C and D extended the selection to the top 50, 66 and 80% of sites, with the remainder in class E.
+
+These within-reef classes give every reef the same share of A sites, however many COTS it holds, so a reef with few COTS has as many A sites as a reef in active irruption. The density-aware classes that underpin the 2027 product, developed after the 5 November 2026 delivery workshop, keep each reef's order of sites but scale the number in each class with the reef's recent COTS density, so that low-density reefs have fewer A sites than denser reefs (@fig-2027). This density was estimated from the reef's dives and manta tows over the past year, each weighted by a 90-day half-life, so that older culls count for less and tow-only surveys that found nothing pull the estimate down. Reefs with no dives or tows in the past year have no direct estimate. Their density instead comes from the reef's irruption probability in the GBR-wide reef-level forecast [@stewart2026hybrid], converted to the chance that a survey would need culling and the share of problematic dives if it did. That density sets how many of the reef's sites fall in each class, and the sites are ordered by habitat rank. Class cut-offs were set so that, pooled across reefs, the classes hold the same 20, 50, 66 and 80% of sites as the within-reef classes (Appendix D).
+
+Two safeguards kept each test out of sample. Habitat ranks came from models fitted without the reef being scored, as above, and for each season from 2019 to 2026, the regression that weighs recent evidence was fitted only on earlier seasons. Uncertainty intervals resampled whole reef-years. Appendix C reports how well the ranking alone selected cull sites against random selection, and Appendix B gives the evaluation design.
+
+## Testing a proposed on-water workflow {#sec-workflow-methods}
+
+A further analysis, developed with GBRMPA after the original objectives were set, back-tested a proposed on-water workflow on recorded reef visits. It used the `r int(ptot$visits)` visits in 2019–2026 with a manta survey in the 30 days before or during culling, covering `r int(ptot$dives)` dives at designated sites and `r int(ptot$tows)` tows. Each visit was re-run as if crews had followed the workflow, and the recorded outcome of every dive showed what the workflow would have kept or skipped.
+
+The workflow keeps the dives crews already make on firm evidence. As in current practice, crews dived open sites (those whose last dive in the previous 365 days exceeded 0.04) and sites within 100 m of a strong-evidence tow. The site ranking, refreshed to each voyage's departure, decided only the remaining dives, which followed weak evidence or none: under the dive rule, these were made only at sites in the chosen classes. On follow-up visits (later visits to a reef in the same season), tows were also restricted to a zone of higher-ranked sites (classes A–C) and sites near strong tows earlier that season. The first visit of each season kept a full tow sweep.
+
+Each setting was scored by the share of ghost and low-density dives it avoided, the share of dives above 0.04 it missed and the share of follow-up tows it saved. A dive above 0.04 that the workflow skipped, or whose only guiding strong tow fell outside the zone, counted as missed. The baseline skipped the same number of dives at random among those without strong evidence, so any gain over it comes from the ranking rather than from diving less. The within-reef and density-aware classes were each back-tested over 2020–2026, using models fitted only on earlier seasons, and compared on these complementary measures of performance, time saved and missed aggregations (Appendix D).
+
+## Cull and surveillance search products
+
+The 2027 ranking used the latest available 12 months of dives and tows, June 2025–May 2026. Exploration zones shade high-ranked habitat outside designated sites and away from recent tow paths, as nested bands of the reef's top 40, 30, 20 and 10% of predicted habitat (@fig-2027). These products can be reproduced as new data arrive. To operationalise them most effectively, the pipeline would need access to the Eye on the Reef API, or would need to run on GBRMPA's Databricks system.
+
+![**The 2027 product ranks every cull site and shades rarely searched habitat around it.** Batt Reef and Eyrie Reef: 2027 density-aware cull-site priority (classes A–E), manta tows of the last five seasons (blue lines) and exploration zones (purple; darker is better-ranked habitat) over satellite imagery. Class shares vary among reefs with their estimated COTS density. The recommended workflow tows the A–C zone on follow-up visits and makes dives without strong evidence only at A–D sites. These maps illustrate the rules, rather than showing measured performance at Batt or Eyrie in 2027.](../outputs/figures/fig17_search_2027_exploration.png){#fig-2027 width="100%"}
+
+## Hydrodynamic and larval connectivity modelling {#sec-hydro-connectivity-methods}
+
+A three-dimensional COMPAS–EMS model of the far northern GBR, nested within the 4 km eReefs model, simulated circulation from 20 November 2022 to 1 April 2023. Particles released across potential COTS habitat on ten dates were tracked for 45 days. Daily mean concentrations at larval ages 5, 9 and 10 days were ranked within each of the `r int(lc_scope$releases)` releases, which describes relative exposure to larvae rather than where they came from or settled.
+
+The particle tracks were then used to estimate the strength of larval connections between sub-reefs by simulating larval biology (Appendix E). We broadly followed @stewart2026dispersal, who applied ensemble modelling to COTS larval dispersal, but used a single biological parameterisation for computational efficiency. Functions describing age-dependent survival and development were fitted to empirical COTS larval data [@pratchett2017larval], following @moneghetti2019kernels. These functions were used to simulate many thousands of possible fates for each particle track, in which a simulated larva settled at the first sub-reef it encountered while alive and competent. Comparing successful settlements with the total number of simulated fates, and aggregating across particle tracks, gave the strength of larval connections between all pairs of sub-reefs. The resulting connectivity matrices contain elements $C_{i,j}(t)$, the probability that a larva released at sub-reef $i$ at time $t$ survives and settles at sub-reef $j$. Pathways and clusters in the resulting network are summarised in [the connectivity Results](#sec-connectivity-network-results).
+
+## COTS–coral metapopulation model {#sec-metacommunity}
+
+The Lizard Island prototype represents `r int(lc_scope$sites)` sub-reef sites on `r int(lc_scope$reefs)` reefs, delineated with a newly developed habitat-partitioning algorithm [@hallerbull2026reefpartition]. It couples three models developed at AIMS (@fig-metapop-concept). COTSMod.jl, developed for this project, supplies COTS population stages, coral predation and larval processes [@matthews2020cotsmod; @cotsmodmethods2026]; ADRIA.jl handles the spatial domain, disturbances such as bleaching and cyclones, and scenario runs [@adriamethods2026]; and CoralBlox.jl represents coral growth and recovery [@dealmeida2026coralblox]. Because computational constraints delayed the fine-scale connectivity networks within the project, larvae still move between reefs through reef-level connections rather than the fine-scale matrices above. Calibration compared the timing and size of irruptions, the troughs between them and coral change with AIMS Long-Term Monitoring Program (LTMP) records on four reefs: Lizard Island, Eyrie, MacGillivray and North Direction. Five further monitoring reefs, outside the calibration score, were then compared with their manta records. Initial projections, developed to demonstrate capability, compared levels of control effort through 2050 to test their effect on suppressing primary outbreaks in a changing climate (Appendix E).
+
+The model builds its irruption cycle from mechanisms reported in field and laboratory studies and used in other COTS population models (@fig-metapop-concept; @tbl-cots-mechanisms). Adults eat preferred fast-growing corals, such as tabular and corymbose *Acropora*, before other corals [@death1998feeding; @pratchett2007feeding; @pratchett2010changes], so an irruption strips preferred coral first. Adult survival depends on a running average of preferred-coral cover over recent years, rather than on the current year's cover alone, so starvation lags coral loss and populations crash only after their food has gone [@rogers2022culling]. Fecundity also follows preferred coral, through adults' body condition [@caballes2016maternal]. Two terms hold sparse populations down. When adults are far apart, fertilisation fails and few larvae are produced (an Allee effect) [@babcock1992reproductive; @rogers2017aggregation], and predators, from fish [@cowan2017predators] to rubble-dwelling decorator crabs [@desbiens2023rubble], remove most small juveniles until settlement is heavy enough to saturate them (a "predator pit") [@mccallum1987predator; @keesing2018mortality]. Populations can therefore persist at low density for years and escape when larval supply rises. Larvae reach each reef from connected reefs and from outside the domain, with survival modified by chlorophyll as an index of larval food [@fabricius2010three], and settlement is lower on reefs exposed to ocean swell, a term designed from LTMP records of low COTS density on outer-shelf reefs in the domain (Appendix E).
+
+| Mechanism | How the model represents it | Support |
+|--------|--------------------|--------------------|
+| Grazing | Adults eat preferred fast-growing coral first, at a per-adult feeding rate, then other coral | Feeding preferences [@death1998feeding; @pratchett2007feeding; @pratchett2010changes]; field feeding rates [@keesing1992feeding] |
+| Starvation | Adult survival follows a running average of preferred-coral cover over recent years, so deaths lag coral loss | Preferred-prey food limitation in an intermediate-complexity model [@rogers2022culling] |
+| Fecundity | Body condition, and therefore larval production, follows preferred coral | Maternal diet trials [@caballes2016maternal] |
+| Allee effect | Fertilisation falls when adults are sparse, so few larvae are produced | Field fertilisation rates [@babcock1992reproductive]; aggregation and Allee thresholds [@rogers2017aggregation] |
+| Predator pit | Predation on juveniles saturates, holding sparse populations down until settlement overwhelms predators | Predator regulation [@mccallum1987predator]; juvenile mortality and predators [@keesing2018mortality; @cowan2017predators; @desbiens2023rubble] |
+| Larval supply | Larvae move along reef-level connections, with survival modified by chlorophyll, and also arrive from outside the domain | Reef connectivity [@hock2017resilience]; larval food limitation [@fabricius2010three]; reef irruption hindcast [@stewart2026hybrid] |
+| Settlement | Settlement is reduced on reefs exposed to ocean swell | Designed from LTMP records in the domain (Appendix E); not independently tested |
+
+: Mechanisms in the COTS population model and the evidence behind them. Parameter values and calibration are in Appendix E. {#tbl-cots-mechanisms}
+
+![**The metapopulation model links COTS and coral on each site across a connected reef cluster.** (**a**) The model domain: 2,895 sub-reef sites (blue) on 113 reefs in the far northern GBR, with its location in Queensland and the sites around Lizard Island enlarged. (**b**) Processes on each site. COTS pass from larvae through recruit, juvenile and adult stages. Adults graze preferred fast-growing coral first, and slower-growing coral when preferred coral is scarce; preferred coral cover feeds back to adult body condition, survival and reproduction. Culling (orange) removes juveniles and adults. Larvae disperse among sites and reefs and also arrive from outside the domain; these connections are drawn schematically. (**c**) The order of processes within each annual step and the package that carries out each one. The evidence for each mechanism is in @tbl-cots-mechanisms.](../outputs/figures/fig36_metapop_concept.png){#fig-metapop-concept width="100%"}
+
+## Engagement with Rights-holders and Management Stakeholders {#sec-engagement}
+
+GBRMPA meetings throughout the project guided delivery, including the decision to rank designated cull sites. Earlier informal feedback also informed map formats, uncertainty communication and integration with existing planning systems. Engagement with Traditional Owner-led contractors Malu Ventures included an April 2026 visit and June follow-up, which collected feedback on the usability and interpretation of the habitat models for Far Northern sea country. This also led to the habitat models being extended into the Torres Strait, to give an early indication of likely habitat. Fine-scale observations were collected for a standalone Far Northern species distribution model planned for future development; they were not used to fit the models assessed here.
+
+The delivery workshop on 5 November 2026 led directly to the density-aware classes and to replacing discrete exploration areas with shaded zones. Trials of the density-aware rankings, dive rule and tow zone are planned aboard BPM in Cairns on 6–10 January 2027. They will compare the recommendations with crew practice and record detection, effort and follow-up at deferred sites.
+<!-- Completed visits and repeated GBRMPA meetings: author confirmation in chat,
+27 October 2026. Workshop outcome and chosen settings: author confirmation in
+chat, 11 November 2026. Review 16 (25 November 2026): progress-report sentence,
+workshop-participants placeholder and the Malu trial removed by the author. -->
+
+{{< pagebreak >}}
+
+# Results
+
+## GBR fine-scale habitat predictions {#sec-cull}
+
+### Habitat layers give a consistent but weak first ordering {.unnumbered}
+
+The habitat layers give a first search order for every reef on the GBR, including reefs that crews rarely visit (@fig-maps). On their own, they separate high-density COTS habitat from low-density habitat on the same reef consistently better than chance, but not well enough to direct culling or surveillance effort by themselves. On independent manta tows, the limited-extent habitat model ranked tows with strong COTS evidence above other tows on the same reef in the same year with a within reef-year AUC of `r ci3(mi("RG + year", "within_reef_year_auc"), mi("RG + year", "auc_low"), mi("RG + year", "auc_high"))`, where 0.5 is chance (@tbl-manta). A model trained on the tows themselves, and scored only on reefs it had not seen, reached `r a3(mt("within", "auc"))`. Habitat's main practical role is coverage: `r p0(n_noev / nrow(pri))` of designated sites in the 2027 product were on reefs with no dives or tows in the preceding 12 months, where habitat is the only guide. Put simply, habitat can order a reef that crews know little about, but cannot by itself justify leaving ground unsearched.
+
+![Within-reef habitat ranks on Eyrie, Batt, Broadhurst and Lady Musgrave reefs. Columns show the full-extent and limited-extent cull-trained models, the manta-trained model, the joint habitat model, habitat updated with cull history for 2027, and joint-model uncertainty (90% posterior interval width). The top 30% of each reef is emphasised. Satellite imagery: Esri World Imagery; full attribution is in Appendix C.](../outputs/figures/fig02b_four_reef_comparison_imagery.png){#fig-maps width="100%"}
+
+### Ranking only weak-evidence dives avoids more empty dives {#sec-workflow-results}
+
+Most ghost dives followed weak evidence. Crews already dive open sites first, and those sites held `r p0(mzp("open", "high") / ptot$high)` of dives above 0.04, so the question is what to do with the rest. Across the `r int(ptot$visits)` back-tested visits, `r p0(mzp("other: weak-scar tow", "ghost") / ptot$ghost)` of ghost dives were at sites whose nearest tows showed at most a single feeding scar. Simply not diving on weak evidence, the two-scar trigger GBRMPA had considered, avoided `r p0(ps("evidence rule: skip weak-scar dives", "ghost_avoided_pct"))` of ghost dives but missed `r p1(ps("evidence rule: skip weak-scar dives", "high_missed_pct"))` of dives above 0.04. Using the ranking to choose which weak-evidence dives to skip did substantially better. Applying within-reef classes A–C only to dives without strong evidence skipped a similar share of dives to the site rule, which skips every dive at a low-ranked site (`r p1(ps(WF, "dives_avoided_pct"))` against `r p1(ps(SR, "dives_avoided_pct"))`). Yet it avoided more ghost dives, `r p1(ps(WF, "ghost_avoided_pct"))` against `r p1(ps(SR, "ghost_avoided_pct"))`, and missed fewer dives above 0.04, `r psci(WF, "high_missed_pct")` against `r psci(SR, "high_missed_pct")`. The ranking therefore works best as a guide to which weak-evidence dives to skip, not as a list of sites to drop.
+
+### Density-aware classes and the recommended settings {.unnumbered}
+
+Density-aware classes improved this trade-off further on 2020–2026 visits. At the same 3% of dives above 0.04 missed, they avoided `r p1(dlmv(V2, "ghost_avoided_at_3pct_missed"))` of ghost dives, against `r p1(dlmv("within-reef", "ghost_avoided_at_3pct_missed"))` for within-reef classes; one weight in the density-aware classes was tuned on these seasons, so the margin is somewhat optimistic (Appendix D).
+
+The recommended settings combine density-aware classes with a dive rule at A–D and a follow-up tow zone at A–C (@tbl-workflow-headline). Under the dive rule, dives without strong evidence are made only at A–D sites. Over 2020–2026 this avoided `r cri("ghost_avoided_pct")` of ghost dives and `r p1(crv("low_avoided_pct"))` of low-density dives (CPUE below 0.02), while missing only `r cri("high_missed_pct")` of dives above 0.04. Skipping the same number of dives at random avoided fewer ghost dives (`r p1(crd("ghost_avoided_pct"))`) and missed more high-density ones (`r p1(crd("high_missed_pct"))`). In other words, each dive above 0.04 missed came with `r num(crv("ghost_per_high_missed"), 1)` ghost dives avoided, about `r num(crv("ghost_per_high_missed") / crd("ghost_per_high_missed"), 0)` times the `r num(crd("ghost_per_high_missed"), 1)` at random. Rules based on tow evidence alone did no better than random (Appendix D).
+
+```{r}
+#| label: tbl-workflow-headline
+#| tbl-cap: "The site rule and dive rules compared. Percentages [95% reef-year bootstrap intervals]. The site rule uses within-reef classes on 2019–2026 visits; other rows are forward back-tests of 2020–2026 visits. Dive rules apply only to dives without strong evidence; the random row skips the same number of those dives as the density-aware A–D rule. 'Ghost per miss' is ghost dives avoided per dive above 0.04 missed. Follow-up tows saved is the share of tows on follow-up visits that the setting would not make; settings without a tow zone save none. The recommended row combines the density-aware A–D dive rule and A–C tow zone. Appendix D has the full comparisons."
+hl_cell <- function(x) sprintf("%.1f [%.1f–%.1f]", 100 * x[1], 100 * x[2], 100 * x[3])
+hl_ps <- function(v, m) c(ps(v, m), ps(v, m, "low"), ps(v, m, "high"))
+hl_pd <- function(l, z, r, m) c(pdv(l, z, r, m), pdv(l, z, r, m, col = "low"), pdv(l, z, r, m, col = "high"))
+hl_rd <- function(m) c(crd(m), crd(m, "low"), crd(m, "high"))
+hl_tows <- function(f) {
+  x <- tryCatch(f("tows_saved_follow_up_pct"), error = function(e) NA)
+  if (all(is.na(x)) || x[1] == 0) "0" else hl_cell(x)  # dive rules alone have no tow zone
+}
+hl_row <- function(label, f) data.frame(
+  Setting = label, `Dives skipped (%)` = sprintf("%.1f", 100 * f("dives_avoided_pct")[1]), `Ghost avoided (%)` = hl_cell(f("ghost_avoided_pct")),
+  `>0.04 missed (%)` = hl_cell(f("high_missed_pct")), `Ghost per miss` = num(f("ghost_per_high_missed")[1], 1),
+  `Follow-up tows saved (%)` = hl_tows(f), check.names = FALSE)
+knitr::kable(rbind(
+  hl_row("Site rule A–D, every dive", function(m) hl_ps(SR, m)),
+  hl_row("Within-reef dive rule A–C", function(m) hl_pd("within-reef", "none", "A-C", m)),
+  hl_row("Density-aware dive rule A–D", function(m) hl_pd(V2, "none", "A-D", m)),
+  hl_row("Same number at random", hl_rd),
+  hl_row("Recommended: density-aware dive rule A–D + tow zone A–C", function(m) hl_pd(V2, "A-C", "A-D", m))),
+  row.names = FALSE, align = "lrrrrr")
+```
+
+### Surveillance {.unnumbered}
+
+No new tow routes were designed or tested; instead, surveillance options were assessed by thinning recorded surveys. Choosing tows by habitat alone did not beat evenly spaced tows (Appendix C), but the ranking was more useful between full sweeps. On follow-up visits, towing only the A–C zone and sites near strong tows earlier that season ("season memory") saved `r cri2("zone_saved_pct")` of tows and missed `r int(czb("zone_lost"))` dives above 0.04 over seven seasons. Skipping the same number of tows at other positions missed `r num(czb("shifted_lost"), 0)` (95% CI `r num(czb("shifted_lost", "low"), 0)`–`r num(czb("shifted_lost", "high"), 0)`), and blocks of nine tows on and three off saved `r p0(czb("block_saved_pct"))` but missed `r num(czb("block_lost"), 0)`. In the proposed workflow, the first visit to a reef each season keeps a full sweep of the reef perimeter. Some of the tow effort saved on follow-up visits is also expected to go to exploring the suggested habitat outside the traditional tow paths.
+
+The delivered ranking covers `r int(n_sites)` designated sites on `r int(n_reefs)` reefs, `r int(v2cl("all reefs", "density_v2_a_to_c"))` of them in density-aware classes A–C. Exploration zones shade all high-ranked habitat on `r int(length(unique(expz$reef_name)))` reefs that lies outside designated sites and more than 150 m from tows of the last five seasons (@fig-2027). They show where search has rarely gone, but the zones themselves have not yet been trialled.
+
+## Preliminary larval dispersal patterns vary across the reef cluster {#sec-hydro-connectivity-results}
+
+Simulated larvae reached the `r int(lc_scope$sites)` sub-reef sites on `r int(lc_scope$reefs)` reefs unevenly during the 2022–23 spawning season. The most persistent day-10 hotspots lay on mid-shelf reefs south of the Lizard Island group, including Williamson, Mackay and Osterlund reefs (Appendix E, @fig-larval-hotspots). In contrast, the Lizard Island group itself was not a persistent hotspot at later larval ages, and in the central part of the domain the Ribbon Reefs generally held fewer late-age larvae than mid-shelf reefs at similar latitudes. These patterns describe exposure to larvae, not where larvae came from or settled. They also come from a single season and remain sensitive to the domain boundary (Appendix E).
+
+<!-- Review 06 comment 45: insert this section before the population-model
+results. Candidate local evidence: DataProcessing/connectivity_lizard/
+ANALYSIS_PLAN.md and outputs/figures/lc1–lc6, produced 23 October 2026.
+The author confirmed outputs/figures as the intended source. Do not treat the
+network analysis plan as completed results. Source files remain unchanged. -->
+
+## Larval connectivity patterns across the Initiation Box {#sec-connectivity-network-results}
+
+[TO WRITE: replace this placeholder once the connectivity network has been analysed.] The connectivity matrices from the 2022–23 releases show which sub-reefs supply larvae to which (@fig-connectivity-network). Pathways are summarised as the strongest links between reefs, and clusters as groups of sub-reefs that exchange more larvae among themselves than with the rest of the domain. [TO CONFIRM: the main pathways, the number of clusters and whether the Lizard Island group forms a distinct cluster.]
+
+Each pattern will be compared with a control that links reefs by distance alone, so that clusters reflect currents rather than reef spacing. The results describe one spawning season and remain sensitive to the domain boundary. [TO CONFIRM: comparison with the distance-only control and variation among releases.]
+
+![**[TO WRITE: one-sentence message.]** Placeholder for the larval connectivity network: (**a**) the strongest larval pathways among reefs and (**b**) clusters of sub-reefs that exchange larvae mainly among themselves. [TO CONFIRM: final figure and legend.]](assets/placeholder_connectivity_network.png){#fig-connectivity-network width="100%"}
+
+## Historical COTS and coral dynamics provide a basis for testing control strategies {#sec-metacommunity-results}
+
+The metacommunity model reproduced the broad sequence of historical irruption waves, and of coral decline and recovery, on the four calibration reefs (@fig-metacommunity-cots-coral), using the structure in @fig-metapop-concept. It does not yet match every detail. For example, Lizard Island's first COTS peak, in the 1990s, remains too small, and during the build-up of the fifth wave the model exceeds observed densities on several reefs, which could understate the relative effect of current culling and overstate the resources needed to control irruptions. The paired runs with and without recorded culling show how the model responds to removals; they are not yet a validated estimate of the program's impact since 2012. Likewise, the effort scenarios to 2050 demonstrate capability rather than likely outcomes.
+
+![**The metacommunity model reproduces the broad sequence of irruption waves and coral change on the calibration reefs.** (**a**, **c**, **e**, **g**) Manta-tow equivalents (dotted line: 0.22 COTS per tow) and (**b**, **d**, **f**, **h**) hard coral cover, modelled relative to habitable area, on Lizard Island, MacGillivray, North Direction and Eyrie reefs. Lines are five-seed means without recorded culling (sky blue, solid) and with it (orange, dashed); darker bands span those seeds and lighter bands span all 65 parameter-test runs per culling state. These ranges are not confidence intervals. Black points show LTMP manta observations (coral bars: reported 95% intervals); grey diamonds show 9 m photo-transects. These are calibration and diagnostic comparisons.](../outputs/figures/fig22_metacommunity_cots_coral.png){#fig-metacommunity-cots-coral width="100%"}
+
+Outside the calibration score, the model placed past irruption peaks on Martin and Linnet reefs within two years and ordered survey years better than a series with no model. Its scores for individual irruption years were mixed, partly because a peak shifted by a year or two counts as both a missed and a false irruption year. Yonge, Carter and No Name, three outer reefs with almost no COTS, had false irruptions until a wave-exposure term was added to reduce recruitment on exposed reefs. That term was designed from their records, so their agreement now checks the design rather than validating the model (Appendix E).
+
+{{< pagebreak >}}
+
+# Discussion & Outputs
+
+## Combining recent observations with habitat
+
+The main tactical finding is that recent observations improve the order in which designated cull sites are searched, while habitat supplies an initial ordering where observations are absent. This extends the program's existing use of surveillance and crew knowledge [@fletcher2020strategy; @matthews2026intelligence]. The maps make that information more consistent and available across vessels. Their value lies in the comparison with random or simpler selection at the same effort, rather than in the reduction obtained simply by omitting sites.
+
+Habitat alone ranked locations on the same reef weakly. This is compatible with reef-level distribution studies showing the importance of connectivity and conditions associated with irruption development [@matthews2020connectivity; @stewart2026hybrid]. Static terrain and coral habitat cannot describe the current stage of an irruption, recent removals or movement of aggregations. The recent-evidence ranking captures some of those changes, but also captures where crews chose to work. It should be interpreted as operational knowledge combined with habitat, rather than independent confirmation that a preferred location holds COTS.
+
+The distinction matters most on rarely visited reefs and beyond designated sites. Prioritising repeated finds can continually direct effort towards the same footprint. Exploration zones provide a way to examine suitable habitat outside it, including lagoon patches and other places poorly covered by perimeter surveillance. Those zones remain hypotheses about where useful search could go. Records from new ground support investigating such gaps, but do not establish the detection yield of the proposed zones. Recording nil observations and effort will be as important as recording finds.
+
+## Retention, surveillance and the cost of deferral
+
+The A–D site rule shows what the ranking can do applied to every site, although the workflow below uses it more effectively. It retains approximately nine in ten observed high-density dives while selecting approximately four in five candidate cull sites. Most dives from 0.02 to 0.04 are also retained, preserving useful culling opportunities below the ecological target. Ghost and low-density dives form a larger share of the deferred set than under random site selection. Low-density avoidance is lower than random selection, however, and ghost-dive avoidance improves only slightly. The ranking also keeps more recorded dives overall at the same site count. The comparison supports protection of useful dives at equal candidate-site coverage; [Appendix C](#sec-ranking-alternatives) makes the additional comparison at equal recorded dive effort. Remaining high-density omissions require agreed tolerances and follow-up. The relevant target also depends on coral cover and the purpose of control [@plaganyi2020targets; @matthews2024protecting].
+
+The separate manta estimate improves the interpretation of effort. Fewer cull sites selected does not translate directly into the same percentage fewer tows, because recorded segments cross site boundaries and include surveillance elsewhere. The geometry calculation preserves portions needed by retained sites and all portions outside designated sites, including nearby tows that do not intersect them. This conservatively limits the spatial accounting; further reductions outside polygons may be possible, but their feasibility and detection consequences are untested. The estimate does not show that crews would make the same dive decisions after associated manta evidence was removed, nor whether a shortened route saves vessel time.
+
+Recent CPUE may improve prioritisation, but its extra gains were modest and varied among seasons. At matched retention it also kept slightly fewer intermediate dives than the current ranking. The experimental layer supports a direct field comparison rather than a replacement recommendation. Upper habitat percentiles did not strengthen the ranking in this test; this does not establish that real within-site hotspots are absent. Their value may depend on how the mapped habitat aligns with the areas crews actually search.
+
+The retrospective tow comparison reinforces the need for coverage. Habitat-only selection did not outperform evenly spaced thinning, although the latter is an analytical benchmark based on recorded surveys. Practical route planning must account for workability, travel, crew judgement and recent observations. A poor result for habitat-only thinning does not remove habitat's role in identifying additional places to search; it does rule out claiming that the habitat score alone supplies an improved exclusion rule.
+
+Annual full surveys, pre-closure checks and revisits triggered by new evidence could detect populations initially deferred. They cannot guarantee that a missed aggregation will be found before coral is consumed. Later detections may also represent new population growth rather than an original false negative. An initial audit of deferred sites, together with dated follow-up and a maximum acceptable delay, is needed to distinguish these outcomes. Full-season effort must include those checks, repeat dives and exploration. The 6–10 January 2027 trial should test the ranking against normal crew planning before an annual saving is claimed.
+
+## From rankings to an on-water workflow {#sec-workflow}
+
+The workflow was not part of the original objectives, but it is the step that turns a site ranking into something a dive team can use on the day. A ranking says which sites are most likely to hold COTS; crews need to know which dive to make next, given what the morning's tows showed. Developing that translation with GBRMPA changed the result. Applied only where evidence was weak, the same ranking avoided more ghost and low-density dives, and missed fewer dives above 0.04, than applying it to every site (@tbl-operational-highlights).
+
+@fig-workflow sets out the decisions for a reef visit. Open sites and strong manta evidence keep their current priority. The ranking enters at two points: where to tow on follow-up visits between full sweeps, and whether a site with only weak, negative or no tow evidence is worth a dive. Within classes A–D those dives remain the crew's decision, for example an adjacent site or ground not towed for a long time. Sites in class E wait for the next visit or the annual check. Crews can override any step when they see COTS or fresh feeding; recording why provides the evidence needed to refine the rules.
+
+![Proposed decisions for a reef visit. Blue boxes are new steps; the rest is current practice. Strong evidence means a COTS sighting, two or more counted feeding scars, or scars recorded as common. The ranking is refreshed to each voyage's departure. The workflow was back-tested on 2019–2026 records (Appendix D) and has not yet been trialled.](../outputs/figures/fig23_workflow_decision.png){#fig-workflow width="100%"}
+
+The workflow also answers a question the program had already raised. GBRMPA's ad hoc analysis of feeding-scar evidence suggested that a two-scar trigger could avoid empty dives but risk missing sites above 0.04. The back-test supports both parts of that concern. About `r p0(mzp("other: weak-scar tow", "ghost") / ptot$ghost)` of ghost dives followed weak-scar tows, yet a fixed two-scar trigger would have missed `r p0(ps("evidence rule: skip weak-scar dives", "high_missed_pct"))` of dives above 0.04. Weak evidence is informative: `r p0(mzp("other: weak-scar tow", "high") / mzp("other: weak-scar tow", "dives"))` of weak-scar dives exceeded 0.04. The difficulty is therefore not the trigger itself, but choosing among weak-evidence sites, and the ranking supplies that choice from a site's habitat and recent history. Standardising the strong and weak evidence definitions across vessels is worthwhile in its own right.
+
+The recommended settings are a management choice rather than a fixed optimum. The 5 November workshop moved the product from equal within-reef shares to density-aware classes, which are stricter, so the same cut-off skips more dives. The density-aware dive rule at A–D avoided `r p0(crv("ghost_avoided_pct"))` of ghost dives for `r p1(crv("high_missed_pct"))` of dives above 0.04 missed, with the most ghost dives avoided per miss of any rule tested. Moving the line to A–C would avoid `r p0(pdv(V2, "none", "A-C", "ghost_avoided_pct"))` of ghost dives but miss `r p1(pdv(V2, "none", "A-C", "high_missed_pct"))`. The tow zone has a different value: it saves boat time on follow-up visits but avoids few ghost dives. An A–C zone was preferred to A–B because it missed `r int(pdv(V2, "A-C", "none", "high_missed"))` rather than `r int(pdv(V2, "A-B", "none", "high_missed"))` dives above 0.04, for `r p0(pdv(V2, "A-C", "none", "tows_saved_follow_up_pct"))` rather than `r p0(pdv(V2, "A-B", "none", "tows_saved_follow_up_pct"))` of follow-up tows saved.
+
+The back-test has limits. It can only re-score dives that crews chose to make, and cannot show what undived sites held. A dive was counted as missed whenever its only strong tow was skipped, although crews might have dived there anyway. COTS at a skipped site remain until the next visit, so culled COTS forgone overstates the lasting loss, and tows saved count tows rather than vessel time. These limits frame the field trial. A median voyage held only `r int(cpv("flagged"))` dive`r if (cpv("flagged") == 1) "" else "s"` that the A–D rule would skip, so one trial voyage can test usability and towing time but not the dive rule's effect. Recording what the rule would have done on every voyage, with the ranking frozen at departure, would give a `r p0(cpt(25))` chance of detecting the expected difference after 25 voyages (Appendix D; [the operational impact pathway](#sec-monitoring)).
+
+## Using connected population models for strategic decisions
+
+The metacommunity strand addresses a different management scale: how culling on one reef affects COTS and coral there and on connected reefs. Reef-scale ecosystem models have already established the importance of comparing control strategies under interacting disturbances [@morello2014model; @condie2021interventions; @bozec2022cumulative]. This prototype builds on COTSMod within a framework that can connect site-level habitat, population processes and intervention scenarios [@matthews2020cotsmod; @adriamethods2026]. Keeping the COTS equations in a reusable package also allows their use in other modelling frameworks.
+
+The historical comparisons provide evidence that the framework can reproduce broad irruption cycles and respond to recorded removals. Martin and Linnet reefs, outside the calibration score, offer the most independent check, and they show right timing with uneven heights. Regional waves are shared among reefs, so correct timing is a modest test, and external larval supply came from a reef-level hindcast. The almost-COTS-free outer reefs initially showed false irruptions; the wave-exposure term that removed them was designed from those same records. Testing it on reefs not used in its design remains to be done. Peak sizes, densities between waves and the recent build-up depend on coral assumptions and the relationship between manta observations and true abundance. Recent cull and diver observations also informed the corrected larval inputs, so agreement with those observations is not independent validation. The excess simulated COTS carried into the near-term projections could affect the apparent benefit of culling. That sensitivity needs testing before estimates of coral protected are used in decisions.
+
+The intended assessment of control since 2012 must compare paired histories beginning from the same population and coral state. Holding outside larval supply constant estimates the effect of control inside the model domain under unchanged outside conditions. A regional no-control history instead needs outside supply consistent with no control on those reefs. Those are different questions, and the existing reef-level irruption predictions do not supply the second counterfactual by themselves. Requested catches that exceed simulated availability must also remain visible, rather than being treated as successful removals.
+
+For the fifth primary irruption wave, the useful comparison is among feasible allocations of present capacity, additional effort and rules for beginning or stopping control. A reef with little coral left to protect may still supply larvae to neighbours. Conversely, fewer COTS need not yield lasting local coral gains if heat stress or cyclones remove the spared coral. Scenarios must therefore follow larval export, downstream populations and coral recovery as well as local catches. The initial projections demonstrate this capability; they do not yet identify a preferred management strategy.
+
+Larval-concentration hotspots provide a complementary regional signal, but concentration is not equivalent to settlement, local retention or source strength. Release-specific networks, distance-based comparisons and explicit tests of the northern boundary are needed before a hydrodynamic early-warning interpretation is supported. The metacommunity model still uses reef-level transport. Coupling the new habitat layers or fine-scale connections to intervention decisions is a subsequent test, rather than a completed integration. Appendices D and E give the field-assessment and scenario designs.
+
+## Final project outputs
+
+The outputs and their current evidence status are:
+
+- GBR-wide 30 m habitat-suitability and search-priority layers, with a separate layer showing known aggregation locations and accompanying uncertainty products.
+- The 2027 density-aware cull-site ranking (classes A–E, from each site's own record and the reef's recent density), the product chosen for the 2027 trials, and shaded exploration zones, in CSV and KMZ formats, supported by forward evaluation. Within-reef and first density-aware classes and a recent-CPUE candidate are retained for comparison.
+- A proposed on-water workflow for reef visits: decision steps, strong and weak evidence definitions, the A–D dive rule and A–C follow-up tow zone, back-tested on 2020–2026 records with a one-voyage trial and season-long recording design; not yet trialled.
+- Retrospective surveillance and cull-site comparisons, including the >0.04 retention assessment and separate conditional tow-effort estimates; operational deployment remains to be trialled.
+- Lizard Island larval-concentration products and a reproducible COTS–coral metacommunity prototype with calibration diagnostics, checks on five reefs outside the calibration score and initial control scenarios; fine-scale network delivery and full validation remain open.
+- This technical report and documented analysis workflows. Public repository registration, release identifiers and the final rights-holder information package require completion (Appendix A).
+
+{{< pagebreak >}}
+
+# Outcomes & Impact Pathway
+
+## More efficient control through operational testing
+
+The Work Plan selects CCIP Outcome 2, a more effective, efficient and scalable response to COTS irruptions, and Outcome 4, decisions informed by biophysical and predictive knowledge. The project contributes through explicit search priorities, measurable trade-offs and a platform for strategic comparisons. The outputs establish capability; reduced annual costs, improved detection and additional coral protection are intended outcomes that have not yet been demonstrated.
+
+For Outcome 2, the immediate users are Control Program managers, vessel planners and dive teams. The ranking converts habitat and recent observations into a common site order that can be refreshed each season. This supports testing whether repeat searches at lower-priority sites can be deferred and whether some effort can be redirected to overlooked habitat. The 10–15% proposed reductions in surveillance searches and low-density or empty dives remain adoption targets. They require an agreed allowance for missed >0.04 dives, reliable follow-up coverage and a complete account of effort.
+
+The proposed workflow ([Discussion](#sec-workflow)) is the intended vehicle for this test. It changes only dives on weak evidence and towing on follow-up visits, leaving open sites and strong manta evidence as now, so crews can adopt it without abandoning established triggers. It also gives GBRMPA's earlier scar-trigger question a tested answer that can be refined with field records.
+
+Repeated GBRMPA meetings shaped delivery, including the choice to rank designated cull sites. This aligns the product with locations crews already recognise and record, while the exploration component addresses the limits of that register. The 5 November 2026 delivery workshop changed the product itself, leading to density-aware classes and shaded exploration zones. Product files can support Field Maps and COTS Dashboard workflows, but the report does not claim that either integration or routine uptake is complete.
+
+## Co-interpretation with rights-holders and operators
+
+The engagement described in Methods provides a direct pathway to testing usefulness with Traditional Owner operators. Malu's April visit and June follow-up also collected fine-scale observations for a future standalone Far Northern model. Those observations are an additional resource for subsequent work, rather than evidence validating the current GBR-wide ranking. Clear separation of the two avoids overstating where the delivered models have been tested.
+
+A trial is planned aboard BPM in Cairns on 6–10 January 2027. The proposed design has two parts. On one voyage that includes at least three follow-up reefs, crews tow the zone first and the rest of the reef afterwards, so the same ground is towed once but any aggregation found only outside the zone becomes visible. Dives that the rule would skip are flagged and made last, so their outcomes are still recorded. That voyage tests usability, towing time and crew interpretation of low ranks. In parallel, freezing the ranking at each departure and scoring, from normal records, what the rule would have done tests the dive rule without changing operations; about 25 voyages are needed. Independent checks of deferred sites, annual and pre-closure checks, and all follow-up and exploration effort must enter the seasonal comparison. Agreement on monitoring ownership, reporting and the acceptable omission rate is needed before trial findings can support adoption. [TO CONFIRM: trial voyage, vessel and reporting arrangements agreed with GBRMPA and operators.]
+
+## Predictive knowledge for cluster-scale management
+
+For Outcome 4, the population model and dispersal analyses provide a framework for comparing control across connected reefs, including cases where local and downstream benefits differ. The intended users include GBRMPA planners and researchers developing control scenarios. The next steps are to resolve the recent population mismatch, complete independent checks and agree feasible effort and external-supply assumptions before estimating program impact since 2012 or recommending fifth-wave suppression strategies.
+
+The delivery pathway therefore links documented consultation to field testing, repeatable evaluation and only then wider use. Suitable metadata, accessible product versions and clear limits are necessary for other researchers and managers to reproduce the comparisons. Data access and outstanding release requirements are stated below. No benefit is attributed to a model merely because it produces a map or a scenario trajectory.
+
+{{< pagebreak >}}
+
+# Conclusions & Next Steps
+
+This bridging project established a repeatable way to combine fine-scale habitat with recent operational evidence, rank every designated cull site and identify habitat beyond the usual search footprint. Recent observations supplied most of the tactical gain. Habitat alone discriminated weakly within reefs but provided coverage where current evidence was absent.
+
+Applied to every site, the ranking retained more dives above 0.04 than random selection but avoided no more empty dives. Translated with GBRMPA into an on-water workflow that keeps open sites and strong manta evidence, and made density-aware after the 5 November 2026 delivery workshop, it avoided `r p0(crv("ghost_avoided_pct"))` of ghost dives while missing `r p1(crv("high_missed_pct"))` of dives above 0.04. The next operational step is the planned 6–10 January 2027 trial of the density-aware ranking, A–D dive rule and A–C tow zone. One voyage will test usability and towing time, and season-long recording will test the dive rule, alongside an agreed omission allowance and checks of deferred sites.
+
+At cluster scale, the COTS–coral prototype and larval-concentration products extend the capacity to ask where control could protect local and downstream coral. Full validation, the recent population-state mismatch, boundary supply and feasible effort must be resolved before historical program-impact estimates or fifth-wave strategies can guide management. Fine-scale hydrodynamic connections and habitat-informed control remain candidate extensions.
+
+The most important change is the availability of explicit, reproducible decisions and comparisons at the scale where crews search, together with a developing framework for their regional consequences. Rights-holder and operator co-interpretation, field trials and transparent data releases will determine how those capabilities become useful routine practice.
+
+# Acknowledgements {.unnumbered}
+
+The standard funding and Traditional Owner acknowledgements supplied by CCIP appear in the front matter. We acknowledge the Control Program crews and data custodians, Malu Ventures and Jabalbina participants, and GBRMPA colleagues whose observations and feedback informed the work. [TO CONFIRM: individual acknowledgements, permissions to name contributors and any additional funding or in-kind contributions beyond the standard statement.]
+
+# Data Accessibility {.unnumbered}
+
+Operational cull and manta records are held by GBRMPA and remain subject to custodian access conditions. They are not redistributed here. AIMS Long-Term Monitoring Program observations and the habitat inputs retain their source access arrangements (Appendix B).
+
+Derived layers, rankings, tables and code are organised in the documented pipeline with frozen input checksums (Appendix A). [TO CONFIRM: public or institutional repository URL, DOI, licence, metadata record, release identifier and restricted-data access procedure.] Registration in the COTS Information System or another agreed data-information system also needs confirmation. These requirements must be completed for a FAIR public release.
+
+{{< pagebreak >}}
+
+# References {.unnumbered}
+
+::: {#refs}
+:::
+
+{{< pagebreak >}}
+
+# Appendices {.unnumbered}
+
+## Appendix A: Outputs, Work Plan status and remaining actions {.unnumbered}
+
+All layers are in GDA2020 / MGA zone 55, with checksums in `outputs/layers/layer_manifest.csv`.
+
+| Role | File | Resolution | Contents |
+|---|---|---|---|
+| Primary search-planning layer | `cots_search_planning_2026_30m.tif` (+ `_priority_`) | 30 m | P(problematic site-year, 2026), RG + year with calibrated clean + year fallback; percentile within reef polygon; priority classes (top 10%, 10–20%, 20–30%) |
+| Clean + year | `cots_legacy_clean_year2026_30m.tif` | 30 m | P(problematic site-year, 2026) from the 12-layer clean stack + year |
+| RG + year | `cots_legacy_rg_year2026_30m.tif` | 30 m | As above with five ReefGuide layers; missing where ReefGuide layers are missing |
+| Manta model | `cots_manta_within_30m.tif` | 30 m | Relative log-odds of strong manta evidence against the reef-year average; percentile within reef |
+| Exploration 2027 | `cots_exploration_2027_30m.tif` | 30 m | Habitat percentile on eligible cells; distances to recent tows and cull sites |
+| HMSC joint (explanatory) | `cots_hmsc_joint_120m.tif` (+ uncertainty, source) | 120 m | Posterior mean P(problematic density given an active reef-year); posterior SD and 5th/95th percentiles |
+| Known aggregation sites | `cots_cull_history_kernel_120m.tif`, `cots_hmsc_history_combined_120m.tif` | 120 m | Kernel-weighted prior problematic rate and evidence weight; habitat updated by history (forecast for 2027) |
+| 2027 cull-site priority | `cots_cull_site_priority_2027.csv`, `.kmz`, `_reefs.csv`, `_classes_2027.csv` | site | Priority class, rank on reef, P(problematic if dived), evidence behind the score |
+| Experimental recent-CPUE priority | CSV, GeoPackage and KMZ in `outputs/site_ranking_candidates/` | site | A separate field-comparison option; not adopted |
+| Density-aware 2027 priority | `cots_cull_site_priority_density_2027.csv`, `.kmz`, `_reefs.csv` | site | Density-aware class, within-reef class, reef density and its source (dives, tows or forecast) |
+| Density-aware v2 2027 priority (chosen product) | `cots_cull_site_priority_density_v2_2027.csv`, `.kmz`, `_reefs.csv` | site | v2 class, v1 and within-reef classes, rank on the reef by the site's record, recent reef density and its source |
+| Exploration zones 2027 | `cots_exploration_zones_2027.csv`, `.gpkg` (also in both KMZs) | zone | One shaded zone per reef and habitat band (top 40, 30, 20, 10%): area, pieces, mean habitat percentile, depth range |
+
+: Delivered layers (`outputs/layers/`) and operational products (`outputs/site_ranking/`). {#tbl-layers}
+
+| Work Plan output | Delivered in this report | Status |
+|---|---|---|
+| E. Finalised GBR-wide habitat suitability model and surveillance paths | 30 m habitat layers (@tbl-layers); held-out evaluation of model-ranked versus systematic manta thinning (Appendix C); follow-up tow zone (Appendix D) | [TO CONFIRM] |
+| E (extension). Cull-site selection | 2027 cull-site priority ranking and exploration zones ([the habitat Results](#sec-cull)) | [TO CONFIRM] |
+| F. Fine-scale connectivity network at four reef clusters | Hydrodynamic and connectivity Methods ([the larval-modelling Methods](#sec-hydro-connectivity-methods)); preliminary larval dispersal Results ([the dispersal Results](#sec-hydro-connectivity-results)) | Concentration patterns described for the Lizard region; matrix results pending. [TO CONFIRM: delivery and coverage of all four clusters.] |
+| G. Prototype fine-scale metacommunity model | Main Methods and Results; Appendix E | Prototype and exploratory effort projections implemented; checked on five reefs outside the calibration score; full validation and program-impact assessment incomplete |
+| H. Final data sets and public report (FAIR) | This report; layers, tables, threshold reassessment and code | [TO CONFIRM: repository, DOI and licence] |
+| I. Peer-reviewed publication | Manuscript in preparation for *Frontiers in Marine Science* | [TO CONFIRM] |
+
+: Work Plan outputs and where they are reported. The Work Plan proposed validating tow paths at the 50th and 80th percentile thresholds; this report instead evaluates every level of tow retention from 90% to 30% against random and systematic baselines. {#tbl-workplan}
+
+**Reproducibility.** The pipeline is in `pipeline/` [TO CONFIRM: public repository URL and release DOI]. Inputs are pinned by SHA-256 checksum in `config.R`, scripts run in the order given in `README.md`, and every reported result is read from `outputs/tables/` or `outputs/site_ranking/` when the report is rendered. The README also records each comparison that is summarised rather than shown here, and the full table behind it. The SDM analyses used R 4.5.0 with xgboost, Hmsc and terra. [TO CONFIRM: package versions for the archived fits, Julia and package versions, and the frozen code release.]
+
+**Remaining actions.**
+
+1. Agree the tolerance for missed dives above 0.04 CPUE, then trial the workflow with crews, recording tows, dive effort, all dive outcomes, exploration visits and later coverage checks (Appendix D).
+2. Tow parts of the exploration zones and record outcomes, including nil results, so that the evidence base can expand beyond familiar sites.
+3. Refresh the ranking each season, ideally before each voyage, and repeat its forward evaluation against crew practice as well as a no-information baseline.
+4. Complete expert review with GBRMPA, vessel crews and Traditional Owner operators, and agree ownership of monitoring and integration into Field Maps and the COTS Dashboards. [TO CONFIRM: participants, timing and operational owner.]
+5. Resolve the recent COTS population mismatch and complete validation of the population model, including the wave-exposure term on reefs not used in its design, before estimating program impact since 2012 or recommending fifth-wave strategies (Appendix E).
+6. Test finer-scale hydrodynamic connectivity against a distance-based control before using it for management comparisons. [TO CONFIRM: link to Work Plan output F and the agreed pilot region.]
+
+{{< pagebreak >}}
+
+## Appendix B: Model specification and evaluation design {.unnumbered}
+
+The habitat-model reporting follows the Overview, Data, Model, Assessment and Prediction (ODMAP) protocol for species distribution models [@zurell2020odmap]. Archived tables and figure legends use the original software labels given in brackets below.
+
+| Model or comparison | Purpose | Information used |
+|---|---|---|
+| Annual full-extent habitat model (clean + year) | Predict cull outcomes across the full habitat-map extent | Twelve terrain and coral-habitat predictors plus survey year; fitted to cull site-years |
+| Annual limited-extent habitat model (RG + year) | Test whether added environmental information improves the annual prediction | The same predictors and year, plus five ReefGuide layers; fitted to cull site-years |
+| Manta habitat models (manta; manta within reef-year) | Rank tow locations with strong COTS evidence | The environmental predictors above, fitted to tow observations; versions with year and with differences among reef-years accounted for were compared |
+| Recent-evidence site ranking (combined site ranking) | Set a search order for designated cull sites | Habitat rank plus the preceding season's cull dives and nearby manta tows |
+| Multi-observation habitat model (HMSC joint) | Explain habitat associations while allowing for different observations | Cull, SALAD and RHIS evidence, terrain, geomorphic classes and coral habitat |
+| Habitat updated by longer cull history (HMSC + history) | Test how much past finds add to a habitat forecast | Multi-observation habitat estimates and spatially weighted earlier cull records; distinct from the operational site ranking |
+| COTS–coral metacommunity model | Simulate connected populations, coral consumption and responses to removals | Population and coral processes, larval supply, disturbance and historical culling in the Lizard Island cluster |
+
+: Models and comparisons. {#tbl-model-purpose}
+
+| Decision | How the prediction was tested | Comparison and outcome |
+|---|---|---|
+| Where habitat predicts COTS | Each reef was scored by models fitted without its group of reefs | Ability to rank observations on the same reef and in the same year |
+| Which cull sites to search | All designated sites were ranked, including never-dived sites; recent evidence came only from earlier seasons | Habitat alone, recent evidence and their combination; sites searched and dive outcomes retained |
+| Whether the ranking works in later seasons | The evidence model was fitted on seasons before each test season, 2019–2026 | The same search outcomes, evaluated season by season |
+| Whether >0.04 dives are retained | Saved rankings were assessed at the higher threshold without refitting | Missed high-density dives, low-density and ghost dives avoided, and intermediate dives retained |
+| Which manta tows to omit | Recorded surveys were thinned while keeping the same number of tows for each strategy | Habitat-ranked, random and evenly spaced tows; observed aggregations still detected |
+
+: Evaluation of the tactical decisions. The season-by-season evidence model used earlier outcomes, but its habitat models were withheld by reef and were not also restricted to earlier years. {#tbl-evaluation-purpose}
+
+### Data and predictors {.unnumbered}
+
+The habitat model fitted to manta observations used `r int(mt("within", "auc", col = "tows"))` labelled tows in `r int(mt("within", "auc", col = "reef_years"))` reef-years, including `r int(mt("within", "auc", col = "strong_tows"))` with strong COTS evidence. Strong evidence meant a direct COTS sighting, at least two counted feeding scars, or scars recorded as “common” in legacy surveys. Strict negatives recorded neither COTS nor scars; weak single-scar records were excluded from model fitting. The observation archives included Control Program crews (2016 onward), the Reef Joint Field Management Program (2012 onward) and AIMS LTMP (1992 onward), as specified by the author. SALAD [@pratchett2022salad] and RHIS [@beeden2014rhis] observations contributed to the joint habitat model. ReefScan imagery [@bainbridge2024reefscan] supplied a separate presence-only check in script 10 and was not a fitted response in the delivered joint model.
+
+Exactly 0.02 CPUE counts as positive under the original response and as intermediate in the >0.04 evaluation; exactly 0.04 is also intermediate. Predictors were assembled on a 30 m grid in GDA2020 / MGA zone 55 (@tbl-predictors). ReefGuide coverage was reduced in some deeper areas, particularly beyond about 15–20 m.
+
+| Code | Layer | Stack |
+|---|---|---|
+| DEM | Depth | Clean |
+| SLO | Slope | Clean |
+| EAST, NORTH | Eastness, northness (aspect) | Clean |
+| BPI | Bathymetric position index | Clean |
+| VRM | Vector ruggedness measure | Clean |
+| SVF | Sky-view factor | Clean |
+| HCU, VCU | Horizontal and vertical curvature | Clean |
+| AhyaD, Aspat, Aten | Coral habitat suitability for three *Acropora* taxa | Clean |
+| RG_bathy, RG_slope | ReefGuide bathymetry and slope | ReefGuide |
+| RG_turbid | ReefGuide turbidity | ReefGuide |
+| RG_waves_Hs, RG_waves_Tp | ReefGuide significant wave height and wave period | ReefGuide |
+
+: Predictor codes. The terrain and coral-habitat surfaces follow @guillaume2025coral; additional layers were accessed through ReefGuide [@reefguide2026]. GBR10 mapping sources are @gbrmpabathymetry2021, @gbrmpageomorphic2021 and @roelfsema2021shallow. Terrain was derived from Allen Coral Atlas satellite-derived depth [@li2021bathymetry], with Torres Strait gaps filled from Allen Coral Atlas 15 m depth and the DeepReef 30 m model [@beaman2017gbr30]; turbidity is the Allen Coral Atlas Sentinel-2 product [@li2022turbidity], stored as FNU × 10. Continuous layers were resampled bilinearly to the 30 m grid. {#tbl-predictors}
+
+### Habitat models and mapped layers {.unnumbered}
+
+The clean + year model used gradient-boosted trees [XGBoost; @chen2016xgboost] to predict the problematic-density indicator from the clean stack and survey year. The RG + year model added the five ReefGuide predictors. These cull-trained models learned from locations selected by crews, often following manta evidence, so their scores reflect the program's sampling footprint as well as habitat. The operational refits used 1,500 boosting rounds, a learning rate of 0.00137382379588326, maximum tree depth 5, minimum child weight 20 and gamma $10^{-10}$, retaining the archived hyperparameters. These settings were not retuned on the evaluation reefs.
+
+The primary search-planning layer used RG + year where available and clean + year elsewhere, calibrated onto the RG probability scale before combining them. Each 30 m cell was then ranked within its reef polygon, with map priority classes for the top 10%, 10–20% and 20–30%. RG + year covered `r p0(pick(lcov, layer_id = "legacy_rg_year2026", col = "fraction"))` of the reef-polygon support cells used in the coverage analysis. Of the mapped reefs, `r int(sum(rsrc$source == "RG only"))` used RG alone, `r int(sum(rsrc$source == "mixed"))` mixed the two sources and `r int(sum(rsrc$source == "clean fallback only"))` used the clean fallback alone.
+
+Manta-trained XGBoost models used the RG stack and the same boosting settings. Predictor values were averaged along each tow. A model with survey year was compared with a model designed specifically to rank locations within reef-years. For the latter, the logit of the reef-year's strong-tow proportion, with a half-count correction, entered training as a fixed offset and survey year was omitted. The offset was omitted when predicting relative habitat scores because it was constant within a reef-year. The resulting map represents relative log-odds, not an annual occurrence probability. The cull-trained and manta-trained ranks were also compared as an average rank and as separate terms in the evidence model.
+
+The hierarchical model of species communities [HMSC; @ovaskainen2017hmsc; @tikhonov2020hmsc] related cull, SALAD and RHIS responses jointly to habitat at 120 m, conditional on an active reef-year, and supplied explanatory habitat effects and uncertainty. Production fits used four chains, each retaining 1,000 samples at thinning 30 after 5,000 transient iterations. All components passed the convergence gates (smallest effective sample size `r int(min(hsum$min_ess))`, against a minimum of 400; largest upper potential scale reduction factor `r a3(max(hsum$max_psrf_upper))`, against a maximum of 1.1).
+
+An additional layer represented known aggregation sites using a Gaussian kernel of the problematic rate in earlier active cull site-years (σ = 500 m). Its rate *H* and evidence weight *W* updated the HMSC habitat probability *p* as (κ*p* + *WH*)/(κ + *W*), with κ = 2 for the fixed-setting comparison. History and dive effort were interpreted as records of past finds and crew targeting, rather than independent habitat evidence.
+
+### How habitat and recent observations determine a cull-site rank {.unnumbered}
+
+A site's score is:
+
+$$
+\begin{aligned}
+s_i &= \beta_0+\beta_H H_i+\beta_P P_i+\beta_Q Q_i+\beta_R R_i\\
+&\quad+\beta_E\log(1+E_i)+\beta_M\log(1+M_i)+\beta_T\log(1+T_i).
+\end{aligned}
+$$
+
+Here $H_i$ is the mean habitat score inside site $i$, ranked among designated sites on its reef. $P_i$ records whether any recent dive there reached CPUE ≥0.02; $Q_i$ records a searched site where none did. $R_i$ is the distance-weighted proportion of nearby dives reaching ≥0.02; $E_i$ is the weighted count of dives. $M_i$ and $T_i$ are weighted counts of strong-evidence and all nearby manta tows. Nearby records receive decreasing weights out to 900 m. Coefficients ($\beta$) were estimated jointly from dive outcomes at ≥0.02, rather than assigned as rules. All sites were ordered by decreasing score on each reef. Appendix B gives the distance equation, coefficients, missing-data treatment and priority classes.
+
+Here $H_i$ is the mean habitat score inside site $i$, ranked among designated sites on its reef. $P_i$ records whether any recent dive there reached CPUE ≥0.02; $Q_i$ records a searched site where none did. $R_i$ is the distance-weighted proportion of nearby dives reaching ≥0.02; $E_i$ is the weighted count of dives. $M_i$ and $T_i$ are weighted counts of strong-evidence and all nearby manta tows. The fitted response was whether a dive reached CPUE ≥0.02; reassessment at >0.04 changed the evaluation target, not this model. The habitat term $H_i$ was the mean deployed habitat score over a site's polygon, converted to a percentile among designated sites on the reef. A missing habitat rank was replaced by 0.5. The operational product used the cull-trained habitat layer with its full-extent fallback, without a second manta-habitat term.
+
+Recent dive and tow records were represented at dive coordinates and tow midpoints. Missing dive coordinates used a representative point inside the matched site. For site $i$ and nearby record $j$, the spatial weight was:
+
+$$
+w_{ij}=\begin{cases}
+\exp\left[-d_{ij}^{2}/\{2(300\,\mathrm{m})^{2}\}\right], & d_{ij}\leq900\,\mathrm{m},\\
+0, & d_{ij}>900\,\mathrm{m}.
+\end{cases}
+$$
+
+Distances were measured from the site's representative interior point in GDA2020 / MGA zone 55. The calculation considered at most the 400 nearest records in each data stream. $E_i=\sum_j w_{ij}$ was the weighted number of dive records, not minutes of bottom time. $R_i=\sum_j w_{ij}y_j/E_i$, where $y_j=1$ for CPUE ≥0.02, was their weighted positive proportion. The analogous tow sums supplied $T_i$ for all records and $M_i$ for strong evidence (a direct COTS sighting, multiple counted scars or legacy common scars). Searches with no strong evidence contributed to effort but not to the positive sum. There was no additional age weighting within the evidence window.
+
+The direct-site indicators were $P_i=1$ if any recent dive assigned to that site reached ≥0.02, and $Q_i=1$ if the site was dived but none reached that threshold. Both were zero for an undived site. Where no nearby dives were available, $R_i$ and $E_i$ were zero; absent tows gave $M_i=T_i=0$. With no recent evidence, the score therefore reduced to the intercept plus habitat term. No evidence was treated differently from a searched site with a quiet result.
+
+The coefficients were estimated jointly by logistic regression. They are conditional associations, not independent bonuses or penalties. @tbl-ranking-coefficients records the final 2027 coefficients; the forward evaluation estimated a different coefficient set using only years preceding each test year.
+
+```{r}
+#| label: tbl-ranking-coefficients
+#| tbl-cap: "Coefficients used in the 2027 cull-site score, fitted to the archived ≥0.02 dive response. Inputs and transformations match the score equation above. These coefficients describe the deployed fit, not the separately fitted forward-validation years."
+rank_terms <- c("(Intercept)","habitat","site_problematic_prev","site_quiet_prev","cull_rate","log_cull_effort","log_manta_strong","log_manta_effort")
+stopifnot(identical(as.character(src$term),rank_terms))
+knitr::kable(data.frame(Input=c("Intercept","Within-reef habitat rank","Any ≥0.02 dive at this site","Dived here, none ≥0.02","Nearby ≥0.02 dive proportion","log(1 + weighted dive count)","log(1 + weighted strong tow count)","log(1 + weighted total tow count)"),
+ Symbol=c("β₀","βH","βP","βQ","βR","βE","βM","βT"),Coefficient=num(src$estimate,3),check.names=FALSE),row.names=FALSE)
+```
+
+The logistic transform $p_i=1/(1+\exp[-s_i])$ expresses the fitted probability of a ≥0.02 outcome conditional on diving there. Rankings use $s_i$, so the transform does not change their order. This is not a probability of an irruption or of presence at an unvisited site. In the deployed product, sites are sorted from highest to lowest score on each reef, using higher cull-habitat rank to break score ties. Descending rank divided by the reef's site count defines A (≤0.2), B (>0.2 to 0.5), C (>0.5 to 0.66), D (>0.66 to 0.8) and E (>0.8); retaining A–D selects floor(0.8 × site count). Until 2 November 2026 the product had four classes, with C covering 0.5 to 0.8 and D the bottom 20%; C was split at 0.66 so that the workflow's dive rule could use the top two-thirds. Scores and ranks were unchanged, and earlier "A–C" results in review copies correspond to A–D here. Pop-up evidence labels describe the records; they do not override the fitted score. Historical evaluation retains the archived random tie order.
+
+For validation, prior evidence came from the preceding calendar season. The 2027 product instead used the latest complete 365-day window, 1 June 2025–31 May 2026, and coefficients fitted on `r int(src$training_dives[1])` dives from `r src$training_years[1]`. The search tool is therefore a habitat ranking updated with both positive and negative operational evidence, and its effort terms also encode where crews chose to work.
+
+### Evaluation design {.unnumbered}
+
+Operational discrimination was measured among locations on the same reef in the same year. Within reef-year AUC compared positive and negative locations only within those groups; an AUC of 0.5 indicated no discrimination. Top-20% lift was the share of positives in the highest-ranked fifth divided by 0.2. These metrics were supplemented by the outcomes retained when effort was reduced.
+
+For operational habitat comparisons, reefs were assigned to five folds and every reef was scored by a model refitted without any reefs in its fold [@roberts2017cv]. The pipeline calls this leave-reef-out validation; it is grouped five-fold validation, rather than one refit per reef. In the season-by-season test, the evidence regression for each test year from 2019 to 2026 was fitted only on earlier dive outcomes, while its habitat covariates were the reef-held-out ranks, whose fits were not restricted to earlier years. Rankings were compared at matched retention, because evidence could move both problematic and low-density dives upwards. The >0.04 reassessment rescored the saved rankings without refitting.
+
+Manta aggregations were connected groups of strong-evidence tow midpoints linked within 500 m in a survey (reef and date); successive links could join a group wider than 500 m. The principal aggregation analysis required at least two strong tows, with isolated records examined separately. Surveys required at least five scored tows and some strong evidence. An aggregation was retained if at least one of its tows was kept. This measured retention of observed aggregation evidence under retrospective thinning.
+
+Each thinning strategy kept the same number of tows per survey, over retained shares from 90% to 30%. Random thinning used the exact hypergeometric expectation; systematic thinning kept evenly spaced positions, averaged over 20 starting offsets. Recorded tow order was unavailable, so sequence was approximated by bearing from the survey centre.
+
+The manta-effort estimate split straight tow segments at designated-site boundaries. A portion could be deferred only if it lay within designated sites and all sites sharing it were deferred; parts outside designated sites remained surveyed. The whole-tow metric counted only segments entirely deferred. These estimates describe spatial scope for reducing recorded surveillance, conditional on still diving selected sites; no tow-to-dive detection model, route feasibility or vessel-time saving was inferred.
+
+Uncertainty intervals used paired bootstrap resamples of reef-years for tow and cull metrics, or surveys for aggregation retention. Operational spatial comparisons used 500 resamples; the season-by-season site-ranking test used 200. The same resampled units were used across scores to preserve paired comparisons.
+
+### Exploration zones {.unnumbered}
+
+Exploration zones were drawn from 30 m cells 0.5–16 m deep, more than 100 m from designated cull sites and more than 150 m from manta tows in the preceding five seasons. Habitat was the mean of the primary-layer and manta-model percentiles, with the primary layer alone where manta scores were missing. It was smoothed with a 150 m moving mean (5 × 5 cells) and re-ranked within the reef. Eligible cells in the reef's top 40, 30, 20 and 10% formed four nested bands. Each band's outline was closed and opened by 30 m, smoothed, cleared of holes smaller than 0.5 ha, clipped to the reef outside cull sites, and stripped of pieces smaller than 0.5 ha. An earlier version picked up to ten discrete areas per reef; those areas did not differ clearly from the ground around them, because the habitat layers rank places within a reef only weakly. The zones instead show all rarely searched ground that looks like habitat, shaded darker where habitat ranks higher.
+
+### Limits of the search evaluation {.unnumbered}
+
+The search evaluation used outcomes from dives crews chose to make. It cannot establish densities at never-dived sites or the consequences of changing crew behaviour. Reefs without recent observations depend mainly on habitat, where discrimination is weak. Spatially held-out habitat scores reduce bias from scoring a reef with its own training data, but the season-by-season evidence test did not also restrict the habitat fits to preceding years. The evidence regression was tested forward in time; the entire combined modelling process was not a fully prospective forecast.
+
+Spatial coverage also limits interpretation. The primary habitat layer joins models with different predictor coverage, and their rankings differ near that boundary. The explanatory joint habitat model relies heavily on fallback predictors in some regions. Values from the manta-trained model away from tow paths are extrapolations, including in parts of the exploration zones. The retrospective thinning result also depends on an inferred order around the reef, which may be less suitable for surveys that do not follow the perimeter. None of the proposed 2027 products has yet demonstrated its performance in a field trial.
+
+{{< pagebreak >}}
+
+## Appendix C: Detailed search results {.unnumbered}
+
+These comparisons support the highlights in the main Results. Results at ≥0.02 retain the original response, and results at >0.04 are the separate management assessment. Comparisons summarised in a sentence here have their full tables in `outputs/tables/`.
+
+### Habitat layers {.unnumbered}
+
+![**Across the GBR, the habitat layers mainly show regional differences.** (**a**) Clean + year and (**b**) RG + year, the annual probability of a problematic cull site-year in 2026 from the two cull-trained layers, and (**c**) the HMSC joint layer, conditional on an active reef-year, shown as cell means at about 2.9 km with each colour scale stretched over its 2nd–98th percentiles. Gaps in RG + year are reefs without ReefGuide layers, filled by the clean + year fallback in the primary search-planning layer.](../outputs/figures/fig01_gbr_overview.png){#fig-overview width="100%"}
+
+Imagery attribution for the map figures: Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community.
+
+```{r}
+#| label: tbl-manta
+#| tbl-cap: "Discrimination between strong-evidence and strictly negative manta tows within reef-years. Manta tows were not used to fit any of these layers. Lift is the share of strong-evidence tows in a reef-year's top 20% of tows, divided by 20%. Intervals are 95% bootstrap intervals over reef-years."
+knitr::kable(data.frame(
+  Layer = mic$layer,
+  `Within reef-year AUC (95% CI)` = sprintf("%s (%s–%s)", a3(mic$within_reef_year_auc), a3(mic$auc_low), a3(mic$auc_high)),
+  `Top-20% lift (95% CI)` = sprintf("%s (%s–%s)", a2(mic$top20_lift), a2(mic$lift_low), a2(mic$lift_high)),
+  check.names = FALSE), align = "lll")
+```
+
+The layers agree only in part on which cells rank highest. Median within-reef Spearman correlations were `r a2(pick(la, pair = "Clean + year vs RG + year", col = "median"))` between clean + year and RG + year, `r a2(pick(la, pair = "Clean + year vs HMSC joint", col = "median"))` between clean + year and HMSC, and `r a2(pick(la, pair = "RG + year vs HMSC joint", col = "median"))` between RG + year and HMSC. Where both cull-trained layers exist, the fallback and RG rankings correlate at `r a2(fbc$spearman)`, so ranks near the RG coverage boundary within a reef are less reliable.
+
+Used alone to rank all designated sites on a reef, the held-out habitat layer retained problematic dives only slightly faster than low-density or ghost dives. Searching the top 70% of sites retained `r cip(cs("problematic_dives_kept", 0.7), cs("problematic_dives_kept", 0.7, col = "low"), cs("problematic_dives_kept", 0.7, col = "high"))` of problematic dives. A ranking with no information would have retained `r p1(cs("dives_kept", 0.7))`. Within reef-years, the AUC was `r a2(pick(csa, period = "2018-2026", score = "leave-reef-out", col = "auc_problematic_vs_low"))` for problematic versus low-density dives and `r a2(pick(csa, period = "2018-2026", score = "leave-reef-out", col = "auc_problematic_vs_ghost"))` versus ghost dives. The in-sample layer looked stronger (`r a2(pick(csa, period = "2018-2026", score = "deployed", col = "auc_problematic_vs_low"))` and `r a2(pick(csa, period = "2018-2026", score = "deployed", col = "auc_problematic_vs_ghost"))`) only because it had been trained on those dives.
+
+### Recent evidence and cull-site selection {.unnumbered}
+
+Over 2019–2026 (`r int(fw_dives)` dives in `r int(fw_ry)` reef-years), keeping 90% of dives above 0.04 required searching `r hdci("sites_searched", 0.9)` of designated sites with the recent-evidence ranking, against `r p1(hd("sites_searched", 0.9, "habitat"))` for habitat alone and `r p1(hd("sites_searched", 0.9, "random"))` at random. Deferring class E on every reef kept `r occi("high_retained")` of those dives, against `r occi("high_retained", "random")` for the same number of randomly chosen sites. The ranking avoided `r p1(oc("low_avoided"))` of low-density and `r p1(oc("ghost_avoided"))` of ghost dives, close to the `r p1(oc("low_avoided", "random"))` and `r p1(oc("ghost_avoided", "random"))` at random, while retaining more high-density dives. Its value therefore lies in protecting productive dives while avoiding about as many empty ones as random selection. These savings are against random selection, not current practice; the workflow back-test in the main Results is the fairer test.
+
+In the original ≥0.02 evaluation, adding last season's cull dives and manta tows to habitat reduced the search needed for the same problematic dives (@tbl-evidence). Held out over 2018–2026 (`r int(ev_dives)` dives in `r int(ev_ry)` reef-years), with 90% of problematic dives retained, designated sites searched fell from `r p0(ev("sites_searched", 0.9, "habitat"))` to `r p0(ev("sites_searched", 0.9, "combined"))`, and all paired intervals excluded zero. Most of the reduction came from ranking quiet and never-dived sites lower: among dives actually made, discrimination between problematic and low-density dives rose only from `r a2(pick(eauc, window = "last_season", subset = "all", score = "habitat", col = "auc_problematic_vs_low"))` to `r a2(pick(eauc, window = "last_season", subset = "all", score = "combined", col = "auc_problematic_vs_low"))`. In the fitted model, strong manta tows or problematic dives nearby raised a site's rank, and a site dived the previous season with nothing problematic dropped sharply.
+
+```{r}
+#| label: tbl-evidence
+#| tbl-cap: "Habitat-only ranking → habitat plus previous-season evidence, compared at matched retention of problematic dives (CPUE ≥0.02; held out). Brackets: 95% paired bootstrap interval of the difference, in percentage points."
+cell <- function(metric, r, period) sprintf("%s → %s (%s)", p0(ev(metric, r, "habitat", period)), p0(ev(metric, r, "combined", period)),
+  gpp(ev(metric, r, "combined", period, "gain_low"), ev(metric, r, "combined", period, "gain_high")))
+rows <- expand.grid(r = c(0.9, 0.8), period = c("2018-2026", "2022-2026"), stringsAsFactors = FALSE)
+knitr::kable(data.frame(
+  Period = sub("-", "–", rows$period),
+  `Problematic dives kept` = p0(rows$r),
+  `Designated sites searched` = mapply(cell, "sites_searched", rows$r, rows$period),
+  `Low-density dives avoided` = mapply(cell, "low_dives_avoided", rows$r, rows$period),
+  `Ghost dives avoided` = mapply(cell, "ghost_dives_avoided", rows$r, rows$period),
+  check.names = FALSE), row.names = FALSE, align = "lllll")
+```
+
+The evidence model was also tested using earlier seasons to predict later ones. Its habitat models were withheld by reef but were not restricted to earlier years. It avoided more low-density dives than habitat alone in every season from 2022, and searched fewer sites in every season from 2023 (@tbl-seasons). It did not help in 2019–2021, when fewer earlier seasons were available to learn from.
+
+```{r}
+#| label: tbl-seasons
+#| tbl-cap: "Year-by-year forward test of the cull-site ranking with 90% of problematic dives (CPUE ≥0.02) retained. Each season uses an evidence model fitted only on earlier seasons, with habitat models withheld by reef. Values are habitat alone → cull-trained habitat + last season's evidence (all earlier seasons)."
+periods <- c(as.character(2019:2026), "2019-2026")
+lab <- c(as.character(2019:2025), "2026 (Jan–May)", "2019–2026")
+arrow <- function(p, metric, f = p0) sprintf("%s → %s", f(fw("habitat_only", metric, p)), f(fw("cull_all", metric, p)))
+knitr::kable(data.frame(
+  `Test season` = lab,
+  Dives = vapply(periods, function(p) int(fw("cull_all", "sites_searched_at_90", p, "dives")), ""),
+  `Cull sites selected` = vapply(periods, arrow, "", metric = "sites_searched_at_90"),
+  `Low-density dives avoided` = vapply(periods, arrow, "", metric = "low_dives_avoided_at_90"),
+  `AUC, problematic vs low-density` = vapply(periods, arrow, "", metric = "auc_problematic_vs_low", f = a2),
+  check.names = FALSE), row.names = FALSE, align = "lrlll")
+```
+
+A caveat applies to all cull-site results. A ranking is credited when it agrees with where crews chose to dive. Crews already use the previous season's knowledge, so part of the gain formalises current practice. COTS densities at designated sites that were never dived cannot be verified from these data.
+
+### Retention of dives above 0.04 CPUE and tow effort {.unnumbered}
+
+The acceptable loss makes a large difference (@tbl-search-highlights, @fig-high-density). Retaining 99% of >0.04 dives required `r hdci("sites_searched", 0.99)` of site-years with the combined ranking, leaving much less scope to avoid low-density and ghost dives. The proposed 10–15% search reduction therefore cannot be assumed compatible with negligible omissions; the allowed omission rate must be agreed and tested in the field.
+
+```{r}
+#| label: tbl-search-highlights
+#| tbl-cap: "Cull sites selected for dives and low-density or ghost dives avoided, 2019–2026. Upper rows fix retention of >0.04 CPUE dives; final rows fix the A–D site count and report retention. Percentages [95% reef-year bootstrap intervals]. Sites are candidate site-years, including never-dived sites, rather than confirmed culling visits. Low-density means positive CPUE <0.02; ghost means zero; intermediate dives (0.02–0.04 inclusive) are separate. Appendix B gives validation details; @tbl-manta-effort gives manta effort. Annual follow-up is excluded."
+highlight_rows <- expand.grid(target = c(0.8, 0.9, 0.95, 0.99), score = c("habitat", "combined", "random"), stringsAsFactors = FALSE)
+highlight_rows <- highlight_rows[order(highlight_rows$target, highlight_rows$score), ]
+highlight_metric <- function(metric) vapply(seq_len(nrow(highlight_rows)), function(i) {
+  x <- highlight_rows[i, ]
+  sprintf("%.1f [%.1f–%.1f]", 100 * hd(metric, x$target, x$score),
+    100 * hd(metric, x$target, x$score, col = "low"), 100 * hd(metric, x$target, x$score, col = "high"))
+}, character(1))
+highlight_table <- data.frame(
+  `High-density retained (%)` = as.character(100 * highlight_rows$target),
+  Ranking = c(combined = "Habitat + recent observations", habitat = "Habitat alone", random = "Random selection")[highlight_rows$score],
+  `Sites selected for cull dives (%)` = highlight_metric("sites_searched"),
+  `Low-density avoided (%)` = highlight_metric("low_avoided"),
+  `Ghost dives avoided (%)` = highlight_metric("ghost_avoided"),
+  check.names = FALSE)
+opsc <- c("combined", "habitat", "random")
+opcell <- function(metric) vapply(opsc, function(s) sprintf("%.1f [%.1f–%.1f]", 100 * oc(metric, s), 100 * oc(metric, s, "low"), 100 * oc(metric, s, "high")), "")
+operational_rows <- data.frame(opcell("high_retained"),
+  c("A–D: habitat + recent observations", "A–D count: habitat alone", "A–D count: random selection"),
+  opcell("sites_selected"), opcell("low_avoided"), opcell("ghost_avoided"), check.names = FALSE)
+names(operational_rows) <- names(highlight_table)
+knitr::kable(rbind(highlight_table, operational_rows), row.names = FALSE)
+```
+
+![**Recent evidence keeps more high-density dives for the same search, but savings shrink as retention tightens.** Share of dives above 0.04 COTS per minute kept against the share of designated site-years searched, 2019–2026, for habitat alone (orange), habitat plus the previous season's cull dives and manta tows (blue), and random selection of the same number of sites on each reef (grey, dashed). Bands are 95% reef-year bootstrap intervals; dotted lines mark 80%, 90%, 95% and 99% retention, and the diamond marks the exact A–D cut-off used for the priority classes in @fig-2027 and the final rows of @tbl-search-highlights. Habitat fits were held out by reef, while the evidence regression used earlier seasons. Follow-up surveys were not evaluated.](../outputs/figures/fig20_high_density_retention.png){#fig-high-density width=100%}
+
+At the A–D cutoff the ranking deferred `r odci("all_dives_avoided")` of recorded dives, compared with `r odci("all_dives_avoided", "random")` under random site selection, because it retained more repeatedly visited sites. It retained `r odci("intermediate_retained")` of dives from 0.02 to 0.04. Of its `r int(sum(opbreakdown$deferred_dives))` deferred dives, `r p1(od("quiet_share_deferred"))` were ghost or low-density, compared with `r p1(od("quiet_share_deferred", "random"))` under random selection. Equal candidate-site counts did not represent equal dive effort (@tbl-operational-highlights).
+
+```{r}
+#| label: tbl-operational-highlights
+#| tbl-cap: "The site rule (retain classes A–D, defer E) and the workflow under within-reef classes, 2019–2026. Percentages [95% reef-year bootstrap intervals]. Site-rule columns: both rankings select the same candidate-site count, not the same recorded dive count; tow rows are conditional spatial estimates before annual checks and exploration. Workflow columns: dives on 1,876 reef visits with a manta survey, ranked at voyage departure; open-site and strong-evidence dives are kept and only the other dives are ranked (A–C retained); the random column skips the same number of those dives at random. Workflow dive rows use the dive rule alone; the workflow tow row is tows skipped by the follow-up zone with season memory, as a share of all tows made, and Appendix D combines the two. Upper rows use all sites, dives or dives in the stated CPUE class as their denominator; lower rows describe deferred dives and sum to 100% in each column. The density-aware results are in Appendix D."
+op_metrics <- c("sites_selected","all_dives_avoided","high_retained","intermediate_retained","low_avoided","ghost_avoided","manta_tows_avoided","manta_distance_avoided",
+ "share_deferred_ghost","share_deferred_low","share_deferred_intermediate","share_deferred_high")
+op_labels <- c("Candidate cull sites selected","All recorded dives avoided","Dives above 0.04 CPUE retained","Dives at 0.02–0.04 CPUE retained","Low-density dives avoided (0 < CPUE <0.02)","Ghost dives avoided (CPUE = 0)","Whole manta tows potentially avoided","Manta distance potentially avoided",
+ "Ghost: CPUE = 0","Low: 0 < CPUE <0.02","Intermediate: 0.02 ≤ CPUE ≤0.04","High: CPUE >0.04")
+op_value <- function(m,score,col) if(m %in% opcut$metric) oc(m,score,col) else od(m,score,col)
+op_format <- function(score) vapply(op_metrics, function(m) sprintf("%.1f [%.1f–%.1f]",100*op_value(m,score,"value"),100*op_value(m,score,"low"),100*op_value(m,score,"high")),"")
+wf_map <- c(sites_selected=NA,all_dives_avoided="dives_avoided_pct",high_retained="high_missed_pct",intermediate_retained="inter_missed_pct",
+ low_avoided="low_avoided_pct",ghost_avoided="ghost_avoided_pct",manta_tows_avoided="tows_saved_pct",manta_distance_avoided=NA,
+ share_deferred_ghost="share_deferred_ghost",share_deferred_low="share_deferred_low",share_deferred_intermediate="share_deferred_intermediate",
+ share_deferred_high="share_deferred_high")
+wf_format <- function(variant) vapply(op_metrics, function(m) {
+  k <- wf_map[[m]]
+  if (is.na(k) || (variant == RWF && k == "tows_saved_pct")) return("—")
+  v <- if (variant == WF && k == "tows_saved_pct") WFZ else variant
+  x <- c(ps(v, k), ps(v, k, "low"), ps(v, k, "high"))
+  if (m %in% c("high_retained", "intermediate_retained")) x <- 1 - x[c(1, 3, 2)]
+  sprintf("%.1f [%.1f–%.1f]", 100 * x[1], 100 * x[2], 100 * x[3])
+}, "")
+op_rows <- data.frame(Outcome=op_labels,`Site rule: habitat + recent observations`=op_format("combined"),`Site rule: random sites`=op_format("random"),
+ `Workflow: A–C for dives without strong evidence`=wf_format(WF),`Workflow: same dives at random`=wf_format(RWF),check.names=FALSE)
+op_rows <- rbind(op_rows[1:8,],setNames(data.frame("**Composition of deferred dives**","","","",""),names(op_rows)),op_rows[9:12,])
+knitr::kable(op_rows,row.names=FALSE)
+```
+
+At the same cutoff, `r occi("manta_tows_avoided")` of recorded tows lay entirely within deferred-only sites, and `r occi("manta_distance_avoided")` of straight-line tow distance lay within those sites. Both estimates keep surveillance outside designated sites and in any overlap with retained sites, and neither establishes detection after removing that surveillance.
+
+The spatial effort estimate (@tbl-manta-effort) used `r int(opcover$manta_valid_segments)` valid tow segments from `r int(opcover$manta_reef_years)` of the `r int(opcover$reef_years)` evaluated reef-years. Designated sites contained `r p1(opcover$distance_inside_sites)` of the valid distance, and surveillance outside that footprint remains in the calculation at every cutoff.
+
+```{r}
+#| label: tbl-manta-effort
+#| tbl-cap: "Potential manta-surveillance reductions paired with @tbl-search-highlights, before annual checks or exploration. Upper rows use the stated dive-retention targets; final rows fix the A–D site count. Percentages [95% reef-year bootstrap intervals] refer to whole recorded tows or total straight-line segment distance. Surveillance outside designated sites and in overlaps with retained sites remains. These spatial effort proxies assume retained cull visits still occur; detection after tow removal, route feasibility and time savings are untested."
+manta_rows <- data.frame(Rule = paste0(c(80,90,95,99), "% dive retention"),
+  Ranking = "Habitat + recent observations", stringsAsFactors = FALSE)
+for(metric in c("manta_tows_avoided", "manta_distance_avoided")) {
+  vals <- vapply(c(.8,.9,.95,.99), function(t) sprintf("%.1f [%.1f–%.1f]", 100 * om(metric,t), 100 * om(metric,t,col="low"), 100 * om(metric,t,col="high")), "")
+  manta_rows[[metric]] <- vals
+}
+manta_op <- data.frame(Rule = "A–D site count", Ranking = c("Habitat + recent observations", "Habitat alone", "Random selection"),
+  manta_tows_avoided = opcell("manta_tows_avoided"), manta_distance_avoided = opcell("manta_distance_avoided"))
+manta_table <- rbind(manta_rows, manta_op)
+names(manta_table)[3:4] <- c("Whole manta tows avoided (%)", "Manta tow distance avoided (%)")
+knitr::kable(manta_table, row.names = FALSE)
+```
+
+### Cull history and reefs without recent evidence {.unnumbered}
+
+Problematic sites persist between seasons at a scale of about 0.5–1 km. In the strictly forward test, the blend of habitat and cull history reached a within reef-year AUC of `r ci3(fvh("combined_fixed"), fvh("combined_fixed", col = "auc_low"), fvh("combined_fixed", col = "auc_high"))`, against `r a3(fvh("habitat"))` for habitat alone (@tbl-forward). It reached `r a3(fvh("combined_fixed", "with nearby history"))` with history nearby and `r a3(fvh("combined_fixed", "new sites"))` at sites never culled before. Part of the skill reflects operator behaviour: a score based only on how often crews had dived a site reached `r a3(fvh("effort"))`. This layer is therefore delivered as a map of **known aggregation sites** for briefing crews, not as habitat.
+
+```{r}
+#| label: tbl-forward
+#| tbl-cap: "Forward validation: within reef-year AUC for problematic cull site-years, test years 2022–2026 pooled. Each score uses only data from before the test year. The deployed blend's 95% bootstrap interval over reef-years is given for all site-years."
+meth <- c(habitat = "Habitat (HMSC refitted before test year)", habitat_context = "Habitat + reef context",
+          effort = "Dive effort only", history_fixed = "History kernel", combined_fixed = "Habitat + history (deployed)")
+subs <- c("all", "with nearby history", "little or no nearby history", "new sites")
+tf <- do.call(rbind, lapply(names(meth), function(m) {
+  v <- vapply(subs, function(s) a3(fvh(m, s)), "")
+  v[1] <- if (m == "combined_fixed") ci3(fvh(m), fvh(m, col = "auc_low"), fvh(m, col = "auc_high")) else v[1]
+  data.frame(Score = meth[[m]], t(v), check.names = FALSE)
+}))
+names(tf)[-1] <- sprintf("%s (n = %s)", c("All site-years", "With nearby history", "Little or none", "New sites"),
+                         vapply(subs, function(s) int(fvh("habitat", s, col = "site_years")), ""))
+knitr::kable(tf, row.names = FALSE, align = "lllll")
+```
+
+Recent evidence is unevenly spread. `r p0(1 - pick(ecov, window = "last_season", col = "share_reef_any_prev"))` of reef-years were on reefs not visited the season before. On those reefs (`r int(nv_dives)` dives) every ranking was close to chance (AUC about `r a2(pick(eauc, window = "last_season", subset = "reef not visited", score = "combined", col = "auc_problematic_vs_low"))`), and habitat was the only information available.
+
+Habitat also reaches ground that recent search has not covered. A tow was counted as *new ground* if no tow lay within 300 m in the previous five seasons. On new ground, the manta model ranked tows with a within reef-year AUC of `r ci3(pick(eng, ground = "new ground", score = "manta_within", metric = "auc", col = "value"), pick(eng, ground = "new ground", score = "manta_within", metric = "auc", col = "low"), pick(eng, ground = "new ground", score = "manta_within", metric = "auc", col = "high"))`, and the cull-trained layer at `r a2(pick(eng, ground = "new ground", score = "cull", metric = "auc", col = "value"))`. Strong evidence was more common on new ground than on repeat ground (`r p1(pick(eng, ground = "new ground", score = "cull", metric = "auc", col = "strong_share"))` vs `r p1(pick(eng, ground = "repeat ground", score = "cull", metric = "auc", col = "strong_share"))` of tows), partly because new ground is often surveyed early in an irruption. This is the basis for the exploration zones in the 2027 product.
+
+### Manta surveillance {.unnumbered}
+
+Systematic thinning found the most aggregations at every level of effort (@tbl-thinning, @fig-aggregations-detail). The largest cut that still found at least 95% of aggregations was `r p0(mx("systematic_point"))` of tows for systematic thinning (`r p0(mx("systematic_assured"))` with bootstrap assurance), `r p0(mx("random_point"))` for random thinning and `r p0(mx("layer_cv_point"))` for thinning by habitat rank. Ranking concentrates the kept tows in a few high-scoring stretches of reef, so aggregations in low-scoring stretches are missed entirely.
+
+```{r}
+#| label: tbl-thinning
+#| tbl-cap: "Share of COTS aggregations (two or more strong-evidence tows within 500 m) still found when manta tows are cut within each survey, all years. The layer is the cull-trained RG + year model scored leave-reef-out; the deployed column is the same layer scored in-sample. Brackets: 95% bootstrap interval over surveys."
+k <- c(0.8, 0.7, 0.6, 0.5)
+knitr::kable(data.frame(
+  `Tows kept` = p0(k),
+  `Layer, held out` = sprintf("%s (%s–%s)", vapply(k, function(x) p1(ag(x, "layer_cv")), ""),
+                              vapply(k, function(x) p1(ag(x, "layer_cv_low")), ""), vapply(k, function(x) p1(ag(x, "layer_cv_high")), "")),
+  `Layer, deployed` = vapply(k, function(x) p1(ag(x, "layer_deployed")), ""),
+  Random = vapply(k, function(x) p1(ag(x, "random")), ""),
+  Systematic = vapply(k, function(x) p1(ag(x, "systematic")), ""),
+  check.names = FALSE), align = "lllll")
+```
+
+![**Evenly spaced manta tows find more aggregations than habitat-ranked tows.** (**a**) Share of aggregations (two or more strong-evidence tows within 500 m in one survey) still found as tows are cut within each survey, for evenly spaced thinning (black squares), random thinning (grey triangles, dashed) and thinning by the cull-trained habitat layer (orange), either held out by reef (filled circles, with a 95% bootstrap band over surveys) or scored in-sample (open circles, dashed). An aggregation counts as found if any of its tows is kept; the dotted line marks 95%. (**b**) Share found with 60% of tows kept, by the number of strong-evidence tows in the aggregation; a single tow is an isolated record.](../outputs/figures/fig13_manta_aggregation_cv.png){#fig-aggregations-detail width="100%"}
+
+A habitat model trained on manta tows ranked held-out tows best (@tbl-mantamodel), but still found fewer aggregations than random (`r p1(pick(mra, strategy = "random", keep = 0.6, col = "found"))`) or systematic thinning (`r p1(pick(mra, strategy = "systematic", keep = 0.6, col = "found"))`), so its role is to direct extra tows rather than to remove them. Training on manta did not improve cull-site selection: once last season's evidence was added, every habitat model gave the same result.
+
+```{r}
+#| label: tbl-mantamodel
+#| tbl-cap: "Cull-trained and manta-trained habitat models on held-out manta tows (all three fitted on the same leave-reef-out folds). AUC: strong-evidence vs strictly negative tows within reef-years, with 95% bootstrap intervals. Aggregations: share found at 60% of tows kept."
+mods <- c(cull = "Cull-trained", manta = "Manta-trained (with year)", within = "Manta-trained, within reef-year")
+strat <- c(cull = "cull_cv", manta = "manta_cv", within = "within_cv")
+knitr::kable(data.frame(
+  Model = unname(mods),
+  `Tow AUC (95% CI)` = vapply(names(mods), function(m) sprintf("%s (%s–%s)", a3(mt(m, "auc")), a3(mt(m, "auc", "low")), a3(mt(m, "auc", "high"))), ""),
+  `Top-20% lift` = vapply(names(mods), function(m) a2(mt(m, "lift")), ""),
+  `Aggregations found, 60% kept` = vapply(names(mods), function(m) p1(pick(mra, strategy = strat[[m]], keep = 0.6, col = "found")), ""),
+  check.names = FALSE), row.names = FALSE, align = "llll")
+```
+
+### The 2027 priority classes {.unnumbered}
+
+Every designated cull site (`r int(n_sites)` sites on `r int(n_reefs)` reefs) was ranked within its reef for the 2027 season, using the combined model with the most recent 12 months of evidence. The ranking is delivered as a CSV and as the EoTR cull-site KMZ, with each polygon coloured by priority class. Each polygon also carries its rank, its modelled chance of a problematic dive if dived, and last season's evidence. @tbl-classes shows what each class kept in the forward test.
+
+```{r}
+#| label: tbl-classes
+#| tbl-cap: "Original ≥0.02 evaluation: 2027 priority classes and what searching through each class retained in the forward test (dives 2019–2026)."
+knitr::kable(data.frame(
+  `Searching through` = c("A", "A + B", "A to C", "A to D", "All (incl. E)"),
+  `Sites on the reef` = c("top 20%", "top 50%", "top 66%", "top 80%", "100%"),
+  `Problematic dives kept` = p0(cls$problematic_dives_kept),
+  `Low-density dives avoided` = p0(cls$low_dives_avoided),
+  `Ghost dives avoided` = p0(cls$ghost_dives_avoided),
+  check.names = FALSE), row.names = FALSE, align = "lllll")
+```
+
+- **Evidence ranks the top.** `r int(n_probev)` sites had a problematic dive last season and `r int(n_mantaev)` have strong manta evidence nearby.
+- **Evidence also lowers sites.** `r int(n_quiet)` sites were dived last season with nothing problematic, which strongly lowers their rank.
+- **Habitat ranks the rest.** `r int(n_noev)` sites (`r p0(n_noev / nrow(pri))`) are on reefs with no dives or tows in the last 12 months. Habitat alone orders them, as a first search order to update once manta tows come in.
+
+The exploration zones add high-ranked habitat outside the current search footprint (@fig-2027), so that the ranking does not keep consolidating search on the same places. The broadest band (top 40% of habitat) covers `r int(nrow(expz_band(0.6, identity)))` reefs, with a median of `r num(expz_band(0.6, function(d) median(d$area_ha)), 0)` ha per reef; the top-10% band covers `r int(nrow(expz_band(0.9, identity)))` reefs, with a median of `r num(expz_band(0.9, function(d) median(d$area_ha)), 0)` ha. On well-surveyed reefs such as Batt and Eyrie, cull sites and five seasons of tows already cover much of the high-ranked habitat, and the zones lie mostly on the reef flat and back reef. The larger opportunities are on reefs with little recent towing. A crew can tow across the darkest band on a visit and record nil results as well as finds.
+
+### Three alternatives to the cull-site ranking {.unnumbered #sec-ranking-alternatives}
+
+Three alternatives were specified before fitting. The first replaced the direct-site indicator of any preceding-season dive at ≥0.02 with any dive strictly above 0.04. The second added a recency-weighted site CPUE (90-day half-life) and its effective number of recent dives. The third used the same recent evidence but replaced mean habitat with the 90th percentile of predictions within the site. All three still learned the ≥0.02 response, with coefficients refitted only on years preceding each test year, and were scored on the same `r int(rscope("evaluated_dives"))` dives. A separate control refitted the original model using the all-cell mean of habitat.
+
+At matched 90% high-density retention, recent CPUE avoided `r rkci("dives_avoided")` of recorded dives, versus `r rkci("dives_avoided","archived")` with the incumbent (@tbl-ranking-candidate-matched). Its paired gain was `r rdci("dives_avoided")` percentage points, and the interval included zero. When recorded-dive coverage was matched to the incumbent's A–D budget, recent CPUE retained `r rkci("high_retained",rule="matched_dives",target=.8)` of high-density dives versus `r rkci("high_retained","archived","matched_dives",.8)`; that paired gain, `r rdci("high_retained",rule="matched_dives",target=.8)` percentage points, also remained uncertain.
+
+```{r}
+#| label: tbl-ranking-candidate-matched
+#| tbl-cap: "Candidate rankings at 90% retention of >0.04 dives, 2019–2026. Percentages [95% intervals]; differences are percentage points [paired 95% intervals] relative to the incumbent. This comparison uses integer site counts at 1% cutoff steps and first-crossing interpolation, so incumbent values can differ slightly from @tbl-search-highlights. The all-cell mean is a sampling control, not a fourth alternative."
+rk_models <- names(rk_labels)
+rk_cells <- function(metric,rule="A-C",target=.8,period="2019-2026") vapply(rk_models,function(m)
+ sprintf("%.1f [%.1f–%.1f]",100*rk(metric,m,rule,target,period),100*rk(metric,m,rule,target,period,"low"),100*rk(metric,m,rule,target,period,"high")),"")
+rk_changes <- vapply(rk_models,function(m) if(m %in% c("archived","random")) "—" else rdci("dives_avoided",model=m),"")
+knitr::kable(data.frame(Ranking=unname(rk_labels[rk_models]),`Candidate sites selected (%)`=rk_cells("sites_selected","matched_high",.9),
+ `Recorded dives avoided (%)`=rk_cells("dives_avoided","matched_high",.9),`Change in dive avoidance (points)`=rk_changes,check.names=FALSE),row.names=FALSE)
+```
+
+Upper habitat percentiles did not improve the habitat-only ranking: within reef-year AUC for useful dives was `r a3(rk("auc_useful","h_mean","habitat_only",0))` for the mean, `r a3(rk("auc_useful","h_q50","habitat_only",0))` for the median and `r a3(rk("auc_useful","h_q90","habitat_only",0))` for the 90th percentile. This does not rule out real habitat hotspots; it shows that favouring the best-valued part of a designated site did not improve this operational assessment.
+
+No candidate met the pre-specified strong replacement gate: at least a one-point improvement in the primary recorded-dive trade-off, paired support against both controls, and gains sustained recently without loss of useful-dive retention. Recent CPUE had the best point estimates, so a separate experimental layer in `outputs/site_ranking_candidates/` is supplied for field comparison; the incumbent files and default selection are unchanged.
+
+{{< pagebreak >}}
+
+## Appendix D: On-water workflow, density-aware classes and field trial {.unnumbered #sec-workflow-appendix}
+
+The workflow was developed with GBRMPA in late October and early November 2026, after the original objectives were set, to translate the site ranking into decisions for a reef visit. It responds to GBRMPA's earlier ad hoc analysis of feeding-scar triggers. Scripts 33–37 (and 20b) produce every number below. The recommended settings, chosen after the 5 November 2026 delivery workshop, are density-aware v2 classes, a dive rule at A–D and a follow-up tow zone at A–C. Earlier settings are kept below because they show how that choice was reached. The workflow has not been trialled.
+
+### Definitions {.unnumbered}
+
+| Term | Definition used in the back-test |
+| --- | --- |
+| Strong evidence | A tow recording at least one COTS, two or more counted feeding scars, or scars recorded as common in legacy surveys |
+| Weak evidence | No COTS, and exactly one counted scar or scars recorded as present |
+| Negative tow | No COTS and no feeding scars |
+| Linked site | A designated site within 100 m of a tow's straight-line track |
+| Open site | The last dive at the site in the previous 365 days exceeded 0.04 CPUE |
+| Follow-up visit | A later visit to a reef already visited in the same season |
+| Tow zone | A–C sites under the v2 classes, open sites and (with season memory) sites within 100 m of a strong tow on an earlier visit that season; a tow is in the zone if it passes within 100 m of a zone site |
+| Dive rule | A dive without strong evidence nearby is made only at sites ranked A–D under the v2 classes at voyage departure |
+| Density-aware classes | The same order of sites on each reef, with class shares that grow or shrink with the reef's expected density (below) |
+| Density-aware v2 | Classes from each site's chance of a problematic dive, given the reef's recent density and the site's own record of dives and tows; reefs without recent evidence keep density quotas (below) |
+
+: Definitions used in the workflow back-test. {#tbl-workflow-definitions}
+
+A dive whose only nearby strong tows were skipped by the zone counted as missed. Guiding tows were those on the reef from 30 days before a visit's first dive to its last dive, in recorded order; each tow belonged to the earliest visit whose window held it. Only runs of three or more consecutive tows outside the zone were skipped.
+
+### Results under each setting {.unnumbered}
+
+```{r}
+#| label: tbl-workflow-settings
+#| tbl-cap: "Workflow settings under within-reef classes, back-tested on 2019–2026 reef visits. Percentages are of all tows made, and of all ghost, low-density and above-0.04 dives under current practice; the mean CPUE has a 95% reef-year bootstrap interval. 'Ghost per miss' is ghost dives avoided per dive above 0.04 missed. The random row skips the same number of dives at random among those without strong evidence. COTS forgone remain available at the next visit."
+wf_rows <- c("Site rule A–D, all dives" = SR, "Evidence rule: skip weak-scar dives" = "evidence rule: skip weak-scar dives",
+             "Evidence rule: dive only on strong evidence" = "evidence rule: skip all non-strong dives",
+             "Dive rule A–D" = "dive rule A-D", "Dive rule A–C" = WF, "Same number as A–C, at random" = RWF, "Dive rule A–B" = "dive rule A-B",
+             "Tow zone, follow-up visits" = "zone only", "Tow zone with season memory" = "zone with season memory",
+             "Dive rule A–C + follow-up tow zone" = WFZ)
+has_ps <- function(v, m) any(pst$variant == v & pst$metric == m & pst$scope == "all visits")
+cellp <- function(v, m) if (has_ps(v, m)) sprintf("%.1f", 100 * ps(v, m)) else "—"
+cellci <- function(v, m, d = 3) if (has_ps(v, m)) sprintf("%s [%s–%s]", num(ps(v, m), d), num(ps(v, m, "low"), d), num(ps(v, m, "high"), d)) else "—"
+knitr::kable(data.frame(
+  Setting = names(wf_rows),
+  `Tows saved (%)` = vapply(wf_rows, cellp, "", m = "tows_saved_pct"),
+  `Dives skipped (%)` = vapply(wf_rows, cellp, "", m = "dives_avoided_pct"),
+  `Ghost avoided (%)` = vapply(wf_rows, cellp, "", m = "ghost_avoided_pct"),
+  `Low-density avoided (%)` = vapply(wf_rows, cellp, "", m = "low_avoided_pct"),
+  `>0.04 missed (%)` = vapply(wf_rows, cellp, "", m = "high_missed_pct"),
+  `Mean CPUE of missed >0.04` = vapply(wf_rows, cellci, "", m = "cpue_missed_high_mean"),
+  `Ghost per miss` = vapply(wf_rows, function(v) if (has_ps(v, "ghost_per_high_missed")) num(ps(v, "ghost_per_high_missed"), 1) else "—", ""),
+  `COTS forgone (%)` = vapply(wf_rows, cellp, "", m = "cots_forgone_pct"),
+  check.names = FALSE), row.names = FALSE, align = "lrrrrrlrr")
+pzmd <- tab("protocol_zone_missed_dives.csv")
+pzmd_lost <- as.logical(pzmd$memory_lost)
+```
+
+The dive-rule rows back-test towing as it was recorded, so they save no tows. The zone acts on different dives, those that relied on a strong tow, so its effects add to the dive rule's rather than competing with it. In the last row, the zone's `r int(ps("zone with season memory", "high_missed"))` additional missed dives above 0.04 over eight seasons are the cost of skipping `r p0(ps(WFZ, "tows_saved_follow_up_pct"))` of follow-up tows. The back-test counts all of them as missed; `r int(sum(pzmd_lost & pzmd$class %in% c("D", "E")))` of the `r int(sum(pzmd_lost))` were at sites ranked D or E, which the dive rule would not dive without strong evidence.
+
+Among dives without strong evidence on 2020–2026 visits, those the recommended A–D rule would skip had a lower share above 0.04 (`r p1(cpf(TRUE, "high_share"))`) than those it kept (`r p1(cpf(FALSE, "high_share"))`), and a higher ghost share (`r p1(cpf(TRUE, "ghost_share"))` versus `r p1(cpf(FALSE, "ghost_share"))`). The trial decision rule below compares these two shares.
+
+### Where ghost dives came from {.unnumbered}
+
+```{r}
+#| label: tbl-workflow-pools
+#| tbl-cap: "Recorded dives on 2019–2026 reef visits, by why the site could have been chosen. Weak-scar, negative and no-tow groups are classed by the strongest guiding tow within 100 m. AUC compares dives above 0.04 with ghost dives within visits, using the ranking at voyage departure."
+pool_ids <- c("Open site" = "open", "Strong tow within 100 m" = "tow-triggered", "Weak-scar tow only" = "other: weak-scar tow",
+              "Negative tows only" = "other: negative tows only", "No guiding tow within 100 m" = "other: no guiding tow")
+knitr::kable(data.frame(
+  `Why the site was dived` = names(pool_ids),
+  Dives = vapply(pool_ids, function(p) int(mzp(p, "dives")), ""),
+  `Above 0.04 (%)` = vapply(pool_ids, function(p) sprintf("%.0f", 100 * mzp(p, "high") / mzp(p, "dives")), ""),
+  `Ghost dives` = vapply(pool_ids, function(p) int(mzp(p, "ghost")), ""),
+  `Ghost rate (%)` = vapply(pool_ids, function(p) sprintf("%.0f", 100 * mzp(p, "ghost") / mzp(p, "dives")), ""),
+  `AUC, >0.04 vs ghost` = vapply(pool_ids, function(p) num(mzp(p, "auc_high_vs_ghost"), 2), ""),
+  check.names = FALSE), row.names = FALSE, align = "lrrrrr")
+```
+
+Sites with no tow nearby were productive: skipping all of them would have lost `r int(ps("skip no-tow dives", "high_missed"))` dives above 0.04 to avoid `r int(ps("skip no-tow dives", "ghost_avoided"))` ghost dives. The dive rule therefore leaves them, like weak-evidence and negative-tow sites, to crew discretion within the permitted classes.
+
+### The follow-up tow zone {.unnumbered}
+
+Without season memory, the zone's `r int(ps("zone only", "high_missed"))` missed dives above 0.04 were concentrated: `r int(pzm$dives[1])` of them were at one site on `r sub(" [(].*", "", pzm$reef_name[1])` in `r pzm$year[1]`, holding `r p0(pzm$cots_share[1])` of the missed COTS, at CPUE up to `r num(pzm$max_cpue[1], 1)`. A strong tow on the season's first visit had flagged that site, but the ranking placed it in the lowest class. Keeping sites near earlier strong tows in the zone reduced the misses to `r int(ps("zone with season memory", "high_missed"))`. @fig-workflow-map shows the zone and recent tows on four reefs, under the density-aware v2 classes described below.
+
+![**On a follow-up visit, crews tow the A–C zone and make dives without strong evidence only at A–D sites.** Batt, Eyrie, Big Broadhurst and Lady Musgrave reefs, with cull sites coloured by their 2027 density-aware v2 class ([density-aware v2](#sec-density-v2)). The white dashed outline is the v2 follow-up tow zone (A–C sites plus 100 m), to which open sites and sites near earlier strong tows are added on the day. Purple shading shows the exploration zones (darker is better-ranked habitat). Cyan lines are tows with strong evidence in the 12 months to 31 May 2026; light lines are other tows. Each reef's expected share of problematic dives and its class counts are in @tbl-density-workflow and the 2027 product files. Imagery: Esri World Imagery. The map illustrates the rules; it does not show measured performance on these reefs.](../outputs/figures/fig22_protocol_batt_eyrie.png){#fig-workflow-map width="100%"}
+
+### Density-aware classes {.unnumbered #sec-density-classes}
+
+The within-reef classes give every reef the same shares of sites: A 20%, A–B 50%, A–C 66% and A–D 80%. A reef with few COTS therefore has as many A sites as a reef in active irruption. The density-aware classes keep each reef's order of sites and change only how many of them reach each class. Script 20b calculates them in three steps.
+
+First, a logistic model estimates the chance $p_{rj}$ that a dive at site $j$ on reef $r$ is problematic (CPUE ≥0.02):
+
+$$
+\begin{aligned}
+\mathrm{logit}\,p_{rj} &= \gamma_0+\gamma_1 h_{rj}+\gamma_2 D_r+\gamma_3\,\mathrm{logit}\frac{k_r+0.5}{n_r+1}+\gamma_4\log(1+n_r)\\
+&\quad+\gamma_5 T_r+\gamma_6\,\mathrm{logit}\frac{m_r+0.5}{t_r+1}+\gamma_7\,\mathrm{logit}\,F_r .
+\end{aligned}
+$$
+
+Here $h_{rj}$ is the site's percentile on its reef in the cull-site ranking. $n_r$ and $k_r$ are the reef's dives and problematic dives in the evidence window, and $t_r$ and $m_r$ its manta tows and strong-evidence tows; $D_r$ and $T_r$ indicate whether there were any. $F_r$ is the reef's irruption probability in the GBR-wide forecast for the previous year [@stewart2026hybrid].
+
+Second, the reef's density $\bar p_r$ is the mean of $p_{rj}$ over its designated sites. Reefs with no dives or tows in the window are set by the forecast alone, discounted by the chance that such a reef needed culling at all; about one in five such reef-years had a problematic dive.
+
+Third, the reef's class shares are shifted on the odds scale by its density relative to a typical culled reef:
+
+$$
+\delta_r=\mathrm{logit}\,\bar p_r-\mathrm{logit}\,\bar p_{\mathrm{typ}},\qquad
+s_{rk}=\mathrm{logit}^{-1}\!\left(\mathrm{logit}\,b_k+\delta_r\right),
+$$
+
+where $b_k$ is the within-reef share for class $k$ or better (0.2, 0.5, 0.66, 0.8) and $\bar p_{\mathrm{typ}}$ is the median density over culled reef-years (`r num(sdk("typical_culled_reef_density"), 2)` for 2027). The site ranked $i$ of $n$ on its reef is in class $k$ or better when $(i-0.5)/n\le s_{rk}$. A typical reef keeps the within-reef shares.
+
+For each test season, 2020–2026, the model, the unknown-reef discount and the typical density were refitted on earlier seasons only. In the cull-site selection test, at the same total number of sites as within-reef A–C, density-aware classes retained `r sdci("scaled", "ac_high_kept")` of dives above 0.04, against `r sdci("within", "ac_high_kept")`, but avoided fewer low-density dives at that budget (`r p1(sdv("scaled", "ac_low_avoided"))` against `r p1(sdv("within", "ac_low_avoided"))`). Only dived reefs could be scored, so the test says nothing about reefs never culled, where the forecast alone sets the classes.
+
+### Density-aware v2 {.unnumbered #sec-density-v2}
+
+Checks against reefs the program knows well showed two weaknesses in the first version. Big Broadhurst had `r int(v2rv("18-100a", "problematic_dives_12m"))` problematic dives out of `r int(v2rv("18-100a", "dives_12m"))` in the 12-month window, nearly all from the June–October 2025 voyages, and few since. The window counted them in full, giving a density of `r num(v2rv("18-100a", "reef_density_v1"), 2)`. John Brewer had `r int(v2rv("18-075", "dives_12m"))` dives, none problematic, and `r int(v2rv("18-075", "tows_12m"))` tows without a strong scar. It still scored `r num(v2rv("18-075", "reef_density_v1"), 2)`, because the model learned only from reef-years that crews chose to dive. Script 36 tested alternatives in the 2020–2026 back-test. Script 37 writes the chosen one, density-aware v2, as a separate 2027 product.
+
+*Reef density.* Each dive and tow in the year before planning is weighted by $0.5^{a/90}$, where $a$ is its age in days. The reef's density is the product of two logistic models with the reef terms of the first version. The first gives the chance that a survey occasion needs culling, meaning that a problematic dive follows. It is fitted on every cull-site reef's survey occasions, defined as dive and tow records split at gaps of more than 10 days, so tow-only surveys that found nothing count as zeros. The second gives the share of a cull visit's dives that were problematic. Ranked by this density, dives on 2020–2026 visits had a pooled AUC of `r num(dav("recent, two-part"), 3)`, against `r num(dav("density-aware"), 3)` for the first version. Half-lives of 60 to 180 days gave `r num(dav("sensitivity: half-life 60 d, two-part"), 3)`–`r num(dav("sensitivity: half-life 180 d, two-part"), 3)`; 90 days was set before the comparison. Without the irruption forecast, the results barely changed (@tbl-density-layers).
+
+*Site classes.* On reefs with dives or tows in the past year, each site's score is the sum of two site-level log odds, the second at half weight:
+
+$$
+\mathrm{score}_{rj}=\mathrm{logit}\,p^{\mathrm{dive}}_{rj}+0.5\,\mathrm{logit}\,p^{\mathrm{visit}}_{rj}.
+$$
+
+Both models use the reef's log-odds density, the site's logit rank on its reef and the site's own record: dives at designated sites within 300 m and tows within 100 m, recent (90-day half-life within a year) and from one to six years before. $p^{\mathrm{dive}}$ is the chance that a dive at the site is problematic, fitted on dives. $p^{\mathrm{visit}}$ is the chance that the site received a problematic dive on a visit, fitted on every designated site of earlier visits, so it partly encodes where crews chose to dive. A site with no tow within 100 m in the past year is given the average recent strong-tow rate of the reef's towed sites. Without that rule, untowed lagoon patches outranked towed ground with strong scars, as on Tongue and John Brewer reefs. The A–B tow zone saved `r p1(pdv(V2, "A-B", "none", "tows_saved_follow_up_pct"))` of follow-up tows and missed `r int(pdv(V2, "A-B", "none", "high_missed"))` dives above 0.04 with the rule, against `r p1(pdv(V2A, "A-B", "none", "tows_saved_follow_up_pct"))` and `r int(pdv(V2A, "A-B", "none", "high_missed"))` without it; some untowed ground did hold aggregations. Class cut-offs are set on the training seasons' designated sites so that A, A–B, A–C and A–D hold 20, 50, 66 and 80% of them. Reefs without recent dives or tows keep the density quotas, using the v2 density, with sites ordered by the score.
+
+```{r}
+#| label: tbl-density-layers
+#| tbl-cap: "Class layers compared at matched effort, 2020–2026 back-test. Each layer's dive-rule and tow-zone results are interpolated to a common point. Ghost and low-density dives avoided are read where 3% of dives above 0.04 are missed. Dives above 0.04 missed are read where 14% of dives are skipped. Zone misses are dives above 0.04 lost where 12% of follow-up tows are saved. Brackets: 95% bootstrap interval over reef-years."
+dl_rows <- c(`Within-reef` = "within-reef", `Density-aware v1 (12 months, dived reef-years)` = "density-aware",
+             `Recent two-part density` = "recent, two-part", `Recent two-part, no forecast` = "recent, two-part, no forecast",
+             `v2 before the untowed rule` = V2A, `Density-aware v2` = V2)
+ci_txt <- function(l, m, scale = 100, d = 1) sprintf("%s (%s–%s)", num(scale * dlmv(l, m), d), num(scale * dlmv(l, m, "low"), d),
+                                                    num(scale * dlmv(l, m, "high"), d))
+knitr::kable(data.frame(Layer = names(dl_rows),
+                        `Ghost avoided (%)` = vapply(dl_rows, ci_txt, "", m = "ghost_avoided_at_3pct_missed"),
+                        `Low-density avoided (%)` = vapply(dl_rows, ci_txt, "", m = "low_avoided_at_3pct_missed"),
+                        `>0.04 missed (%)` = vapply(dl_rows, ci_txt, "", m = "high_missed_at_14pct_skipped", d = 2),
+                        `Zone misses` = vapply(dl_rows, ci_txt, "", m = "zone_missed_at_12pct_tows_saved", scale = 1),
+                        check.names = FALSE), row.names = FALSE, align = "lrrrr")
+```
+
+Density-aware v2 was best on the two dive-rule measures. Paired with the first version, it avoided more ghost dives (`r dlmd(V2, "ghost_avoided_at_3pct_missed")`) and missed fewer dives above 0.04 (`r dlmd(V2, "high_missed_at_14pct_skipped")`), although the second interval just reaches zero. The weight of 0.5 was chosen on these test seasons from a grid of 0.5 to 5, so the margin is somewhat optimistic. Larger weights kept long-clean parts of dense reefs lower but missed more dives above 0.04 and lost tow-zone performance.
+
+```{r}
+#| label: tbl-density-workflow
+#| tbl-cap: "The workflow under within-reef, density-aware (v1) and density-aware v2 classes, back-tested on 2020–2026 reef visits. Zones include season memory; dive rules apply to dives without a strong tow within 100 m, with weak-scar, negative-only and no-tow sites left to crew discretion in the stated classes. Percentages are of follow-up tows and of all dives in each class under current practice. 'Ghost per miss' is ghost dives avoided per dive above 0.04 missed; @fig-ghost-per-miss shows the random baseline."
+dw_rows <- data.frame(
+  setting = c("Tow zone A–B", "Tow zone A–C", "Dive rule A–C", "Dive rule A–D", "Zone A–B + dive rule A–C", "Zone A–C + dive rule A–D"),
+  zone = c("A-B", "A-C", "none", "none", "A-B", "A-C"),
+  rule = c("none", "none", "A-C", "A-D", "A-C", "A-D"),
+  evidence = c("none", "none", rep("discretion at A-x", 4)))
+dw_tab <- do.call(rbind, lapply(c("within-reef", "density-aware", V2), function(ly) {
+  v <- function(m) vapply(seq_len(nrow(dw_rows)), function(i) pdv(ly, dw_rows$zone[i], dw_rows$rule[i], m, evidence = dw_rows$evidence[i]), 0)
+  gpm <- v("ghost_per_high_missed")
+  data.frame(Classes = c("Within-reef", "Density-aware v1", "Density-aware v2")[match(ly, c("within-reef", "density-aware", V2))],
+             Setting = dw_rows$setting,
+             `Follow-up tows saved (%)` = sprintf("%.1f", 100 * v("tows_saved_follow_up_pct")),
+             `Dives skipped (%)` = sprintf("%.1f", 100 * v("dives_avoided_pct")),
+             `>0.04 missed` = sprintf("%s (%.1f%%)", int(v("high_missed")), 100 * v("high_missed_pct")),
+             `Ghost avoided (%)` = sprintf("%.1f", 100 * v("ghost_avoided_pct")),
+             `Low-density avoided (%)` = sprintf("%.1f", 100 * v("low_avoided_pct")),
+             `Ghost per miss` = ifelse(is.finite(gpm), num(gpm, 1), "—"),
+             check.names = FALSE)
+}))
+knitr::kable(dw_tab, row.names = FALSE, align = "llrrrrrr")
+```
+
+The table covers `r int(pdtot$visits)` visits, `r int(pdtot$follow_up_visits)` of them follow-up visits. Reefs revisited within a season were usually denser than typical, so density-aware zones were larger on follow-up visits. These numbers cover 2020–2026 and differ slightly from the 2019–2026 back-test above. Requiring at least a weak scar for every dive added misses almost as fast as at random, because dives at sites with no tow nearby were often productive. Density-aware v2 classes are stricter: the same cut-off skips more dives, which is why the dive rule moved to A–D under them.
+
+@fig-ghost-per-miss compares ghost dives avoided per dive above 0.04 missed across the dive rules, the evidence-only rules and the random baseline. Rules that use evidence alone, such as diving only where tows found strong evidence, do no better than skipping dives at random. Every class-based rule does better than random, and v2 with the dive rule at A–D does best.
+
+![**Class-based dive rules avoid more empty dives for each high-density dive missed than rules based on tow evidence alone.** Ghost dives avoided per dive above 0.04 missed in the 2020–2026 back-test, for rules based on tow evidence alone (dark grey), the same number of dives skipped at random among dives without strong evidence (light grey; dashed line), and dive rules under within-reef (blue), density-aware v1 (purple) and density-aware v2 (green) classes, alone and with the follow-up tow zone. Whiskers are 95% intervals over 300 reef-year resamples; the three options with the highest ratio are outlined. The dives missed by each setting are in @tbl-density-workflow.](../outputs/figures/fig34_ghost_per_miss.png){#fig-ghost-per-miss width="100%"}
+
+*Dense reefs.* On a dense reef, every version lifts most sites into A–C, including parts that tows have long found clean. Batt Reef's north-eastern flank is an example. It had `r int(bflv(V2, "tows_since_2019", "NE"))` tows since 2019, `r p1(bflv(V2, "strong_share", "NE"))` of them with a strong scar, against `r p1(bflv(V2, "strong_share", "SW"))` on the south-western flank. In 2027 it has `r int(bflv("within-reef", "a_to_c", "NE"))` of its `r int(bflv(V2, "sites", "NE"))` sites in A–C under the within-reef classes, `r int(bflv("density-aware", "a_to_c", "NE"))` under the first version and `r int(bflv(V2, "a_to_c", "NE"))` under v2; the site visit model alone gives `r int(bflv("two-part, site visit model", "a_to_c", "NE"))`. The back-test does not support holding such ground down. On test visits to reefs denser than typical, `r int(dclv("site_visits"))` site-visits were at sites with at least five tows and no strong scar or dive in the previous one to six years. When crews dived them, `r p0(dclv("problematic"))` of `r int(dclv("dives"))` dives were problematic and `r int(dclv("high"))` were above 0.04. Long-clean tow records were a weak guide to the next season. This season's tows, through the tow zone and season memory, carry that information instead.
+
+*2027.* The v2 product has `r int(v2cl("all reefs", "density_v2_a"))` A sites and `r int(v2cl("all reefs", "density_v2_a_to_c"))` A–C sites, against `r int(v2cl("all reefs", "density_v1_a_to_c"))` A–C under the first version and `r int(v2cl("all reefs", "within_a_to_c"))` within reefs. Big Broadhurst's density is `r num(v2rv("18-100a", "reef_density_v2"), 2)`, with `r int(v2rv("18-100a", "priority_a") + v2rv("18-100a", "priority_b") + v2rv("18-100a", "priority_c"))` A–C sites against `r int(v2rv("18-100a", "density_v1_a_to_c"))`. John Brewer's is `r num(v2rv("18-075", "reef_density_v2"), 2)`, with no A site and `r int(v2rv("18-075", "priority_b") + v2rv("18-075", "priority_c"))` B–C sites against `r int(v2rv("18-075", "density_v1_a_to_c"))` A–C. Reefs with tows but no dives in the past year have `r p0(v2cl("manta tows", "density_v2_a_to_c") / v2cl("manta tows", "sites"))` of sites in A–C. These rest on the site models; the back-test can score them only where crews later dived.
+
+### Field trial and monitoring {.unnumbered #sec-monitoring}
+
+```{r}
+#| label: tbl-workflow-voyage
+#| tbl-cap: "What a voyage held, 2024–2026 seasons: median and 10th–90th percentile range. Tows are those made on the voyage; dives are at designated sites."
+voy_rows <- c("Reefs visited" = "reefs", "Follow-up reefs" = "follow_up_reefs", "Manta tows" = "all_tows",
+              "Tows on follow-up reefs" = "follow_up_tows", "Tows the v2 A–C zone with season memory would skip" = "tows_saved_memory",
+              "Cull dives" = "dives", "Dives above 0.04" = "high", "Ghost dives" = "ghost",
+              "Dives the v2 A–D rule would skip" = "flagged")
+knitr::kable(data.frame(
+  `Per voyage` = names(voy_rows),
+  Median = vapply(voy_rows, function(q) num(cpv(q), 0), ""),
+  Range = vapply(voy_rows, function(q) sprintf("%s–%s", num(cpv(q, "p10"), 0), num(cpv(q, "p90"), 0)), ""),
+  check.names = FALSE), row.names = FALSE, align = "lrr")
+```
+
+A single voyage cannot test the dive rule. Resampling past voyages, the rule's skipped dives showed a lower share above 0.04 than its kept dives in `r p0(cpt(1))` of single voyages and `r p0(cpt(25))` of 25-voyage sets; `r p0(cpt(1, "p_none_flagged"))` of single voyages had no skipped dive at all. The proposed trial therefore has two parts:
+
+1. **One live voyage** with at least three follow-up reefs. Freeze the ranking at departure. On follow-up reefs, tow the zone first and the rest of the reef afterwards, so ground is towed once and anything found only outside the zone is recorded. Flag dives the rule would skip and make them last, so their outcomes are kept. Record towing times, overrides and crew feedback. Proceed if the maps arrive before departure, crews can apply the rules without disrupting the schedule, the zone saves towing time and the rest of the reef finds no more dives above 0.04 than the back-test suggests.
+2. **A season of shadow recording.** Freeze the ranking before every voyage and change nothing on the water. After each voyage, score what the rule would have done from normal tow and dive records. Adopt the dive rule if, after about 25 voyages, skipped dives have a lower share above 0.04 and a higher ghost share than kept dives.
+
+[TO CONFIRM: trial voyage, decision thresholds, monitoring owner and reporting route agreed with GBRMPA and vessel operators.]
+
+The trial should compare outcomes with the search order crews would normally use. Its proposed adoption targets are a 10–15% reduction in designated sites requiring manta tows on individual visits and a 10–15% reduction in low-density or empty dives, with a negligible share of dives above 0.04 missed. Dives from 0.02 to 0.04 are reported separately. The retrospective reassessment does not establish both reductions at an agreed omission rate. [TO CONFIRM: the numerical tolerance for missed dives above 0.04 and whether reductions are measured per visit or over the full season.]
+
+Sites deferred on one visit may be searched later, so initial site reductions cannot be read as annual time savings. Full-season effort must include annual full surveys, pre-closure and triggered checks, repeat dives and exploration visits. Annual full-coverage surveys and pre-closure checks offer chances to find missed populations, but their recovery rate has not been measured and later detections may be newly developed populations. Independent checks of a sample of deferred sites during the initial visit would help estimate the false-negative rate. Translating gains into vessel time or money requires an agreed account of travel, search, diving and culling time. [TO CONFIRM: whether to estimate financial savings and which operational cost data to use.]
+
+{{< pagebreak >}}
+
+## Appendix E: Larval dispersal and population modelling {.unnumbered #sec-connectivity-appendix}
+
+### Hydrodynamic and particle transport model {.unnumbered}
+
+A three-dimensional hydrodynamic model was developed using COMPAS–EMS to simulate circulation in the far northern Great Barrier Reef (FNGBR). The model domain extends from 14.254°S to 15.794°S and from 145.047°E to 145.766°E.
+
+The model was nested within the 4 km resolution eReefs Great Barrier Reef hydrodynamic model (GBR4, version H4p0), which provided initial conditions and open-boundary forcing for currents, sea level, temperature and salinity, including tidal variability. Surface fluxes were calculated using atmospheric forcing from the Bureau of Meteorology Atmospheric high-resolution Regional Reanalysis for Australia (BARRA). Freshwater discharge and temperature inputs for two rivers were derived from a combination of the Queensland Department of Environment and Science Source catchment model and river gauge observations.
+
+The model simulation covered 20 November 2022 to 1 April 2023, encompassing the COTS spawning period. The unstructured mesh was generated using JIGSAW [@engwirda2018primaldual], with spatially varying resolution to represent complex reef topography and narrow channels. The mesh comprised 45,756 cells, with horizontal resolution ranging from 160 to 1,300 m. Bathymetry was derived from the 30 m resolution dataset of @beaman2017gbr30.
+
+Model performance was assessed against available observations of currents, sea level, temperature and salinity in the region. Observational datasets included:
+
+- the Queensland Integrated Marine Observing System (IMOS) shelf-slope mooring east of Lizard Island, using temperature, salinity and current records from the GBRLSL-2209 and GBRLS-2303 deployments (AODN data catalogue);
+- Australian Institute of Marine Science (AIMS) temperature logger records (AIMS temperature data);
+- EcoRAP temperature logger records.
+
+Particle dispersal was simulated using COMPAS in transport mode. Particles were distributed across potential COTS habitat at a prescribed density per unit area. Each release comprised 2,519,724 particles, with releases occurring every two hours over a 24-hour period on 1, 7, 14, 21 and 28 December 2022 and on the same dates in January 2023. Particles were tracked for 45 days, with positions recorded hourly and saved in NetCDF format.
+
+Daily mean larval concentrations were compared at ages 5, 9 and 10 days across the `r int(lc_scope$releases)` releases. Values were averaged by area to sub-reef sites and reefs, then ranked within releases. These ranks describe relative exposure, without identifying origins, settlement or source-to-destination connectivity.
+
+The connectivity method is summarised in [the larval-modelling Methods](#sec-hydro-connectivity-methods).
+
+### Larval settlement and concentration {.unnumbered}
+
+As larval competency before 17 days was not measured, we assumed a minimum time to competency of 12 days post-fertilisation. The remaining fitted parameters of the survivorship and competency models are detailed in the Supplementary Materials of @stewart2026dispersal, and the model fits are shown in Figure 2 of that paper.
+
+These functions were sampled repeatedly for each particle trajectory to produce a set of windows in which each simulated larva was both alive and competent, including samples that produced no such window. Where a window existed, the larva settled at the first sub-reef polygon it entered. Because sub-reef sites are small and clustered, no settlement radius was applied: larvae were considered settled only if they passed within a sub-reef site boundary, not within a given distance of it.
+
+The concentration comparisons describe exposure, rather than source-to-destination exchange, at larval ages 5, 9 and 10 days across `r int(lc_scope$releases)` releases. Concentrations around Lizard varied among release dates, and elevated early-age concentrations in some releases did not consistently persist to later ages.
+
+![**Persistent day-10 larval hotspots lay mostly on mid-shelf reefs south of the Lizard Island group.** Persistence of simulated larval-concentration hotspots at day 10, (**a**) across the model domain and (**b**) around Lizard Island. Colour shows the proportion of releases in which a sub-reef site ranked in the highest fifth of concentration within that release. The dashed box marks the enlarged area; grey shows land. This reformats concentration figure lc2 from the project analysis. High concentration does not by itself establish local retention, source strength or settlement.](../outputs/figures/fig28_larval_hotspot_persistence.png){#fig-larval-hotspots width="100%"}
+
+The broad north–south gradient makes an overall Lizard-versus-other-reefs contrast difficult to interpret. Comparing cross-shelf positions within latitude bands gives a more useful view (@fig-larval-cross-shelf). The central Ribbon Reefs generally ranked below nearby mid-shelf reefs at the later ages, whereas the southern Ribbon Reefs did not show the same pattern. Latitude bands reduce the influence of the broad gradient but do not remove all spatial dependence or possible boundary effects.
+
+These results describe one spawning season. The local analysis plan calls for source-to-destination matrices for individual releases, explicit checks of sources and losses at the model boundary, and comparisons against connections based on distance alone. Those tests are needed before attributing concentration patterns to retention within reef groups, interpreting Ribbon Reef isolation, or using the patterns to identify reefs for source control. Exploratory reef-label permutations in the source analysis did not account for spatial autocorrelation; their p-values are not used here as confirmatory evidence. [TO CONFIRM: concentration units and source-buffer coverage with Sev and Owen.]
+
+![**Later-age larval concentrations were generally higher on mid-shelf reefs than on the Ribbon Reefs at similar latitudes.** Cross-shelf concentration ranks within latitude bands, with the northern band at the top. Each point is a reef, showing its mean within-release rank over the simulated releases; the horizontal line marks rank 0.5. Columns show larval age and colours identify shelf zones. This reformats source figure lc6. Broad latitude bands aid comparison but do not eliminate domain-boundary effects or spatial dependence.](../outputs/figures/fig30_larval_cross_shelf.png){#fig-larval-cross-shelf width="100%"}
+
+### Population model and calibration {.unnumbered}
+
+The strategic modelling strand extended COTSMod [@matthews2020cotsmod] through the Julia package COTSMod.jl, coupled to ADRIA and the CoralBlox coral model [@cotsmodmethods2026; @adriamethods2026; @dealmeida2026coralblox]. COTSMod.jl supplied population transitions, coral predation and larval processes; ADRIA supplied the spatial domain, disturbance forcing and scenario execution. The prototype used the Lizard Island cluster, with 2,895 sub-reef sites on 113 reefs (@fig-metapop-concept). Historical simulations beginning in 1991 were assessed against AIMS Long-Term Monitoring Program (LTMP) manta COTS and coral records on Lizard Island, Eyrie, MacGillivray and North Direction reefs. The model state was expressed as recruit, juvenile and adult densities per hectare of site area, with coral cover represented relative to habitable area.
+
+The working COTS formulation combines preferred-first per-capita grazing, survival linked to remembered preferred coral cover, adult senescence and preferred-food effects on reproductive condition. Larval production includes a low-density Allee effect, juvenile survival includes a saturating predator-pit term, and larvae are transported using reef-level connectivity and supplied from outside the domain. External supply is derived from the reef-level irruption-probability hindcast [@stewart2026hybrid]; its production multiplier is a calibration assumption, not measured recruitment. [TO CONFIRM: source and attribution of the annual 2018–2022 connectivity matrices.] Simulated adult density is converted to manta CPUE through a linear observation model, *CPUE* = *qA*, with *A* in adults ha$^{-1}$ and *q* = 0.015 COTS tow$^{-1}$ per adult ha$^{-1}$; nonlinear alternatives failed regional checks.
+
+Since the earlier snapshot, the working model has incorporated revised coral thermal responses, a chlorophyll-based larval-survival modifier, wave-exposure effects on settlement, and revised initial population and coral settings. Initial fast-growing coral at Lizard Island was increased by 0.04 in absolute cover. Larger increases were rejected because they left too many COTS between irruptions. The linear observation conversion remains 0.015 COTS per tow per adult per hectare; nonlinear alternatives failed regional checks. These decisions improved the working calibration without identifying a unique population mechanism [@adriacalibrationreport2026].
+
+The comparison comprises `r int(mcn("base_seeds"))` base seed pairs plus twelve one-at-a-time parameter perturbations of ±25%, giving `r int(mcn("calibration_arms_per_cull_state"))` runs in each culling state. Perturbations cover outside larval supply, background coral mortality, bleaching under low heat stress, the chlorophyll response, juvenile survival and initial fast-growing coral shares. Inner bands span the base seeds; outer bands span all runs. Neither is a probability interval, and joint parameter and structural uncertainty are not fully represented.
+
+Recorded cull totals are now distributed among sites on the same reef in proportion to simulated population counts, retaining juvenile/adult stages and pre-/post-spawning timing. Removals remain limited by the animals available. This replaces the spatial-kernel allocation in the earlier diagnostic. Calibration scoring keeps culling off; paired culling-on runs provide the overlay. Earlier unmet-removal percentages therefore do not describe the current model.
+
+The recent-density comparison (@fig-metacommunity-recent-density) shows partial agreement with diver estimates and differences among reefs. Corrected external irruption probabilities and density targets share cull and SALAD evidence, so this is a diagnostic comparison. 
+
+![**The model exceeds recent COTS densities on several reefs.** Recent adult COTS density with and without recorded culling on (**a**–**e**) five reefs, against SALAD diver estimates (black circles) and catches converted to density (black squares). The vertical axis is logarithmic. Lines are five-seed means without recorded culling (sky blue, solid) and with it (orange, dashed); bands span seeds and parameter tests as in @fig-metacommunity-cots-coral. Larval-input corrections and density targets share observations, so agreement is not independent validation.](../outputs/figures/fig23_metacommunity_recent_density.png){#fig-metacommunity-recent-density width="100%"}
+
+### Reefs outside the calibration score {.unnumbered}
+
+Five monitoring reefs in the domain were reported but not used in the calibration score (@tbl-additional-reefs, @fig-metacommunity-additional). Martin and Linnet have irruption histories. Yonge, Carter and No Name have recorded at most 0.01 COTS per tow in 26–29 surveys since 1992. Ribbon No 10 has no monitoring series and is shown for comparison.
+
+Martin and Linnet provide the more independent check, because the wave-exposure term does not act on them. The model's 1990s peaks fell in `r cpkv("Martin Reef", "1990s", "model_peak_year")` and `r cpkv("Linnet Reef", "1990s", "model_peak_year")`, against observed peaks in `r cpkv("Martin Reef", "1990s", "obs_peak_year")` and `r cpkv("Linnet Reef", "1990s", "obs_peak_year")`. Their 2010s peaks both fell in `r cpkv("Martin Reef", "2010s", "model_peak_year")`, against `r cpkv("Martin Reef", "2010s", "obs_peak_year")`. Heights were closer in the 1990s than the 2010s, when the model reached `r num(cpkv("Martin Reef", "2010s", "model_peak"), 2)` and `r num(cpkv("Linnet Reef", "2010s", "model_peak"), 2)` COTS per tow against `r num(cpkv("Martin Reef", "2010s", "obs_peak"), 2)` and `r num(cpkv("Linnet Reef", "2010s", "obs_peak"), 2)`. Against a no-model baseline, the mean observed series of the four calibration reefs, the model ordered survey years better but did not consistently identify irruption years better: on Martin it was worse at that, and on Linnet its mean absolute error was higher. Late-2026 surveys recorded 0.35 and 0.51 COTS per tow, above the model's 2026 values, in a reporting year beyond its end.
+
+The three reefs with almost no COTS were first a failed check. Before the wave term, in preregistered runs of 19 October 2026, the model produced false irruptions on all three, with peaks of 0.33–0.48 COTS per tow and five to seven years at or above 0.22 under the linear observation model. Nothing in the model separated them from irruption reefs. Their most distinctive property was ocean-swell exposure, so a settlement multiplier was added on reefs with mean wave period above 6.6 s, falling to 0.25 at 7.0 s. Those limits were taken from monitoring records on 29 domain reefs that include these three. The term removed the false irruptions with almost no change to the calibration score, but agreement on these reefs is a check of its design rather than independent validation. Wave period also marks outer-shelf position, so the term cannot separate exposure from other outer-shelf properties such as low in-water chlorophyll.
+<!-- 19 October pre-wave run: COTSMod-Calibration store/runs/20261019T_04_extra_reefs_w2_1991_v1
+(extra_reefs_audit.csv), linear detection; wave rule and thresholds: docs/decision_record.md,
+"Wave exposure: independent check" and "Preregistered: wave-exposure settlement mechanism".
+Late-2026 surveys: same audit, obs_2027_cpue_late_2026_survey. -->
+
+```{r}
+#| label: tbl-additional-reefs
+#| tbl-cap: "Model against LTMP manta records, 1992–2026, on reefs outside the calibration score, for five-seed means without culling. The baseline is the mean observed series of the four calibration reefs, with no model. MAE is mean absolute error in COTS per tow. Spearman compares the ordering of survey years; it is undefined on No Name, which recorded no COTS. TSS is the true skill statistic for years at or above 0.22 COTS per tow, undefined where no such year was observed. The wave-exposure term was designed using the three reefs with almost no COTS."
+ar_f <- function(x, d = 2) ifelse(is.finite(x), num(x, d), "—")
+knitr::kable(data.frame(Reef = car$reef,
+  `Max COTS/tow, observed / model` = sprintf("%s / %s", ar_f(car$obs_max_cpue), ar_f(car$model_max_cpue)),
+  `Years ≥0.22, observed / model` = sprintf("%d / %d", car$obs_years_irruption, car$model_years_irruption),
+  `MAE, model / baseline` = sprintf("%s / %s", ar_f(car$mae, 3), ar_f(car$baseline_mae, 3)),
+  `Spearman, model / baseline` = sprintf("%s / %s", ar_f(car$spearman), ar_f(car$baseline_spearman)),
+  `TSS, model / baseline` = sprintf("%s / %s", ar_f(car$tss), ar_f(car$baseline_tss)),
+  check.names = FALSE), row.names = FALSE, align = "llllll")
+```
+
+![**Outside its calibration, the model timed irruption peaks well but sized them poorly.** COTS per manta tow on (**a**) Martin, (**b**) Linnet, (**c**) Yonge, (**d**) Carter, (**e**) No Name and (**f**) Ribbon No 10 reefs, outside the four-reef calibration fit. Black points show LTMP manta observations (Ribbon No 10 has no LTMP series), and the dotted line marks 0.22 COTS per tow. Sky blue and orange indicate trajectories without and with recorded culling, with the range definitions of @fig-metacommunity-cots-coral.](../outputs/figures/fig24_metacommunity_additional_reefs.png){#fig-metacommunity-additional width="100%"}
+
+### Initial control projections to 2050 {.unnumbered}
+
+The completed ensemble spans `r int(mcn("climate_models"))` climate models, five seed pairs, two climate pathways, nine culling levels and two treatments of the 2026 population state. The figures use the `r int(mcn("projection_arms"))` continuous-history runs without a population reset. Historical catches apply through 2026; effort-based culling begins in 2027. “Recent effort” uses 2023–25 diver-hours on each reef. Increased effort multiplies those hours; targeted effort reallocates the same total each half-year among reefs with at least 3 adults per hectare. Density-dependent catch rates determine adult removals, capped by the available population. Vessel travel and search costs are not represented explicitly.
+
+Outside larval supply resamples historical irruption patterns and scales them by projected coral in the domain. These conditional scenarios include neither thermal acclimation nor external coral-larval supplementation. Excess simulated COTS in 2026 carry into the near-term projections. Proposed changes to the population reset, thermal acclimation scenarios and source-reef culling corrections had not yet entered the reported ensemble.
+
+Increased effort lowered near-term COTS peaks, with climate-dependent coral outcomes. Reallocation could increase domain-wide removals without providing the largest benefit at the five displayed reefs (@fig-metacommunity-projection-effects). Population and coral summaries cover those reefs, whereas removals cover the whole domain. These summaries cannot establish domain-wide coral protection or an optimal allocation; local and downstream outcomes and operational constraints need further assessment.
+
+![**More culling effort lowers near-term COTS peaks, with coral outcomes that vary among reefs and climate pathways.** (**a**) Years in irruption, 2027–2050; (**b**) peak adult density, 2027–2031; (**c**) mean coral cover, 2027–2050, averaged over Lizard Island, MacGillivray, North Direction, Eyrie and Martin; and (**d**) adult COTS removed across the whole domain, under SSP2-4.5 (black circles) and SSP3-7.0 (grey triangles). Points are medians; bars span the 10th–90th percentiles across climate models and seeds. "Recent" retains the recent allocation, "targeted" reallocates it, and multipliers scale total hours. These are model-conditional scenarios.](../outputs/figures/fig27_metacommunity_projection_effects.png){#fig-metacommunity-projection-effects width="100%"}
+
+### Planned historical and fifth-wave assessments {.unnumbered}
+
+The intended historical assessment pairs simulations with recorded removals from 2012 onward and simulations without program removals, starting from the same pre-control population and coral state and using matching environmental sequences and random seeds. Outcomes will include actual removals, infeasible requested removals, COTS abundance, larval export, cumulative coral consumption and coral cover. Holding external larval supply identical estimates the effect of control within the model domain conditional on unchanged outside reefs. A regional no-culling assessment instead requires an external supply history consistent with no control outside the domain. This experiment is a planned extension of the prescribed-removal diagnostics reported here; no completed paired program-impact estimate is asserted.
+
+Future comparisons will examine stopping when local coral protection is no longer achievable versus continuing to reduce larval export, and when to begin or intensify control on reefs whose COTS populations cannot be reduced below a local target. Reallocation within existing vessel capacity and additional capacity will be compared separately, using current control and no control as references. Feasible removals must follow population availability and an effort–catchability relationship, rather than prescribed catches alone. Each paired comparison will share climate, disturbance and random-seed sequences, and repeat across plausible population, coral, connectivity and observation assumptions. Local and downstream coral outcomes and the resources required for fifth-wave suppression will be reported together. [TO CONFIRM: final effort–catchability model, projection horizon, vessel budgets, intervention rules and climate scenarios agreed with partners.]
+
+### Limits of the population and dispersal results {.unnumbered}
+
+The metacommunity results are calibration, diagnostic comparisons and exploratory projections within one northern reef cluster. Replicated runs and checks on reefs outside the calibration score improve the assessment but do not complete regional validation. Historical peak heights and between-irruption densities depend on the assumed relationship between manta observations and true abundance. Recent cull and SALAD observations helped construct corrected irruption inputs and also assess their fit. The current calibration uses five seed pairs and parameter sensitivity tests; projections additionally span five climate models. Those ranges do not capture all structural uncertainty. In particular, excess simulated COTS in 2026 carry into the near-term projections, outside larval supply is only approximately coupled to future coral, and thermal acclimation scenarios have not yet entered the reported ensemble. No estimate of historical program impact or future coral protection should be presented as validated until these assumptions and held-out performance have been assessed.
+
+Larval connectivity has different roles in the two strands. It was not a predictor in the within-reef habitat ranking, whereas it carries population effects among reefs in the metacommunity model. The latter still uses reef-level transport and does not establish fine-scale transport among sites. Uncertainty in that transport, external larval pressure and coral disturbance must accompany any assessment of downstream control benefits.

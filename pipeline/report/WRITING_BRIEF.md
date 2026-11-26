@@ -3,6 +3,29 @@
 Read by the `marine-science-writing` skill before drafting. Update it when a
 decision changes. Items marked `[TO CONFIRM]` are for the authors to supply.
 
+## Review 15, pages 1–5 (25 November 2026)
+
+Integrated into the report; responses in `reviews/technical_report_review_15_response.md`.
+Preferences from this round, for the report:
+
+- **Summary opens with the operational stakes in program terms**: the share of
+  effort spent searching (about 10% surveillance, 20–30% low-density culling;
+  GBRMPA dashboard), then what the project did. Keep the 0.04 threshold, the
+  workflow trade-off (ghost dives avoided per miss, against random), the tow
+  saving, products, engagement and trials in the summary; leave exploration zones
+  and the habitat-only tow result to the body.
+- **Use the program's own names**: the Integrated Pest Management (IPM)
+  framework (Fletcher et al. 2020), the COTS Control Decision Support System,
+  "ghost culls", the "metapopulation model".
+- **Context states capability, not method**: "these advances make it possible
+  to…"; site counts, transport detail and Work Plan administration go to Methods
+  or appendices (the Work Plan priority sentence and register counts were cut).
+- **Confident, but inside the evidence**: the author wrote "validated" and
+  "significantly"; the text keeps "tested" and "substantially", because the replay
+  is retrospective and no significance test applies. Flag such changes in the
+  response note rather than silently overriding.
+- The summary limit (360) is checked on rendered words, including citations.
+
 ## Voice and figure-style pass (20 November 2026)
 
 Both documents were run through the updated skills: `references/voice.md` of
@@ -721,3 +744,32 @@ from script 38's tables. The deployed RG + year model has its own tuned settings
 (depth 12); held-out refits reused the clean + year settings. Do not describe both
 models as sharing one set of hyperparameters.
 
+
+### Review 16: habitat, density and population-model Methods — 25 November 2026
+
+Review 16 (author comments on the Summary, Context and Methods) is integrated; see
+`reviews/technical_report_review_16_response.md`. Review 17 is the next feedback copy.
+Methods now explain how the habitat models were fitted and tested, why the 2027
+classes are density-aware (low-density reefs get fewer A sites), how reefs without
+recent dives or tows take their density from the Stewart et al. reef forecast, and
+the population model's mechanisms with their literature (Methods table of
+mechanisms). The connectivity method sits in Methods, not Appendix E.
+
+Author preferences seen in this round: cut defensive caveats from captions and the
+Summary (keep them once, in a limitations paragraph); name software by its
+repository (ReefGuide.jl, COTSMod.jl, ADRIA.jl, CoralBlox.jl) rather than leaving
+"open-AIMS" as the visible citation; describe Malu Ventures as Traditional
+Owner-led contractors; trials are planned aboard BPM in Cairns only. Low-density
+culling is 20–40% of effort (GBRMPA 2026; D. Williamson pers. comm.).
+
+### Review 17: workflow back-test as the main search result — 26 November 2026
+
+Review 17 is integrated; see `reviews/technical_report_review_17_response.md`. Review
+18 is the next feedback copy. Decisions: call the workflow analysis a "back-test"
+(never "replay"); present the workflow back-test, not the site-selection test, in
+Results (site selection lives in Appendix C); drop "v2" from the main text (say
+"density-aware classes"; Appendix D keeps v1/v2); name the culled-run colour
+"orange"; trials run 6–10 January 2027 aboard BPM in Cairns; Isobel Ryan (GBRMPA) is an
+author. A Results placeholder awaits the connectivity network (pathways and clusters)
+and its figure. Report model-skill scores alongside what they penalise (a peak shifted
+by a year counts as a miss and a false alarm), rather than as a bare verdict.

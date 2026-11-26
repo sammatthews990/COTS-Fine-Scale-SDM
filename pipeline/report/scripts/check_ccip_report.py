@@ -25,7 +25,7 @@ def main(a):
      assert actual is not None,(sid,path,'missing')
      for k,v in expected.attrib.items():assert actual.get(k)==v,(sid,path,k,v,actual.get(k))
   alltext='\n'.join(ptext(p) for p in doc.findall('.//w:p',N))
-  for phrase in ['Integrative fine-scale habitat suitability and metapopulation modelling for targeted Crown-of-Thorns Starfish management','Engagement with Rights-holders and Management Stakeholders','Data Accessibility','5 November 2026','January–February 2027']:
+  for phrase in ['Integrative fine-scale habitat suitability and metapopulation modelling for targeted Crown-of-Thorns Starfish management','Engagement with Rights-holders and Management Stakeholders','Data Accessibility','5 November 2026','6–10 January 2027']:
    assert phrase.casefold() in alltext.casefold(),phrase
   for phrase in ['Length guidance:','This is the Heading 2 style','Use this section as a quick reference','Report title: report subtitle as needed']:
    assert phrase not in alltext,phrase
@@ -72,7 +72,7 @@ def main(a):
  assert conclusions<=300,('Conclusions exceed template limit',conclusions)
  results=body('# Results','# Discussion & Outputs')
  displays=len(re.findall(r'(?m)^!\[',results))+results.count('#| label: tbl-')
- assert 2<=displays<=4,('Results display count',displays)
+ assert 2<=displays<=5,('Results display count',displays)  # author allowed a fifth (review 18)
  methods=body('# Methods','# Results');mfig=len(re.findall(r'(?m)^!\[',methods))
  assert 1<=mfig<=3,('Methods figure count',mfig)
  pages=json.loads(a.page_map.read_text(encoding='utf-8-sig'))
